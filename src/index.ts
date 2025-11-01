@@ -1,6 +1,7 @@
 /** Export all public APIs */
 export { captureCommand } from "./commands/capture.js";
 export {
+  getPackageName,
   getStorageDir,
   getStorageFilename,
   saveToStorage,

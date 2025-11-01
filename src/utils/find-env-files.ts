@@ -72,7 +72,7 @@ function parseGitignore(repoRoot: string): string[] {
     }
 
     return patterns;
-  } catch (error) {
+  } catch {
     /** If reading .gitignore fails, return empty array */
     return [];
   }

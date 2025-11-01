@@ -1,6 +1,8 @@
 import { consola } from "consola";
+import enquirer from "enquirer";
 import { join } from "node:path";
 import {
+  getPackageName,
   getStorageDir,
   getStorageFilename,
   saveToStorage,
@@ -11,6 +13,8 @@ import {
   getErrorMessage,
   parseEnvFile,
 } from "../utils/index.js";
+
+const { prompt } = enquirer;
 
 /**
  * Execute the capture command
@@ -29,6 +33,32 @@ export async function captureCommand(): Promise<void> {
     }
 
     consola.info(`Repository root: ${repoRoot}`);
+
+    /** Check for package.json and warn if missing */
+    const packageName = getPackageName(repoRoot);
+    if (!packageName) {
+      consola.warn(
+        "No package.json found or no 'name' field in manifest. Using folder name instead.",
+      );
+      consola.info(
+        "This may cause naming conflicts with similarly named folders.",
+      );
+      consola.info(
+        "Consider adding a 'name' field to package.json for unique identification.",
+      );
+
+      const { proceed } = await prompt<{ proceed: boolean }>({
+        type: "confirm",
+        name: "proceed",
+        message: "Continue with folder name?",
+        initial: true,
+      });
+
+      if (!proceed) {
+        consola.info("Operation cancelled.");
+        process.exit(0);
+      }
+    }
 
     /** Find all env files */
     consola.start("Searching for .env files...");
@@ -55,13 +85,19 @@ export async function captureCommand(): Promise<void> {
 
     /** Save to storage */
     consola.start("Saving to storage...");
-    saveToStorage(repoRoot, envFiles);
+    saveToStorage(repoRoot, envFiles, packageName);
 
     const storageDir = getStorageDir();
-    const filename = getStorageFilename(repoRoot);
+    const filename = getStorageFilename(repoRoot, packageName);
     const storagePath = join(storageDir, filename);
 
-    consola.success(`Captured environment files to: ${storagePath}`);
+    if (packageName) {
+      consola.success(
+        `Captured environment files for '${packageName}' to: ${storagePath}`,
+      );
+    } else {
+      consola.success(`Captured environment files to: ${storagePath}`);
+    }
   } catch (error) {
     consola.error(getErrorMessage(error));
     process.exit(1);
