@@ -57,5 +57,10 @@
     "fast-glob": "^3.3.3",
     "ignore": "^7.0.5",
     "maml.js": "^0.0.3"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-jsdoc"
+    ]
   }
 }
