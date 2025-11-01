@@ -41,6 +41,9 @@
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "devDependencies": {
     "@codecompose/typescript-config": "^2.2.0",
     "@types/node": "latest",
@@ -56,7 +59,6 @@
     "consola": "^3.4.2",
     "enquirer": "latest",
     "fast-glob": "^3.3.3",
-    "ignore": "^7.0.5",
     "maml.js": "^0.0.3"
   },
   "prettier": {

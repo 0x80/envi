@@ -17,9 +17,6 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
-      ignore:
-        specifier: ^7.0.5
-        version: 7.0.5
       maml.js:
         specifier: ^0.0.3
         version: 0.0.3
@@ -731,10 +728,6 @@ packages:
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
-
-  ignore@7.0.5:
-    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
-    engines: {node: '>= 4'}
 
   is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
@@ -1629,8 +1622,6 @@ snapshots:
       is-glob: 4.0.3
 
   hookable@5.5.3: {}
-
-  ignore@7.0.5: {}
 
   is-extglob@2.1.1: {}
 
