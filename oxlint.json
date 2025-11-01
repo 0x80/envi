@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "typescript": "warn",
+    "import": "warn",
+    "eslint": "warn"
+  },
+  "ignore": ["node_modules", "dist", "coverage"]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "@codecompose/envi",
+  "version": "1.0.0",
+  "description": "Envi makes it easy to capture all env files from a codebase in a central location that can be version controlled, and restored for new checkouts and spawning git worktree instances.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "envi": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "env",
+    "environment",
+    "dotenv",
+    "config",
+    "cli",
+    "tool"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@types/node": "latest",
+    "@vitest/ui": "latest",
+    "oxlint": "latest",
+    "prettier": "latest",
+    "prettier-plugin-jsdoc": "^1.5.0",
+    "tsdown": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "dependencies": {
+    "enquirer": "latest"
+  }
+}
