@@ -13,7 +13,9 @@
       "mcp__chrome-devtools__list_network_requests",
       "mcp__chrome-devtools__evaluate_script",
       "Bash(pnpm remove:*)",
-      "mcp__chrome-devtools__click"
+      "mcp__chrome-devtools__click",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

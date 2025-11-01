@@ -6,6 +6,8 @@ import { disableCommand as globalGithubDisable } from "~/commands/global/github/
 import { enableCommand as globalGithubEnable } from "~/commands/global/github/enable";
 import { restoreCommand as globalGithubRestore } from "~/commands/global/github/restore";
 import { restoreCommand } from "~/commands/restore";
+import { packCommand } from "~/commands/pack";
+import { unpackCommand } from "~/commands/unpack";
 
 /** Capture command */
 const capture = defineCommand({
@@ -26,6 +28,35 @@ const restore = defineCommand({
   },
   async run() {
     await restoreCommand();
+  },
+});
+
+/** Pack command */
+const pack = defineCommand({
+  meta: {
+    name: "pack",
+    description: "Create encrypted blob from stored configuration for sharing",
+  },
+  async run() {
+    await packCommand();
+  },
+});
+
+/** Unpack command */
+const unpack = defineCommand({
+  meta: {
+    name: "unpack",
+    description: "Decrypt and restore configuration from blob (reads from clipboard if not provided)",
+  },
+  args: {
+    blob: {
+      type: "positional",
+      description: "Encrypted blob to unpack (optional - reads from clipboard if not provided)",
+      required: false,
+    },
+  },
+  async run({ args }) {
+    await unpackCommand(args.blob as string | undefined);
   },
 });
 
@@ -96,6 +127,8 @@ const main = defineCommand({
   subCommands: {
     capture,
     restore,
+    pack,
+    unpack,
     global,
   },
 });

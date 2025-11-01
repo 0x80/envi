@@ -94,7 +94,7 @@ In order to encrypt the data, we will generate an encryption key from the conten
 
 This makes it pretty safe to expose the blob somewhere public or in a semi-private place with a stored history, like Slack, as long as bad-actors have no way of knowing what codebase the blob is associated with.
 
-The start and ending of the blob should be delimited with `__envi_start__` and `__envi_end__`. No newline characters need to be used in the blob, so it can be more easily copy/pasted in most situations.
+The start and ending of the blob should be delimited with `__envi_start__` and `__envi_end__`, both on their own line, with the blob data as a single line in between.
 
 The encryption can by default use the manifest content to define a key, but this means the blob can not be stored as a historical reference. We should allow the user to pass in their own secret, which can then be shared amongst colleagues, so that blobs could be unpacked regardless the state of the manifest at that point. This could be `envi pack —secret [secret_string]` in combination with `envi unpack —secret [secret_string]`
 

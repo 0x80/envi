@@ -24,12 +24,15 @@ export default defineConfig({
         items: [
           { text: "capture", link: "/commands/capture" },
           { text: "restore", link: "/commands/restore" },
+          { text: "pack", link: "/commands/pack" },
+          { text: "unpack", link: "/commands/unpack" },
           { text: "global", link: "/commands/global" },
         ],
       },
       {
         text: "Guides",
         items: [
+          { text: "Sharing Configurations", link: "/guides/sharing-configs" },
           { text: "GitHub Integration", link: "/guides/github-integration" },
           { text: "Using with Monorepos", link: "/guides/monorepo" },
         ],

@@ -18,6 +18,7 @@ export {
   repoExists,
 } from "./github-cli";
 export {
+  ensureStorageDir,
   getEnviDir,
   getPackageName,
   getStorageDir,
