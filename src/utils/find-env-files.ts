@@ -1,5 +1,4 @@
 import fg from "fast-glob";
-import ignore from "ignore";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -18,10 +17,13 @@ const DEFAULT_IGNORE_PATTERNS = [
 ];
 
 /**
- * Parse .gitignore file and return ignore patterns
+ * Parse .gitignore file and return directory ignore patterns
+ *
+ * Only returns directory patterns, not file patterns, since we want to find env
+ * files even if they're in .gitignore
  *
  * @param repoRoot - Absolute path to repository root
- * @returns Array of ignore patterns from .gitignore
+ * @returns Array of directory ignore patterns from .gitignore
  */
 function parseGitignore(repoRoot: string): string[] {
   const gitignorePath = join(repoRoot, ".gitignore");
@@ -32,9 +34,6 @@ function parseGitignore(repoRoot: string): string[] {
 
   try {
     const gitignoreContent = readFileSync(gitignorePath, "utf-8");
-    const ig = ignore().add(gitignoreContent);
-
-    /** Convert ignore patterns to glob patterns */
     const lines = gitignoreContent.split("\n");
     const patterns: string[] = [];
 
@@ -43,6 +42,14 @@ function parseGitignore(repoRoot: string): string[] {
 
       /** Skip empty lines and comments */
       if (trimmed === "" || trimmed.startsWith("#")) {
+        continue;
+      }
+
+      /**
+       * Skip file patterns (containing dots like .env or .env.*) We only want
+       * directory patterns to avoid searching in ignored directories
+       */
+      if (trimmed.includes(".")) {
         continue;
       }
 
@@ -57,7 +64,7 @@ function parseGitignore(repoRoot: string): string[] {
       }
 
       /** Ensure directory patterns have /** */
-      if (!pattern.endsWith("/**") && !pattern.includes(".")) {
+      if (!pattern.endsWith("/**")) {
         pattern = `${pattern}/**`;
       }
 
