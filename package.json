@@ -18,6 +18,7 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "pnpm build",
     "build": "tsdown",
     "dev": "tsdown --watch",
     "test": "vitest",
@@ -26,8 +27,8 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "check-format": "prettier --check .",
+    "check-types": "tsc --noEmit"
   },
   "keywords": [
     "env",
@@ -41,6 +42,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.12.1",
   "devDependencies": {
+    "@codecompose/typescript-config": "^2.2.0",
     "@types/node": "latest",
     "@vitest/ui": "latest",
     "oxlint": "latest",
@@ -53,6 +55,7 @@
   "dependencies": {
     "enquirer": "latest",
     "fast-glob": "^3.3.3",
+    "ignore": "^7.0.5",
     "maml.js": "^0.0.3"
   }
 }

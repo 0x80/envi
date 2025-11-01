@@ -40,8 +40,8 @@ pnpm test:coverage     # Run tests with coverage
 pnpm lint              # Run linter
 pnpm lint:fix          # Run linter and fix issues
 pnpm format            # Format code with Prettier
-pnpm format:check      # Check if code is formatted
-pnpm typecheck         # Run TypeScript type checking
+pnpm check-format      # Check if code is formatted
+pnpm check-types       # Run TypeScript type checking
 ```
 
 ## License

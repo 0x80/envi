@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { join, basename } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { stringify } from "maml.js";
-import type { EnvObject } from "./parse-env-file.js";
+import type { EnvObject } from "../utils/parse-env-file.js";
 
 /** MAML file structure for storing env configurations */
 export interface EnviStore {

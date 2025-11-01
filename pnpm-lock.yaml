@@ -14,10 +14,16 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      ignore:
+        specifier: ^7.0.5
+        version: 7.0.5
       maml.js:
         specifier: ^0.0.3
         version: 0.0.3
     devDependencies:
+      '@codecompose/typescript-config':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@types/node':
         specifier: latest
         version: 24.9.2
@@ -65,6 +71,9 @@ packages:
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
+
+  '@codecompose/typescript-config@2.2.0':
+    resolution: {integrity: sha512-AurKcdDkbBAHIjDkr3u/DWrW9aCn87gCFdM7AWgwyn7nbwg+JPWru1FyDSGnRMnn9U8l0VAVbKO2lJTpN+JDVA==}
 
   '@emnapi/core@1.6.0':
     resolution: {integrity: sha512-zq/ay+9fNIJJtJiZxdTnXS20PllcYMX3OE23ESc4HK/bdYu3cOWYVhsOhVnXALfU/uqJIxn5NBPd9z4v+SfoSg==}
@@ -716,6 +725,10 @@ packages:
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
 
+  ignore@7.0.5:
+    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
+    engines: {node: '>= 4'}
+
   is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
     engines: {node: '>=0.10.0'}
@@ -1118,6 +1131,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@codecompose/typescript-config@2.2.0': {}
 
   '@emnapi/core@1.6.0':
     dependencies:
@@ -1605,6 +1620,8 @@ snapshots:
       is-glob: 4.0.3
 
   hookable@5.5.3: {}
+
+  ignore@7.0.5: {}
 
   is-extglob@2.1.1: {}
 
