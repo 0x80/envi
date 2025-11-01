@@ -15,20 +15,20 @@ Envi allows you to securely share environment configurations with colleagues thr
 
 **Sender (creating the blob):**
 ```bash
-# Capture your env files first (if not already done)
-envi capture
-
-# Create encrypted blob (automatically copied to clipboard)
+# Pack reads .env files directly from your repository
+# No need to capture first!
 envi pack
+# Blob is automatically copied to clipboard
 ```
 
 **Receiver (using the blob):**
 ```bash
 # Copy the blob from chat/email and run (reads from clipboard automatically)
 envi unpack
+# Files are restored directly to your repository
 ```
 
-> **Note:** The pack and unpack features work independently of capture and restore. You don't need to capture files to share them - if they're already in your global storage (`~/.envi/store/`), you can pack them directly. Similarly, you can unpack a blob and restore files without having captured anything locally before.
+> **Note:** Pack and unpack work **completely independently** of capture and restore. Pack reads environment files directly from your repository and creates an encrypted blob. Unpack decrypts the blob and restores files directly to your repository. No global storage needed!
 
 ## How It Works
 
@@ -260,13 +260,12 @@ When everyone needs updated environment variables:
 
 ```bash
 # Team member with updated config
-envi capture
 envi pack
 # Blob is now on clipboard - paste into team Slack channel
 
 # Team members copy blob and run
 envi unpack
-# Automatically reads from clipboard
+# Automatically reads from clipboard and restores files
 ```
 
 ### Code Review Setup
@@ -384,7 +383,6 @@ A critical env variable is missing for the team:
 ```bash
 # Developer A fixes locally
 # Edit .env with correct value
-envi capture
 
 # Share fix immediately
 envi pack
@@ -392,6 +390,7 @@ envi pack
 
 # Team members copy blob and apply fix
 envi unpack
+# Files are restored directly
 ```
 
 ### Scenario 2: Multi-Project Setup

@@ -30,11 +30,11 @@ You can pass the blob as:
 
 ## Description
 
-The `unpack` command decrypts an encrypted blob (from clipboard or argument) and interactively:
-1. Prompts to save the configuration to your global storage
-2. Prompts to restore the environment files to your repository
+The `unpack` command decrypts an encrypted blob (from clipboard or argument) and:
+1. **First** prompts to restore the environment files directly to your repository
+2. **Then** optionally prompts to save to your global storage (`~/.envi/store/`)
 
-> **Note:** Unpack works independently of the restore feature. You can unpack a blob without having any environment files captured locally. The unpacked configuration can be saved to storage and/or restored directly to your repository.
+> **Note:** Unpack works completely independently of capture and storage. It decrypts the blob and restores files directly to your repository - no need to use global storage at all! Saving to storage is optional and only useful if you want to use `envi restore` later.
 
 ### Clipboard Feature
 
@@ -80,20 +80,15 @@ Found package.json - attempting decryption
 ✔ Validating configuration...
 Found 3 file(s) in blob
 
-? Save this configuration to global storage? › (Y/n)
-✔ Saving to storage...
-Saved configuration to: ~/.envi/store/myapp.maml
+? Restore environment files to this repository? › (Y/n)
 
-? Restore environment files to this repository now? › (Y/n)
-✔ Finding repository root...
-Repository root: /Users/you/projects/myapp
-✔ Found stored configuration
-Found 3 file(s) to restore
 ✔ Restore complete!
 Restored 3 file(s):
   ✓ .env
   ✓ .env.local
   ✓ apps/api/.env
+
+? Save these environment files to global storage? › (y/N)
 
 ✔ Unpack complete!
 ```
@@ -135,17 +130,25 @@ No package.json found - this is expected for non-JavaScript/TypeScript projects
 ✔ Validating configuration...
 Found 3 file(s) in blob
 
-? Save this configuration to global storage? › (Y/n)
-? Restore environment files to this repository now? › (Y/n)
-...
+? Restore environment files to this repository? › (Y/n)
+
+✔ Restore complete!
+Restored 3 file(s):
+  ✓ .env
+  ✓ .env.test
+  ✓ config/.env.local
+
+? Save these environment files to global storage? › (y/N)
+
+✔ Unpack complete!
 ```
 
 ### Declining Prompts
 
 You can decline any of the interactive prompts:
 
-- Decline saving: The configuration won't be saved to storage, but you can still restore it
-- Decline restoring: The configuration is saved to storage but files aren't written yet (run `envi restore` later)
+- Decline restoring: The files won't be written to your repository (you can still save to storage if you want)
+- Decline saving to storage: The files are restored to your repository but not saved to `~/.envi/store/` (most common - storage is optional!)
 
 ## How It Works
 
@@ -157,8 +160,8 @@ You can decline any of the interactive prompts:
    - If decryption fails or no `package.json`: Prompts for custom secret
 5. **Decrypts data** - Uses AES-256-GCM decryption
 6. **Validates configuration** - Ensures decrypted data is valid envi format
-7. **Prompts to save** - Asks if you want to save to `~/.envi/store/`
-8. **Prompts to restore** - Asks if you want to write environment files to repository
+7. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
+8. **Optionally saves to storage** - Asks if you also want to save to `~/.envi/store/` (defaults to No)
 
 ## Error Handling
 

@@ -92,15 +92,13 @@ Restore them later:
 envi restore
 ```
 
-## Why Envi?
+## Notable Features
 
-Managing environment files across multiple projects, git worktrees, and team members is challenging. Envi solves this by:
-
-- **Capturing** all your `.env` files into a centralized, version-controlled store
-- **Organizing** files by package name (supports scoped packages like `@org/package`)
-- **Preserving** comments and formatting from your original files
-- **Integrating** with GitHub for automatic version control
-- **Storing** in human-readable [MAML](https://maml.dev) format
+- **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by package name (supports scoped packages like `@org/package`)
+- **Encrypted Blob Sharing** - Share environment configs with colleagues via encrypted blobs - works independently of global storage, reads directly from your repository
+- **GitHub Integration** - Optional automatic version control for your environment configurations
+- **Comment Preservation** - Preserves both full-line and inline comments from your original files
+- **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format for easy inspection and editing
 
 ## What's Next?
 

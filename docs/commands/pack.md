@@ -10,9 +10,9 @@ envi pack
 
 ## Description
 
-The `pack` command creates an encrypted blob containing your stored environment configuration and **automatically copies it to your clipboard**. This blob can be safely shared with colleagues through communication channels like Slack, email, or messaging platforms.
+The `pack` command finds all `.env` files in your repository, encrypts them, and **automatically copies the encrypted blob to your clipboard**. This blob can be safely shared with colleagues through communication channels like Slack, email, or messaging platforms.
 
-> **Note:** Pack works independently of the capture feature. You can pack and share environment files that are already in your global storage (`~/.envi/store/`), even if they weren't captured in the current session.
+> **Note:** Pack works completely independently of capture and global storage. It reads environment files directly from your repository and creates an encrypted blob - no capture needed!
 
 ### Encryption Methods
 
@@ -41,7 +41,9 @@ Output:
 ```
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
-✔ Reading stored configuration...
+✔ Searching for .env files...
+✔ Found 3 file(s) to pack
+✔ Reading environment files...
 Using package.json for encryption key
 ⚠ Note: Only colleagues with the same package.json can decrypt this blob
 ✔ Encrypting configuration...
@@ -67,7 +69,9 @@ Interactive flow:
 ```
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
-✔ Reading stored configuration...
+✔ Searching for .env files...
+✔ Found 2 file(s) to pack
+✔ Reading environment files...
 ⚠ No package.json found in repository root
 This is expected for non-JavaScript/TypeScript projects.
 You'll need to provide a secret for encryption.
@@ -88,14 +92,16 @@ The blob is automatically copied to your clipboard. Share both the blob (paste f
 
 ## How It Works
 
-1. **Reads stored configuration** - Loads your environment configuration from `~/.envi/store/`
-2. **Detects project type** - Checks for `package.json` in repository root
-3. **Generates encryption key**:
+1. **Finds repository root** - Locates your project's git repository
+2. **Searches for .env files** - Finds all `.env` and `.env.*` files in your repository
+3. **Reads environment files** - Parses each file, preserving comments and structure
+4. **Detects project type** - Checks for `package.json` in repository root
+5. **Generates encryption key**:
    - If `package.json` exists: Uses its contents to generate the key
    - If no `package.json`: Prompts for a custom secret (minimum 8 characters)
-4. **Encrypts data** - Uses AES-256-GCM encryption with authentication
-5. **Formats blob** - Wraps encrypted data in `__envi_start__` and `__envi_end__` delimiters
-6. **Copies to clipboard** - Automatically copies the blob to your system clipboard for easy sharing
+6. **Encrypts data** - Uses AES-256-GCM encryption with authentication
+7. **Formats blob** - Wraps encrypted data in `__envi_start__` and `__envi_end__` delimiters
+8. **Copies to clipboard** - Automatically copies the blob to your system clipboard for easy sharing
 
 ## Clipboard Feature
 
