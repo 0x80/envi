@@ -41,8 +41,16 @@
     "cli",
     "tool"
   ],
-  "author": "",
+  "author": "Thijs Koerselman",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codecompose/envi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codecompose/envi/issues"
+  },
+  "homepage": "https://envi.codecompose.dev",
   "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=20.0.0"

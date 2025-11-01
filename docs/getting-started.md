@@ -4,7 +4,11 @@ Get up and running with Envi in minutes.
 
 ## Installation
 
-Install Envi globally using your preferred package manager:
+Envi can be installed either globally or as a development dependency in your project.
+
+### Global Installation (Recommended)
+
+Install globally to use `envi` across all your projects:
 
 ::: code-group
 
@@ -21,6 +25,47 @@ yarn global add @codecompose/envi
 ```
 
 :::
+
+### Project Development Dependency
+
+Alternatively, install as a dev dependency within a specific project:
+
+::: code-group
+
+```bash [pnpm]
+pnpm add -D @codecompose/envi
+```
+
+```bash [npm]
+npm install --save-dev @codecompose/envi
+```
+
+```bash [yarn]
+yarn add -D @codecompose/envi
+```
+
+:::
+
+When installed as a dev dependency, run commands using:
+
+```bash
+# Using npx
+npx envi capture
+
+# Using pnpm
+pnpm envi capture
+
+# Using yarn
+yarn envi capture
+
+# Or add to package.json scripts
+{
+  "scripts": {
+    "env:capture": "envi capture",
+    "env:restore": "envi restore"
+  }
+}
+```
 
 ## Requirements
 

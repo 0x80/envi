@@ -4,6 +4,7 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 
 [![NPM Version](https://img.shields.io/npm/v/@codecompose/envi)](https://www.npmjs.com/package/@codecompose/envi)
 [![License](https://img.shields.io/npm/l/@codecompose/envi)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-envi.codecompose.dev-blue)](https://envi.codecompose.dev)
 
 ## Features
 
@@ -28,9 +29,17 @@ envi capture
 envi restore
 ```
 
+**[→ Full Installation Guide](https://envi.codecompose.dev/getting-started)**
+
 ## Documentation
 
-Full documentation available at [https://codecompose.github.io/envi](https://codecompose.github.io/envi)
+Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete documentation including:
+
+- **[Getting Started](https://envi.codecompose.dev/getting-started)** - Installation and basic usage
+- **[Commands](https://envi.codecompose.dev/commands/capture)** - Detailed command documentation
+- **[GitHub Integration](https://envi.codecompose.dev/guides/github-integration)** - Set up automatic version control
+- **[Monorepo Support](https://envi.codecompose.dev/guides/monorepo)** - Working with monorepos
+- **[API Reference](https://envi.codecompose.dev/api-reference)** - Programmatic usage
 
 ## Commands
 
@@ -40,7 +49,7 @@ Full documentation available at [https://codecompose.github.io/envi](https://cod
 - `envi global github disable` - Disable GitHub version control
 - `envi global github restore` - Restore envi store from GitHub
 
-Run any command with `--help` for more information.
+Run any command with `--help` for more information or see the **[Commands documentation](https://envi.codecompose.dev/commands/capture)**.
 
 ## Development
 

@@ -69,10 +69,14 @@ features:
 
 ## Quick Start
 
-Install Envi globally:
+Install Envi globally or as a dev dependency:
 
 ```bash
+# Global installation (recommended)
 pnpm add -g @codecompose/envi
+
+# Or as dev dependency
+pnpm add -D @codecompose/envi
 ```
 
 Capture environment files from your project:
