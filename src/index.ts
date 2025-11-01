@@ -1,5 +1,12 @@
-/** Main entry point for the envi CLI */
-export async function main(): Promise<void> {
-  console.log("Envi CLI - Environment file management tool");
-  /** TODO: Implement CLI commands */
-}
+/** Export all public APIs */
+export { captureCommand } from "./commands/capture.js";
+export { findEnvFiles } from "./utils/find-env-files.js";
+export { findRepoRoot } from "./utils/find-repo-root.js";
+export { parseEnvFile } from "./utils/parse-env-file.js";
+export type { EnvObject } from "./utils/parse-env-file.js";
+export {
+  getStorageDir,
+  getStorageFilename,
+  saveToStorage,
+} from "./utils/storage.js";
+export type { EnviStore } from "./utils/storage.js";

@@ -1,5 +1,7 @@
 # Envi
 
+> 🚨 **This project is a work in progress. It is not ready for consumption yet.**
+
 Envi makes it easy to capture all env files from a codebase in a central
 location that can be version controlled, and restored for new checkouts and
 spawning git worktree instances.

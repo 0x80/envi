@@ -21,7 +21,7 @@ The data is stored in [MAML](https://maml.dev/spec/v0.1) format, because it is s
 
 ### File Format
 
-Each file in `envy-store` has the following format
+Each file in `store` has the following format
 
 ```maml
 {
@@ -53,7 +53,7 @@ Each file in `envy-store` has the following format
 
 - Env configurations are captured by executing `envi capture`. This will traverse the current directory subfolders looking for env files, and compiles a file with the same name as the current working directory foldername. So in the root of monorepo "myproject" the resulting file will be stored as `myproject.maml`. We will assume that you will never have two projects with the same folder name that you use `envi` for, otherwise one would overwrite the stored env values of the other.
 - Targeted files are expected to start with `.env`and have a second dot `.env.*` when other names are used, but these glob patterns could be made configurable later.
-- Envi will use a folder global on the user’s computer to store a file with combined env contents for every repositories that it was used in. This location for MacOS can be `~/.envi/envi-store`. Windows and Linux should use similar (hidden) folders in the users’s root directory. When running `envi location`it should print the location of the repository that envi uses to store its data.
+- Envi will use a folder global on the user’s computer to store a file with combined env contents for every repositories that it was used in. This location for MacOS can be `~/.envi/store`. Windows and Linux should use similar (hidden) folders in the users’s root directory. When running `envi location`it should print the location of the repository that envi uses to store its data.
 - When executing, you typically want `envi` to only run from the (mono)repo root, to prevent the user from accidentally traversing non-code folders. Envi should check if `.git` or other common version control files exist in the CWD, before attempting to capture the files. If it was not determined that CWD is the root of a codebase, we should first traverse up the folder structure, to see if we can find the root there. This allows the user to execute in a subfolder of a monorepo, and still have things work correctly. When none of the parent folders appear to be the root of a codebase, we should prompt the user to ask if they want to execute the command in the current directory (with the answer defaulting to "No").
 
 ### Restore
@@ -92,17 +92,18 @@ When running `envi pack` in a codebase, we want to bundle all output of that cod
 
 In order to encrypt the data, we will generate an encryption key from the contents of the package.json manifest in the repository. Then, only another user could unpack it on the same codebase (assuming no dependencies or other manifest content has been altered between both user’s branches).
 
-This makes it pretty safe to expose the blob somewhere public or in a semi-private place with a stored history, like Slack, as long as bad-actors have no way of knowing what codebase the blob is accociated with.
+This makes it pretty safe to expose the blob somewhere public or in a semi-private place with a stored history, like Slack, as long as bad-actors have no way of knowing what codebase the blob is associated with.
 
 The start and ending of the blob should be delimited with `__envi_start__` and `__envi_end__`. No newline characters need to be used in the blob, so it can be more easily copy/pasted in most situations.
 
-The encryption can by default use the manifest content to define a key, but this means the blob can not be stored as a historical reference. We should allow the user to pass in their own secret, which can then be shared amoungst colleagues, so that blobs could be unpacked regardless the state of the manifest at that point. This could be `envi pack —secret [secret_string]` in combination with `envi unpack —secret [secret_string]`
+The encryption can by default use the manifest content to define a key, but this means the blob can not be stored as a historical reference. We should allow the user to pass in their own secret, which can then be shared amongst colleagues, so that blobs could be unpacked regardless the state of the manifest at that point. This could be `envi pack —secret [secret_string]` in combination with `envi unpack —secret [secret_string]`
 
-After unpacking the blob, we check if the output is a valid TOML with `__envi_version` at the top.
+After unpacking the blob, we check if the output is a valid MAML with `__envi_version` at the top.
 
 ## AI Agent Instructions
 
 - Use PNPM to manage dependencies, and always install the latest dependencies.
+- All files and folders should use kebab-case.
 - Use [enquirer](https://github.com/enquirer/enquirer) for commandline interaction
 - Name the package `@codecompose/envi`
 - Use tsdown to build and bundle the code

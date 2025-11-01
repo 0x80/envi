@@ -51,6 +51,8 @@
     "vitest": "latest"
   },
   "dependencies": {
-    "enquirer": "latest"
+    "enquirer": "latest",
+    "fast-glob": "^3.3.3",
+    "maml.js": "^0.0.3"
   }
 }
