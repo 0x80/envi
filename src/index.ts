@@ -2,8 +2,10 @@
 export { captureCommand } from "./commands/capture.js";
 export { globalDisableGithubCommand } from "./commands/global-disable-github.js";
 export { globalEnableGithubCommand } from "./commands/global-enable-github.js";
+export { globalRestoreGithubCommand } from "./commands/global-restore-github.js";
 export {
   addRemote,
+  cloneRepo,
   commitAndPush,
   createInitialCommit,
   createPrivateRepo,
@@ -19,6 +21,7 @@ export {
   isGhInstalled,
   isGitRepo,
   readConfig,
+  repoExists,
   saveToStorage,
   updateConfig,
   writeConfig,

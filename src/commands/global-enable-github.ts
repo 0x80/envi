@@ -1,12 +1,11 @@
 import { consola } from "consola";
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   createInitialCommit,
   createPrivateRepo,
   getEnviDir,
   getGhUsername,
-  getStorageDir,
   initGitRepo,
   isGhAuthenticated,
   isGhInstalled,

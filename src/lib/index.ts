@@ -15,10 +15,12 @@ export {
   isGitRepo,
 } from "./git.js";
 export {
+  cloneRepo,
   createPrivateRepo,
   getGhUsername,
   isGhAuthenticated,
   isGhInstalled,
+  repoExists,
 } from "./github-cli.js";
 export {
   getEnviDir,

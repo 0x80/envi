@@ -4,6 +4,7 @@ import { consola } from "consola";
 import { captureCommand } from "./commands/capture.js";
 import { globalDisableGithubCommand } from "./commands/global-disable-github.js";
 import { globalEnableGithubCommand } from "./commands/global-enable-github.js";
+import { globalRestoreGithubCommand } from "./commands/global-restore-github.js";
 
 /** Parse command line arguments */
 const args = process.argv.slice(2);
@@ -35,6 +36,16 @@ async function main(): Promise<void> {
         }
         break;
 
+      case "restore":
+        /** Check third argument for restore type */
+        if (args[2] === "github") {
+          await globalRestoreGithubCommand();
+        } else {
+          consola.error("Unknown restore option. Available: github");
+          process.exit(1);
+        }
+        break;
+
       default:
         consola.error(`Unknown global command: ${subcommand}`);
         consola.info("Available global commands:");
@@ -43,6 +54,9 @@ async function main(): Promise<void> {
         );
         consola.info(
           "  envi global disable github    Disable GitHub version control",
+        );
+        consola.info(
+          "  envi global restore github    Restore envi store from GitHub",
         );
         process.exit(1);
     }
@@ -67,6 +81,9 @@ async function main(): Promise<void> {
       );
       consola.log(
         "  envi global disable github    Disable GitHub version control",
+      );
+      consola.log(
+        "  envi global restore github    Restore envi store from GitHub",
       );
       consola.log(
         "\nFor more information, visit: https://github.com/codecompose/envi",

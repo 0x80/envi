@@ -39,6 +39,22 @@ export async function getGhUsername(): Promise<string> {
 }
 
 /**
+ * Check if a GitHub repository exists for the authenticated user
+ *
+ * @param name - Repository name
+ * @returns True if repository exists
+ */
+export async function repoExists(name: string): Promise<boolean> {
+  try {
+    const username = await getGhUsername();
+    await execa("gh", ["repo", "view", `${username}/${name}`]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Create a private GitHub repository
  *
  * @param name - Repository name
@@ -66,4 +82,18 @@ export async function createPrivateRepo(
   /** Extract URL from output */
   const username = await getGhUsername();
   return `https://github.com/${username}/${name}`;
+}
+
+/**
+ * Clone a GitHub repository
+ *
+ * @param name - Repository name (without username)
+ * @param targetDir - Directory to clone into
+ */
+export async function cloneRepo(
+  name: string,
+  targetDir: string,
+): Promise<void> {
+  const username = await getGhUsername();
+  await execa("gh", ["repo", "clone", `${username}/${name}`, targetDir]);
 }
