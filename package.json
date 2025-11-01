@@ -28,7 +28,10 @@
     "lint:fix": "oxlint --fix",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "keywords": [
     "env",
@@ -53,6 +56,7 @@
     "prettier-plugin-jsdoc": "^1.5.0",
     "tsdown": "latest",
     "typescript": "latest",
+    "vitepress": "^1.6.4",
     "vitest": "latest"
   },
   "dependencies": {
