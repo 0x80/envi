@@ -1,4 +1,4 @@
-import { stringify } from "maml.js";
+import { parse, stringify } from "maml.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -102,8 +102,9 @@ describe("storage", () => {
   });
 
   describe("saveToStorage", () => {
-    it("should create storage directory and save file with package name", () => {
+    it("should create storage directory and save new file", () => {
       vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false); // File doesn't exist
       vi.mocked(stringify).mockReturnValue("maml content");
 
       const repoPath = "/home/user/projects/myproject";
@@ -114,8 +115,9 @@ describe("storage", () => {
         },
       ];
 
-      saveToStorage(repoPath, envFiles, "my-package");
+      const result = saveToStorage(repoPath, envFiles, "my-package");
 
+      expect(result).toBe(true);
       expect(mkdirSync).toHaveBeenCalledWith(
         join("/home/user", ".envi", "store"),
         { recursive: true },
@@ -138,14 +140,106 @@ describe("storage", () => {
       );
     });
 
+    it("should return false when content is identical", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value1" } }];
+
+      /** Mock existing file with same files but different timestamp */
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z", // Old timestamp
+        },
+        files: [{ path: ".env", env: { KEY1: "value1" } }],
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        /** Only the file path exists */
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const repoPath = "/home/user/projects/myproject";
+
+      const result = saveToStorage(repoPath, envFiles, "my-package");
+
+      expect(result).toBe(false);
+      expect(writeFileSync).not.toHaveBeenCalled();
+    });
+
+    it("should return true when files have changed", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value2" } }]; // Different value
+
+      /** Mock existing file with different content */
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z",
+        },
+        files: [{ path: ".env", env: { KEY1: "value1" } }], // Old value
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        /** Only the file path exists */
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const repoPath = "/home/user/projects/myproject";
+
+      const result = saveToStorage(repoPath, envFiles, "my-package");
+
+      expect(result).toBe(true);
+      expect(writeFileSync).toHaveBeenCalled();
+    });
+
+    it("should sort files by path before comparing", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const repoPath = "/home/user/projects/myproject";
+      /** Files in unsorted order */
+      const envFiles = [
+        { path: "zzz/.env", env: { KEY1: "value1" } },
+        { path: "aaa/.env", env: { KEY2: "value2" } },
+        { path: "mmm/.env", env: { KEY3: "value3" } },
+      ];
+
+      saveToStorage(repoPath, envFiles, "my-package");
+
+      /** Verify stringify was called with sorted files */
+      expect(stringify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          files: [
+            { path: "aaa/.env", env: { KEY2: "value2" } },
+            { path: "mmm/.env", env: { KEY3: "value3" } },
+            { path: "zzz/.env", env: { KEY1: "value1" } },
+          ],
+        }),
+      );
+    });
+
     it("should create subdirectory for scoped packages", () => {
       vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(stringify).mockReturnValue("maml content");
 
       const repoPath = "/home/user/projects/myproject";
       const envFiles = [{ path: ".env", env: { KEY1: "value1" } }];
 
-      saveToStorage(repoPath, envFiles, "@myorg/my-package");
+      const result = saveToStorage(repoPath, envFiles, "@myorg/my-package");
+
+      expect(result).toBe(true);
 
       /** Should create both the main store dir and the org subdirectory */
       expect(mkdirSync).toHaveBeenCalledWith(

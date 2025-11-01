@@ -88,11 +88,19 @@ export async function captureCommand(): Promise<void> {
 
     /** Save to storage */
     consola.start("Saving to storage...");
-    saveToStorage(repoRoot, envFiles, packageName);
+    const hasChanges = saveToStorage(repoRoot, envFiles, packageName);
 
     const storageDir = getStorageDir();
     const filename = getStorageFilename(repoRoot, packageName);
     const storagePath = join(storageDir, filename);
+
+    if (!hasChanges) {
+      consola.info(
+        "No changes detected - environment files are identical to stored version.",
+      );
+      consola.info(`Stored at: ${storagePath}`);
+      return;
+    }
 
     if (packageName) {
       consola.success(
@@ -104,7 +112,7 @@ export async function captureCommand(): Promise<void> {
 
     /** Commit and push if version control is enabled */
     const config = readConfig();
-    if (config.use_version_control) {
+    if (config.use_version_control === "github") {
       consola.start("Committing to version control...");
       const commitMessage = packageName
         ? `Update ${packageName} env files`

@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join, basename, dirname } from "node:path";
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
-import { stringify } from "maml.js";
+import { parse, stringify } from "maml.js";
 import type { EnvObject } from "~/utils/parse-env-file";
 
 /** MAML file structure for storing env configurations */
@@ -91,18 +91,61 @@ export function getStorageFilename(
 }
 
 /**
+ * Check if the new files data is identical to existing file
+ *
+ * Only compares the files array, ignoring metadata like timestamps
+ *
+ * @param filePath - Path to check
+ * @param newFiles - New files array to compare
+ * @returns True if file exists and files content is identical
+ */
+function isContentIdentical(
+  filePath: string,
+  newFiles: Array<{ path: string; env: EnvObject }>,
+): boolean {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  try {
+    const existingContent = readFileSync(filePath, "utf-8");
+    const existingData = parse(existingContent) as EnviStore;
+
+    /** Compare only the files property, ignore metadata */
+    return JSON.stringify(existingData.files) === JSON.stringify(newFiles);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Save env configuration to storage
  *
  * @param repoPath - Absolute path to repository root
  * @param envFiles - Array of env file data
  * @param packageName - Optional package name (will be read if not provided)
+ * @returns True if file was updated, false if no changes
  */
 export function saveToStorage(
   repoPath: string,
   envFiles: Array<{ path: string; env: EnvObject }>,
   packageName?: string | null,
-): void {
+): boolean {
   ensureStorageDir();
+
+  /** Sort files by path for consistent comparison */
+  const sortedFiles = [...envFiles].sort((a, b) =>
+    a.path.localeCompare(b.path),
+  );
+
+  const storageDir = getStorageDir();
+  const filename = getStorageFilename(repoPath, packageName);
+  const filePath = join(storageDir, filename);
+
+  /** Check if content is identical to existing file */
+  if (isContentIdentical(filePath, sortedFiles)) {
+    return false;
+  }
 
   const data: EnviStore = {
     __envi_version: 1,
@@ -110,12 +153,8 @@ export function saveToStorage(
       updated_from: repoPath,
       updated_at: new Date().toISOString(),
     },
-    files: envFiles,
+    files: sortedFiles,
   };
-
-  const storageDir = getStorageDir();
-  const filename = getStorageFilename(repoPath, packageName);
-  const filePath = join(storageDir, filename);
 
   /** Ensure subdirectory exists for scoped packages */
   const fileDir = dirname(filePath);
@@ -125,4 +164,5 @@ export function saveToStorage(
 
   const mamlContent = stringify(data);
   writeFileSync(filePath, mamlContent, "utf-8");
+  return true;
 }
