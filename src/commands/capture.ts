@@ -9,13 +9,13 @@ import {
   getStorageFilename,
   readConfig,
   saveToStorage,
-} from "../lib/index.js";
+} from "~/lib";
 import {
   findEnvFiles,
   findRepoRoot,
   getErrorMessage,
   parseEnvFile,
-} from "../utils/index.js";
+} from "~/utils";
 
 const { prompt } = enquirer;
 

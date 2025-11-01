@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { findRepoRoot } from "./find-repo-root.js";
+import { findRepoRoot } from "./find-repo-root";
 
 vi.mock("node:fs");
 vi.mock("enquirer");

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { parseEnvFile } from "./parse-env-file.js";
+import { parseEnvFile } from "./parse-env-file";
 import { readFileSync } from "node:fs";
 
 vi.mock("node:fs");

@@ -11,15 +11,15 @@ import {
   isGhInstalled,
   isGitRepo,
   updateConfig,
-} from "../lib/index.js";
-import { getErrorMessage } from "../utils/index.js";
+} from "~/lib";
+import { getErrorMessage } from "~/utils";
 
 /**
- * Execute the global enable github command
+ * Execute the global github enable command
  *
  * Sets up GitHub version control for the envi store
  */
-export async function globalEnableGithubCommand(): Promise<void> {
+export async function enableCommand(): Promise<void> {
   try {
     const enviDir = getEnviDir();
 

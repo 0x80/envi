@@ -1,13 +1,13 @@
 import { consola } from "consola";
-import { readConfig, updateConfig } from "../lib/index.js";
-import { getErrorMessage } from "../utils/index.js";
+import { readConfig, updateConfig } from "~/lib";
+import { getErrorMessage } from "~/utils";
 
 /**
- * Execute the global disable github command
+ * Execute the global github disable command
  *
  * Disables GitHub version control for the envi store
  */
-export async function globalDisableGithubCommand(): Promise<void> {
+export async function disableCommand(): Promise<void> {
   try {
     const config = readConfig();
 

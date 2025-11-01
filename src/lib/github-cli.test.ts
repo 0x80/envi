@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isGhAuthenticated, isGhInstalled } from "./github-cli.js";
+import { isGhAuthenticated, isGhInstalled } from "./github-cli";
 
 vi.mock("node:child_process");
 vi.mock("node:util");

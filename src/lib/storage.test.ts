@@ -8,7 +8,7 @@ import {
   getStorageDir,
   getStorageFilename,
   saveToStorage,
-} from "./storage.js";
+} from "./storage";
 
 vi.mock("node:os");
 vi.mock("node:fs");

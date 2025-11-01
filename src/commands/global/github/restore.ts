@@ -9,8 +9,8 @@ import {
   isGhInstalled,
   repoExists,
   updateConfig,
-} from "../lib/index.js";
-import { getErrorMessage } from "../utils/index.js";
+} from "~/lib";
+import { getErrorMessage } from "~/utils";
 
 const { prompt } = enquirer;
 
@@ -36,11 +36,11 @@ function hasContent(enviDir: string): boolean {
 }
 
 /**
- * Execute the global restore github command
+ * Execute the global github restore command
  *
  * Restores the envi store from GitHub
  */
-export async function globalRestoreGithubCommand(): Promise<void> {
+export async function restoreCommand(): Promise<void> {
   try {
     const enviDir = getEnviDir();
 

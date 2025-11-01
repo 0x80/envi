@@ -1,11 +1,6 @@
 /** Barrel file for lib */
-export {
-  getConfigPath,
-  readConfig,
-  updateConfig,
-  writeConfig,
-} from "./config.js";
-export type { EnviConfig } from "./config.js";
+export { getConfigPath, readConfig, updateConfig, writeConfig } from "./config";
+export type { EnviConfig } from "./config";
 export {
   addRemote,
   commitAndPush,
@@ -13,7 +8,7 @@ export {
   initialCommitAndPush,
   initGitRepo,
   isGitRepo,
-} from "./git.js";
+} from "./git";
 export {
   cloneRepo,
   createPrivateRepo,
@@ -21,12 +16,12 @@ export {
   isGhAuthenticated,
   isGhInstalled,
   repoExists,
-} from "./github-cli.js";
+} from "./github-cli";
 export {
   getEnviDir,
   getPackageName,
   getStorageDir,
   getStorageFilename,
   saveToStorage,
-} from "./storage.js";
-export type { EnviStore } from "./storage.js";
+} from "./storage";
+export type { EnviStore } from "./storage";

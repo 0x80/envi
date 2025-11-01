@@ -7,7 +7,7 @@ import {
   getStorageDir,
   getStorageFilename,
   saveToStorage,
-} from "./index.js";
+} from "./index";
 
 describe("envi exports", () => {
   it("should export captureCommand", () => {

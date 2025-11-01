@@ -2,12 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getConfigPath,
-  readConfig,
-  updateConfig,
-  writeConfig,
-} from "./config.js";
+import { getConfigPath, readConfig, updateConfig, writeConfig } from "./config";
 import { parse, stringify } from "maml.js";
 
 vi.mock("node:os");

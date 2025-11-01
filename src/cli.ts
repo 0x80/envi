@@ -1,66 +1,60 @@
 #!/usr/bin/env node
 
 import { consola } from "consola";
-import { captureCommand } from "./commands/capture.js";
-import { globalDisableGithubCommand } from "./commands/global-disable-github.js";
-import { globalEnableGithubCommand } from "./commands/global-enable-github.js";
-import { globalRestoreGithubCommand } from "./commands/global-restore-github.js";
+import { captureCommand } from "~/commands/capture";
+import { disableCommand as globalGithubDisable } from "~/commands/global/github/disable";
+import { enableCommand as globalGithubEnable } from "~/commands/global/github/enable";
+import { restoreCommand as globalGithubRestore } from "~/commands/global/github/restore";
 
 /** Parse command line arguments */
 const args = process.argv.slice(2);
 const command = args[0];
 const subcommand = args[1];
+const action = args[2];
 
 /** Route to appropriate command */
 async function main(): Promise<void> {
   /** Handle 'global' commands */
   if (command === "global") {
-    switch (subcommand) {
-      case "enable":
-        /** Check third argument for enable type */
-        if (args[2] === "github") {
-          await globalEnableGithubCommand();
-        } else {
-          consola.error("Unknown enable option. Available: github");
-          process.exit(1);
-        }
-        break;
+    /** Handle 'global github' commands */
+    if (subcommand === "github") {
+      switch (action) {
+        case "enable":
+          await globalGithubEnable();
+          break;
 
-      case "disable":
-        /** Check third argument for disable type */
-        if (args[2] === "github") {
-          await globalDisableGithubCommand();
-        } else {
-          consola.error("Unknown disable option. Available: github");
-          process.exit(1);
-        }
-        break;
+        case "disable":
+          await globalGithubDisable();
+          break;
 
-      case "restore":
-        /** Check third argument for restore type */
-        if (args[2] === "github") {
-          await globalRestoreGithubCommand();
-        } else {
-          consola.error("Unknown restore option. Available: github");
-          process.exit(1);
-        }
-        break;
+        case "restore":
+          await globalGithubRestore();
+          break;
 
-      default:
-        consola.error(`Unknown global command: ${subcommand}`);
-        consola.info("Available global commands:");
-        consola.info(
-          "  envi global enable github     Enable GitHub version control",
-        );
-        consola.info(
-          "  envi global disable github    Disable GitHub version control",
-        );
-        consola.info(
-          "  envi global restore github    Restore envi store from GitHub",
-        );
-        process.exit(1);
+        default:
+          consola.error(`Unknown github command: ${action}`);
+          consola.info("Available github commands:");
+          consola.info(
+            "  envi global github enable     Enable GitHub version control",
+          );
+          consola.info(
+            "  envi global github disable    Disable GitHub version control",
+          );
+          consola.info(
+            "  envi global github restore    Restore envi store from GitHub",
+          );
+          process.exit(1);
+      }
+      return;
     }
-    return;
+
+    /** Unknown global subcommand */
+    consola.error(`Unknown global command: ${subcommand}`);
+    consola.info("Available global commands:");
+    consola.info(
+      "  envi global github [action]    GitHub integration commands",
+    );
+    process.exit(1);
   }
 
   /** Handle regular commands */
@@ -77,13 +71,13 @@ async function main(): Promise<void> {
         "  envi capture                  Capture all .env files from repository",
       );
       consola.log(
-        "  envi global enable github     Enable GitHub version control for env store",
+        "  envi global github enable     Enable GitHub version control for env store",
       );
       consola.log(
-        "  envi global disable github    Disable GitHub version control",
+        "  envi global github disable    Disable GitHub version control",
       );
       consola.log(
-        "  envi global restore github    Restore envi store from GitHub",
+        "  envi global github restore    Restore envi store from GitHub",
       );
       consola.log(
         "\nFor more information, visit: https://github.com/codecompose/envi",

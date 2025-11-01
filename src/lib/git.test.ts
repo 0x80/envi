@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isGitRepo } from "./git.js";
+import { isGitRepo } from "./git";
 
 vi.mock("node:fs");
 vi.mock("node:child_process");
