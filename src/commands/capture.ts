@@ -1,3 +1,4 @@
+import { consola } from "consola";
 import { join } from "node:path";
 import {
   getStorageDir,
@@ -19,30 +20,30 @@ import {
 export async function captureCommand(): Promise<void> {
   try {
     /** Find repository root */
-    console.log("Finding repository root...");
+    consola.start("Finding repository root...");
     const repoRoot = await findRepoRoot();
 
     if (!repoRoot) {
-      console.log("Operation cancelled.");
+      consola.info("Operation cancelled.");
       process.exit(0);
     }
 
-    console.log(`Repository root: ${repoRoot}`);
+    consola.info(`Repository root: ${repoRoot}`);
 
     /** Find all env files */
-    console.log("\nSearching for .env files...");
+    consola.start("Searching for .env files...");
     const envFilePaths = await findEnvFiles(repoRoot);
 
     if (envFilePaths.length === 0) {
-      console.log("No .env files found.");
+      consola.warn("No .env files found.");
       return;
     }
 
-    console.log(`Found ${envFilePaths.length} file(s):`);
-    envFilePaths.forEach((path) => console.log(`  - ${path}`));
+    consola.success(`Found ${envFilePaths.length} file(s):`);
+    envFilePaths.forEach((path) => consola.info(`  - ${path}`));
 
     /** Parse each env file */
-    console.log("\nParsing files...");
+    consola.start("Parsing files...");
     const envFiles = envFilePaths.map((relativePath) => {
       const absolutePath = join(repoRoot, relativePath);
       const env = parseEnvFile(absolutePath);
@@ -53,16 +54,16 @@ export async function captureCommand(): Promise<void> {
     });
 
     /** Save to storage */
-    console.log("\nSaving to storage...");
+    consola.start("Saving to storage...");
     saveToStorage(repoRoot, envFiles);
 
     const storageDir = getStorageDir();
     const filename = getStorageFilename(repoRoot);
     const storagePath = join(storageDir, filename);
 
-    console.log(`\n✓ Captured environment files to: ${storagePath}`);
+    consola.success(`Captured environment files to: ${storagePath}`);
   } catch (error) {
-    console.error(`Error: ${getErrorMessage(error)}`);
+    consola.error(getErrorMessage(error));
     process.exit(1);
   }
 }

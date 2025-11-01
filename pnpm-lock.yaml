@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      consola:
+        specifier: ^3.4.2
+        version: 3.4.2
       enquirer:
         specifier: latest
         version: 2.4.1
@@ -625,6 +628,10 @@ packages:
   comment-parser@1.4.1:
     resolution: {integrity: sha512-buhp5kePrmda3vhc5B9t7pUQXAb2Tnd0qgpkIhPhkHXxJpiPJ11H0ZEU0oBpJ2QztSbzG/ZxMj/CHsYJqRHmyg==}
     engines: {node: '>= 12.0.0'}
+
+  consola@3.4.2:
+    resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
+    engines: {node: ^14.18.0 || >=16.10.0}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1519,6 +1526,8 @@ snapshots:
       readdirp: 4.1.2
 
   comment-parser@1.4.1: {}
+
+  consola@3.4.2: {}
 
   debug@4.4.3:
     dependencies:

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { consola } from "consola";
 import { captureCommand } from "./commands/capture.js";
 
 /** Parse command line arguments */
@@ -15,22 +16,22 @@ async function main(): Promise<void> {
 
     case undefined:
       /** No command specified, show help */
-      console.log("Envi - Environment file management tool");
-      console.log("\nUsage:");
-      console.log("  envi capture    Capture all .env files from repository");
-      console.log(
+      consola.log("Envi - Environment file management tool");
+      consola.log("\nUsage:");
+      consola.log("  envi capture    Capture all .env files from repository");
+      consola.log(
         "\nFor more information, visit: https://github.com/codecompose/envi",
       );
       break;
 
     default:
-      console.error(`Unknown command: ${command}`);
-      console.log("Run 'envi' without arguments to see available commands.");
+      consola.error(`Unknown command: ${command}`);
+      consola.info("Run 'envi' without arguments to see available commands.");
       process.exit(1);
   }
 }
 
 main().catch((error) => {
-  console.error("Error:", error);
+  consola.error("Error:", error);
   process.exit(1);
 });

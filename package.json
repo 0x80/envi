@@ -53,6 +53,7 @@
     "vitest": "latest"
   },
   "dependencies": {
+    "consola": "^3.4.2",
     "enquirer": "latest",
     "fast-glob": "^3.3.3",
     "ignore": "^7.0.5",
