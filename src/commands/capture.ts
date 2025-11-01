@@ -2,9 +2,12 @@ import { consola } from "consola";
 import enquirer from "enquirer";
 import { join } from "node:path";
 import {
+  commitAndPush,
+  getEnviDir,
   getPackageName,
   getStorageDir,
   getStorageFilename,
+  readConfig,
   saveToStorage,
 } from "../lib/index.js";
 import {
@@ -97,6 +100,24 @@ export async function captureCommand(): Promise<void> {
       );
     } else {
       consola.success(`Captured environment files to: ${storagePath}`);
+    }
+
+    /** Commit and push if version control is enabled */
+    const config = readConfig();
+    if (config.use_version_control) {
+      consola.start("Committing to version control...");
+      const commitMessage = packageName
+        ? `Update ${packageName} env files`
+        : `Update ${filename} env files`;
+
+      try {
+        const enviDir = getEnviDir();
+        await commitAndPush(enviDir, commitMessage);
+        consola.success("Committed and pushed to GitHub");
+      } catch (error) {
+        consola.warn(`Failed to commit/push: ${getErrorMessage(error)}`);
+        consola.info("Your files were still saved locally.");
+      }
     }
   } catch (error) {
     consola.error(getErrorMessage(error));

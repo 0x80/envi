@@ -58,6 +58,7 @@
   "dependencies": {
     "consola": "^3.4.2",
     "enquirer": "latest",
+    "execa": "^9.6.0",
     "fast-glob": "^3.3.3",
     "maml.js": "^0.0.3"
   },

@@ -18,12 +18,21 @@ export interface EnviStore {
 }
 
 /**
+ * Get the envi root directory path
+ *
+ * @returns Absolute path to ~/.envi/
+ */
+export function getEnviDir(): string {
+  return join(homedir(), ".envi");
+}
+
+/**
  * Get the envi storage directory path
  *
  * @returns Absolute path to ~/.envi/store/
  */
 export function getStorageDir(): string {
-  return join(homedir(), ".envi", "store");
+  return join(getEnviDir(), "store");
 }
 
 /** Ensure the storage directory exists */
