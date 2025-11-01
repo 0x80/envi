@@ -1,8 +1,6 @@
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
-import enquirer from "enquirer";
-
-const { prompt } = enquirer;
+import * as p from "@clack/prompts";
 
 /** VCS markers that indicate a repository root */
 const VCS_MARKERS = [".git", ".hg", ".svn"];
@@ -35,12 +33,14 @@ export async function findRepoRoot(
   }
 
   /** No VCS root found, prompt user */
-  const { proceed } = await prompt<{ proceed: boolean }>({
-    type: "confirm",
-    name: "proceed",
+  const proceed = await p.confirm({
     message: `No version control system found. Execute in current directory (${startDir})?`,
-    initial: false,
+    initialValue: false,
   });
+
+  if (p.isCancel(proceed)) {
+    return null;
+  }
 
   return proceed ? startDir : null;
 }

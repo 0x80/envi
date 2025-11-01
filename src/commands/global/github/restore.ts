@@ -1,5 +1,5 @@
 import { consola } from "consola";
-import enquirer from "enquirer";
+import * as p from "@clack/prompts";
 import { existsSync, readdirSync, rmSync } from "node:fs";
 import {
   cloneRepo,
@@ -11,8 +11,6 @@ import {
   updateConfig,
 } from "~/lib";
 import { getErrorMessage } from "~/utils";
-
-const { prompt } = enquirer;
 
 /**
  * Check if envi directory has content
@@ -95,14 +93,12 @@ export async function restoreCommand(): Promise<void> {
         "Restoring from GitHub will overwrite all local files with the repository contents.",
       );
 
-      const { proceed } = await prompt<{ proceed: boolean }>({
-        type: "confirm",
-        name: "proceed",
+      const proceed = await p.confirm({
         message: "Overwrite local envi directory with GitHub repository?",
-        initial: false,
+        initialValue: false,
       });
 
-      if (!proceed) {
+      if (p.isCancel(proceed) || !proceed) {
         consola.info("Operation cancelled.");
         process.exit(0);
       }

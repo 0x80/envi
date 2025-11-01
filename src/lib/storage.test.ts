@@ -209,7 +209,7 @@ describe("storage", () => {
 
       const repoPath = "/home/user/projects/myproject";
       /** Files in unsorted order */
-      const envFiles = [
+      const envFiles: Array<{ path: string; env: Record<string, string> }> = [
         { path: "zzz/.env", env: { KEY1: "value1" } },
         { path: "aaa/.env", env: { KEY2: "value2" } },
         { path: "mmm/.env", env: { KEY3: "value3" } },

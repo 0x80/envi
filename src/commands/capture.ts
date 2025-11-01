@@ -1,5 +1,5 @@
 import { consola } from "consola";
-import enquirer from "enquirer";
+import * as p from "@clack/prompts";
 import { join } from "node:path";
 import {
   commitAndPush,
@@ -16,8 +16,6 @@ import {
   getErrorMessage,
   parseEnvFile,
 } from "~/utils";
-
-const { prompt } = enquirer;
 
 /**
  * Execute the capture command
@@ -50,14 +48,12 @@ export async function captureCommand(): Promise<void> {
         "Consider adding a 'name' field to package.json for unique identification.",
       );
 
-      const { proceed } = await prompt<{ proceed: boolean }>({
-        type: "confirm",
-        name: "proceed",
+      const proceed = await p.confirm({
         message: "Continue with folder name?",
-        initial: true,
+        initialValue: true,
       });
 
-      if (!proceed) {
+      if (p.isCancel(proceed) || !proceed) {
         consola.info("Operation cancelled.");
         process.exit(0);
       }
