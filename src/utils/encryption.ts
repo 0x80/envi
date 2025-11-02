@@ -1,4 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
+import { gzipSync, gunzipSync } from "node:zlib";
 
 const ALGORITHM = "aes-256-gcm";
 const KEY_LENGTH = 32;
@@ -16,8 +17,12 @@ function deriveKey(secret: string, salt: Buffer): Buffer {
 /**
  * Encrypt data with AES-256-GCM
  * Returns base64 encoded string containing: salt + iv + authTag + encrypted data
+ * Data is compressed with gzip before encryption for significant size reduction
  */
 export function encrypt(data: string, secret: string): string {
+  // Compress data first (text compresses very well)
+  const compressed = gzipSync(data);
+
   // Generate random salt and IV
   const salt = randomBytes(SALT_LENGTH);
   const iv = randomBytes(IV_LENGTH);
@@ -25,10 +30,10 @@ export function encrypt(data: string, secret: string): string {
   // Derive key from secret
   const key = deriveKey(secret, salt);
 
-  // Create cipher and encrypt
+  // Create cipher and encrypt compressed data
   const cipher = createCipheriv(ALGORITHM, key, iv);
   const encrypted = Buffer.concat([
-    cipher.update(data, "utf8"),
+    cipher.update(compressed),
     cipher.final()
   ]);
 
@@ -44,6 +49,7 @@ export function encrypt(data: string, secret: string): string {
 /**
  * Decrypt data encrypted with encrypt()
  * Expects base64 encoded string containing: salt + iv + authTag + encrypted data
+ * Automatically decompresses the data after decryption
  */
 export function decrypt(encryptedData: string, secret: string): string {
   // Decode from base64
@@ -70,7 +76,10 @@ export function decrypt(encryptedData: string, secret: string): string {
     decipher.final()
   ]);
 
-  return decrypted.toString("utf8");
+  // Decompress the data
+  const decompressed = gunzipSync(decrypted);
+
+  return decompressed.toString("utf8");
 }
 
 /**

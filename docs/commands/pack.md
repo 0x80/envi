@@ -99,9 +99,10 @@ The blob is automatically copied to your clipboard. Share both the blob (paste f
 5. **Generates encryption key**:
    - If `package.json` exists: Uses its contents to generate the key
    - If no `package.json`: Prompts for a custom secret (minimum 8 characters)
-6. **Encrypts data** - Uses AES-256-GCM encryption with authentication
-7. **Formats blob** - Wraps encrypted data in `__envi_start__` and `__envi_end__` delimiters
-8. **Copies to clipboard** - Automatically copies the blob to your system clipboard for easy sharing
+6. **Compresses data** - Uses gzip compression to reduce blob size by ~50%
+7. **Encrypts data** - Uses AES-256-GCM encryption with authentication on compressed data
+8. **Formats blob** - Wraps encrypted data in `__envi_start__` and `__envi_end__` delimiters
+9. **Copies to clipboard** - Automatically copies the blob to your system clipboard for easy sharing
 
 ## Clipboard Feature
 

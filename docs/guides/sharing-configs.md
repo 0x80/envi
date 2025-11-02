@@ -32,9 +32,9 @@ envi unpack
 
 ## How It Works
 
-### Encryption
+### Encryption & Compression
 
-Envi uses **AES-256-GCM encryption** with authentication to secure your environment data.
+Envi uses **gzip compression** followed by **AES-256-GCM encryption** with authentication to secure your environment data. Compression reduces blob size by approximately 50%, making blobs easier to share in chat applications and reducing copy-paste errors.
 
 **For JavaScript/TypeScript projects** (with `package.json`):
 - The encryption key is automatically derived from your `package.json` contents
