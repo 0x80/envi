@@ -4,9 +4,136 @@ Global configuration commands for Envi.
 
 ## Subcommands
 
+### clear
+
+Delete entire envi directory and all stored configurations.
+
 ### github
 
 GitHub integration commands for version controlling your environment store.
+
+## global clear
+
+Delete the entire envi directory and all stored configurations.
+
+### Usage
+
+```bash
+envi global clear
+```
+
+### What It Does
+
+1. **Locates envi directory** - Checks if `~/.envi/` exists
+2. **Lists stored packages** - Shows all stored configurations (including scoped packages)
+3. **Shows deletion preview** - Displays directory path and package count
+4. **Prompts for confirmation** - Requires explicit confirmation (default: No)
+5. **Deletes everything** - Removes entire `~/.envi` directory recursively
+6. **Shows recovery option** - Mentions GitHub restore if you have version control enabled
+
+### Safety Features
+
+- Requires explicit user confirmation
+- Defaults to "No" to prevent accidental deletion
+- Lists all packages that will be deleted
+- Shows exact directory path being deleted
+- Reminds about GitHub restore option
+
+### Example
+
+```bash
+$ envi global clear
+ℹ The following directory will be deleted: /Users/you/.envi
+
+ℹ Stored configurations (5):
+  - @org/frontend
+  - @org/backend
+  - myapp
+  - test-project
+  - demo-app
+
+? Delete the entire envi directory and all stored configurations? No
+
+ℹ Operation cancelled.
+```
+
+**Confirming deletion:**
+
+```bash
+$ envi global clear
+ℹ The following directory will be deleted: /Users/you/.envi
+
+ℹ Stored configurations (5):
+  - @org/frontend
+  - @org/backend
+  - myapp
+  - test-project
+  - demo-app
+
+? Delete the entire envi directory and all stored configurations? Yes
+
+✔ Deleted entire envi directory
+ℹ Note: If you have GitHub integration enabled, you can restore all data using 'envi global github restore'
+```
+
+### When to Use
+
+**Complete reset:**
+
+```bash
+# Start fresh with envi
+envi global clear
+```
+
+**Free up space:**
+
+```bash
+# Remove all stored configs you no longer need
+envi global clear
+```
+
+**Before uninstalling:**
+
+```bash
+# Clean up before removing envi
+envi global clear
+pnpm remove -g @codecompose/envi
+```
+
+### What Gets Deleted
+
+The entire `~/.envi` directory is removed, including:
+
+- `~/.envi/store/` - All stored configurations
+- `~/.envi/config.maml` - Global configuration
+- `~/.envi/.git/` - Git repository (if GitHub integration was enabled)
+- `~/.envi/README.md` - Documentation
+
+All stored environment configurations for **all projects** will be deleted.
+
+### Recovery
+
+If you have GitHub integration enabled, you can restore everything:
+
+```bash
+# Restore all configurations from GitHub
+envi global github restore
+```
+
+This will restore:
+- All stored configurations
+- Global configuration
+- GitHub integration settings
+
+### No Envi Directory
+
+If the envi directory doesn't exist:
+
+```bash
+$ envi global clear
+ℹ No envi directory found.
+ℹ Would have looked at: /Users/you/.envi
+```
 
 ## global github enable
 

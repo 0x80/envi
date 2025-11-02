@@ -1,6 +1,8 @@
 /** Export all public APIs */
 export { captureCommand } from "~/commands/capture";
 export { restoreCommand } from "~/commands/restore";
+export { clearCommand } from "~/commands/clear";
+export { globalClearCommand } from "~/commands/global/clear";
 export { disableCommand as globalGithubDisableCommand } from "~/commands/global/github/disable";
 export { enableCommand as globalGithubEnableCommand } from "~/commands/global/github/enable";
 export { restoreCommand as globalGithubRestoreCommand } from "~/commands/global/github/restore";

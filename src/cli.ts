@@ -2,9 +2,11 @@
 
 import { defineCommand, runMain } from "citty";
 import { captureCommand } from "~/commands/capture";
+import { clearCommand } from "~/commands/clear";
 import { disableCommand as globalGithubDisable } from "~/commands/global/github/disable";
 import { enableCommand as globalGithubEnable } from "~/commands/global/github/enable";
 import { restoreCommand as globalGithubRestore } from "~/commands/global/github/restore";
+import { globalClearCommand } from "~/commands/global/clear";
 import { restoreCommand } from "~/commands/restore";
 import { packCommand } from "~/commands/pack";
 import { unpackCommand } from "~/commands/unpack";
@@ -60,6 +62,17 @@ const unpack = defineCommand({
   },
 });
 
+/** Clear command */
+const clear = defineCommand({
+  meta: {
+    name: "clear",
+    description: "Delete stored configuration for current repository",
+  },
+  async run() {
+    await clearCommand();
+  },
+});
+
 /** Global GitHub enable command */
 const githubEnable = defineCommand({
   meta: {
@@ -93,6 +106,17 @@ const githubRestore = defineCommand({
   },
 });
 
+/** Global clear command */
+const globalClear = defineCommand({
+  meta: {
+    name: "clear",
+    description: "Delete entire envi directory and all stored configurations",
+  },
+  async run() {
+    await globalClearCommand();
+  },
+});
+
 /** Global GitHub parent command */
 const github = defineCommand({
   meta: {
@@ -114,6 +138,7 @@ const global = defineCommand({
   },
   subCommands: {
     github,
+    clear: globalClear,
   },
 });
 
@@ -129,6 +154,7 @@ const main = defineCommand({
     restore,
     pack,
     unpack,
+    clear,
     global,
   },
 });

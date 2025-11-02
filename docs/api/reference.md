@@ -30,6 +30,26 @@ import { restoreCommand } from "@codecompose/envi";
 await restoreCommand();
 ```
 
+### clearCommand()
+
+Delete stored configuration for the current project.
+
+```typescript
+import { clearCommand } from "@codecompose/envi";
+
+await clearCommand();
+```
+
+### globalClearCommand()
+
+Delete entire envi directory and all stored configurations.
+
+```typescript
+import { globalClearCommand } from "@codecompose/envi";
+
+await globalClearCommand();
+```
+
 ### GitHub Commands
 
 ```typescript

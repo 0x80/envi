@@ -48,9 +48,11 @@ Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete docu
 - `envi restore` - Restore env files from storage
 - `envi pack` - Create encrypted blob for sharing with team members
 - `envi unpack <blob>` - Decrypt and restore configuration from blob
+- `envi clear` - Delete stored configuration for current project
 - `envi global github enable` - Enable GitHub version control
 - `envi global github disable` - Disable GitHub version control
 - `envi global github restore` - Restore envi store from GitHub
+- `envi global clear` - Delete entire envi directory and all stored configurations
 
 Run any command with `--help` for more information or see the **[Commands documentation](https://envi.codecompose.dev/commands/capture)**.
 
