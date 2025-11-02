@@ -46,7 +46,7 @@ Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete docu
 
 - `envi capture` - Capture all .env files from repository
 - `envi restore` - Restore env files from storage
-- `envi pack` - Create encrypted blob for sharing with colleagues
+- `envi pack` - Create encrypted blob for sharing with team members
 - `envi unpack <blob>` - Decrypt and restore configuration from blob
 - `envi global github enable` - Enable GitHub version control
 - `envi global github disable` - Disable GitHub version control

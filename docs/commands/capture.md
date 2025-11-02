@@ -58,37 +58,6 @@ If no `package.json` or no `name` field exists, Envi:
 2. Prompts for confirmation (default: Yes)
 3. Uses the folder name: `~/.envi/store/foldername.maml`
 
-## Comment Preservation
-
-Envi preserves all comments from your `.env` files:
-
-### Full-line Comments
-
-```bash
-# This is a database configuration
-DATABASE_URL=postgres://localhost:5432/db
-```
-
-Stored as:
-
-```maml
-__c_00: "# This is a database configuration"
-DATABASE_URL: "postgres://localhost:5432/db"
-```
-
-### Inline Comments
-
-```bash
-API_KEY=secret123 # Production API key
-```
-
-Stored as:
-
-```maml
-__i_00: "# Production API key"
-API_KEY: "secret123"
-```
-
 ## Change Detection
 
 When you run `capture` multiple times:

@@ -135,7 +135,7 @@ envi global github restore
 **Team Member:**
 
 ```bash
-# Colleague can restore your shared configurations
+# Team member can restore your shared configurations
 envi global github restore
 ```
 

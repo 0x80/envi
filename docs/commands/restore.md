@@ -71,24 +71,6 @@ Envi uses semantic comparison, not string comparison:
 
 This means files with different formatting but same content are considered identical.
 
-## Comment Restoration
-
-All comments are restored exactly as captured:
-
-### Full-line Comments
-
-```bash
-# Database configuration
-DATABASE_URL=postgres://localhost:5432/db
-```
-
-### Inline Comments
-
-```bash
-API_KEY=secret123 # Production API key
-PORT=3000
-```
-
 ## Examples
 
 ### Successful Restore
@@ -141,10 +123,15 @@ $ envi restore
 
 ### New Machine Setup
 
+If you have GitHub integration enabled, first restore your envi store from GitHub (see [`envi global github restore`](/commands/global#restore)), then restore your project's env files:
+
 ```bash
 # Clone your project
 git clone git@github.com:org/project.git
 cd project
+
+# If using GitHub integration, restore envi store first:
+envi global github restore
 
 # Restore env files
 envi restore

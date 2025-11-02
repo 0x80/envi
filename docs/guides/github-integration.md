@@ -8,8 +8,7 @@ GitHub integration allows you to:
 
 - **Automatically commit** env file changes after each capture
 - **Version control** your environment configurations
-- **Collaborate** with team members
-- **Sync across machines** using GitHub as the central source
+- **Sync across machines** using GitHub as the central source for your personal use
 
 ## Prerequisites
 
@@ -114,28 +113,11 @@ You'll see:
   - `@org/package.maml`
   - `project.maml`
 
-## Collaboration
+## Sharing with Team Members
 
-### Share with Team Member
+The `envi-store` repository is for personal use only. To share environment configurations with team members, use [encrypted blobs](/guides/sharing-configs) instead of adding collaborators to your GitHub repository.
 
-Your colleague can restore your configurations:
-
-```bash
-# They authenticate with GitHub
-gh auth login
-
-# Add you as a collaborator (or they fork)
-# Then restore
-envi global github restore
-```
-
-### Manual Collaboration
-
-You can also manually share the repository:
-
-1. Add team members as collaborators on GitHub
-2. They clone or restore using `envi global github restore`
-3. Everyone's captures automatically sync via GitHub
+See the [Sharing Environment Configurations](/guides/sharing-configs) guide for secure sharing options.
 
 ## Disable Integration
 
@@ -172,10 +154,11 @@ Never make this repository public as it contains environment variable configurat
 
 ### Best Practices
 
-1. **Keep it private** - Never change repository visibility to public
-2. **Limit collaborators** - Only add trusted team members
-3. **Review commits** - Periodically check what's being committed
-4. **Use .gitignore** - Ensure sensitive files aren't captured
+**Personal use only** - The `envi-store` repository is meant for your personal use only. It stores all your environment configurations across different projects in one place for your convenience.
+
+**Keep the repository private** - Never change the repository visibility to public as it contains your environment configurations.
+
+**For sharing with team members** - Don't add collaborators to your `envi-store` repository. Instead, use [encrypted blobs](/guides/sharing-configs) to securely share environment configurations with team members temporarily.
 
 ## Troubleshooting
 

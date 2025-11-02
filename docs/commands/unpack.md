@@ -1,6 +1,6 @@
 # envi unpack
 
-Decrypt and restore environment configuration from an encrypted blob shared by a colleague.
+Decrypt and restore environment configuration from an encrypted blob shared by a team member.
 
 ## Usage
 
@@ -39,11 +39,11 @@ The `unpack` command decrypts an encrypted blob (from clipboard or argument) and
 ### Clipboard Feature
 
 **When no blob argument is provided**, `unpack` automatically reads from your clipboard:
-1. Copy a blob shared by a colleague (from Slack, email, etc.)
+1. Copy a blob shared by a team member (from Slack, email, etc.)
 2. Run `envi unpack` (no arguments!)
 3. The blob is automatically read from clipboard and decrypted
 
-This makes sharing incredibly seamless - your colleague runs `envi pack`, you copy the blob they paste, and run `envi unpack`.
+This makes sharing incredibly seamless - your team member runs `envi pack`, you copy the blob they paste, and run `envi unpack`.
 
 ### Decryption Methods
 
@@ -60,7 +60,7 @@ This makes sharing incredibly seamless - your colleague runs `envi pack`, you co
 
 ### JavaScript/TypeScript Project (from clipboard)
 
-The easiest way - just copy the blob from your colleague and run:
+The easiest way - just copy the blob from your team member and run:
 
 ```bash
 envi unpack

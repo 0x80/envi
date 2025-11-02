@@ -1,6 +1,6 @@
 # envi pack
 
-Create an encrypted blob from your stored environment configuration that can be shared with colleagues.
+Create an encrypted blob from your stored environment configuration that can be shared with team members.
 
 ## Usage
 
@@ -10,7 +10,7 @@ envi pack
 
 ## Description
 
-The `pack` command finds all `.env` files in your repository, encrypts them, and **automatically copies the encrypted blob to your clipboard**. This blob can be safely shared with colleagues through communication channels like Slack, email, or messaging platforms.
+The `pack` command finds all `.env` files in your repository, encrypts them, and **automatically copies the encrypted blob to your clipboard**. This blob can be safely shared with team members through communication channels like Slack, email, or messaging platforms.
 
 > **Note:** Pack works completely independently of capture and global storage. It reads environment files directly from your repository and creates an encrypted blob - no capture needed!
 
@@ -18,14 +18,14 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 
 **For JavaScript/TypeScript projects** (with `package.json`):
 - The blob is automatically encrypted using your `package.json` contents as the encryption key
-- Only colleagues working in the same codebase (with the same `package.json`) can decrypt the blob
+- Only team members working in the same codebase (with the same `package.json`) can decrypt the blob
 - No manual secret management needed
 
 **For other projects** (without `package.json`):
 - You'll be prompted to enter a custom encryption secret
 - The secret must be at least 8 characters for security
-- You must share both the blob AND the secret with your colleagues
-- Colleagues will be prompted for the secret when unpacking
+- You must share both the blob AND the secret with your team members
+- Team members will be prompted for the secret when unpacking
 
 ## Examples
 
@@ -45,17 +45,17 @@ Repository root: /Users/you/projects/myapp
 ✔ Found 3 file(s) to pack
 ✔ Reading environment files...
 Using package.json for encryption key
-⚠ Note: Only colleagues with the same package.json can decrypt this blob
+⚠ Note: Only team members with the same package.json can decrypt this blob
 ✔ Encrypting configuration...
 ✔ Copying blob to clipboard...
 ✔ Blob copied to clipboard!
 
 Blob is now on your clipboard!
-Share it with colleagues who have the same package.json
+Share it with team members who have the same package.json
 They can restore it using: envi unpack
 ```
 
-The blob is now in your clipboard and ready to paste into Slack, email, or any messaging platform. Your colleagues can simply run `envi unpack` without any arguments - it will automatically read the blob from their clipboard!
+The blob is now in your clipboard and ready to paste into Slack, email, or any messaging platform. Your team members can simply run `envi unpack` without any arguments - it will automatically read the blob from their clipboard!
 
 ### Non-JavaScript/TypeScript Project
 
@@ -84,11 +84,11 @@ Using custom secret for encryption
 ✔ Blob copied to clipboard!
 
 Blob is now on your clipboard!
-Share the blob and the secret with your colleagues
+Share the blob and the secret with your team members
 They will be prompted for the secret when running: envi unpack
 ```
 
-The blob is automatically copied to your clipboard. Share both the blob (paste from clipboard) and the secret you entered with your colleagues.
+The blob is automatically copied to your clipboard. Share both the blob (paste from clipboard) and the secret you entered with your team members.
 
 ## How It Works
 
@@ -110,7 +110,7 @@ The blob is **automatically copied to your clipboard**, making it incredibly eas
 
 1. Run `envi pack`
 2. Paste (Cmd+V / Ctrl+V) directly into Slack, Teams, email, or any messaging app
-3. Your colleague copies the blob and runs `envi unpack` (no arguments needed!)
+3. Your team member copies the blob and runs `envi unpack` (no arguments needed!)
 4. The blob is automatically read from their clipboard and decrypted
 
 If clipboard operations fail (e.g., in headless environments), the blob is displayed in the terminal instead.

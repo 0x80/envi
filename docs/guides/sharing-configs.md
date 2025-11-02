@@ -4,7 +4,7 @@ Learn how to safely share environment configurations with your team members usin
 
 ## Overview
 
-Envi allows you to securely share environment configurations with colleagues through encrypted blobs. This is useful when:
+Envi allows you to securely share environment configurations with team members through encrypted blobs. This is useful when:
 
 - Onboarding new team members
 - Sharing configurations across different machines
