@@ -48,10 +48,11 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 ### Decryption Methods
 
 **For projects with a supported manifest file**:
-- Automatically attempts decryption using your project's manifest file contents
-- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart), `pom.xml` (Java), `settings.gradle` (Gradle), and more
+- Automatically attempts decryption using an MD5 hash of your project's manifest file contents
+- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
+- **Custom manifests:** You can add your own manifest files via `additional_manifest_files` in `~/.envi/config.maml` - see [Multi-Language Support](/guides/multi-language-support#adding-custom-manifest-files)
 - If decryption fails (blob was encrypted with a different manifest or custom secret), prompts for a custom secret
-- No manual secret entry needed if manifest matches
+- No manual secret entry needed if your manifest file is identical to the one used for encryption
 
 **For projects without a supported manifest file**:
 - Prompts you to enter the decryption secret
@@ -159,9 +160,9 @@ You can decline any of the interactive prompts:
 2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
 3. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
 4. **Attempts decryption**:
-   - If a supported manifest file exists (package.json, Cargo.toml, go.mod, etc.): Tries decryption using its contents
+   - If a supported manifest file exists (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle): Creates MD5 hash of the file and tries decryption
    - If decryption fails or no supported manifest found: Prompts for custom secret
-5. **Decrypts data** - Uses AES-256-GCM decryption
+5. **Decrypts data** - Uses AES-256-GCM decryption with the derived key
 6. **Validates configuration** - Ensures decrypted data is valid envi format
 7. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
 8. **Optionally saves to storage** - Asks if you also want to save to `~/.envi/store/` (defaults to No)

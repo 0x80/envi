@@ -175,7 +175,7 @@ import { readConfig } from "@codecompose/envi";
 const config = readConfig();
 // Returns: {
 //   use_version_control: "github" | false,
-//   package_manifest_files: string[]
+//   additional_manifest_files: string[]
 // }
 ```
 
@@ -188,7 +188,7 @@ import { writeConfig } from "@codecompose/envi";
 
 writeConfig({
   use_version_control: "github",
-  package_manifest_files: ["package.json", "Cargo.toml"]
+  additional_manifest_files: ["my-custom.json"]
 });
 ```
 
@@ -202,11 +202,11 @@ import { updateConfig } from "@codecompose/envi";
 // Update version control setting
 updateConfig({ use_version_control: false });
 
-// Customize manifest file detection
+// Add additional manifest files to check (on top of defaults)
 updateConfig({
-  package_manifest_files: [
-    "Cargo.toml",  // Check Rust projects first
-    "package.json"
+  additional_manifest_files: [
+    "my-custom.json",  // Custom manifest file
+    "app.yaml"         // Another custom manifest
   ]
 });
 ```
@@ -423,16 +423,15 @@ import type { EnviConfig } from "@codecompose/envi";
 
 const config: EnviConfig = {
   use_version_control: "github" | false,
-  package_manifest_files: string[],
+  additional_manifest_files: string[],
 };
 
-// Example with custom values
+// Example with custom values (adds to defaults)
 const customConfig: EnviConfig = {
   use_version_control: false,
-  package_manifest_files: [
-    "package.json",
-    "Cargo.toml",
-    "go.mod",
+  additional_manifest_files: [
+    "my-custom.json",  // Checked before defaults
+    "app.yaml",
   ],
 };
 ```

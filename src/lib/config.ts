@@ -7,14 +7,14 @@ import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 /** Global configuration structure */
 export interface EnviConfig {
   use_version_control: "github" | false;
-  /** List of package manifest files to check for package name detection (in priority order) */
-  package_manifest_files: string[];
+  /** Additional manifest files to check on top of the defaults (in priority order) */
+  additional_manifest_files: string[];
 }
 
 /** Default configuration */
 const DEFAULT_CONFIG: EnviConfig = {
   use_version_control: false,
-  package_manifest_files: DEFAULT_MANIFEST_FILES,
+  additional_manifest_files: [],
 };
 
 /**
@@ -51,6 +51,19 @@ export function readConfig(): EnviConfig {
   } catch {
     return { ...DEFAULT_CONFIG };
   }
+}
+
+/**
+ * Get the complete list of package manifest files to check
+ *
+ * Combines the default manifest files with any additional files from the config.
+ * Additional files are checked first (in case user wants to override priority).
+ *
+ * @returns Array of manifest filenames in priority order
+ */
+export function getManifestFiles(): string[] {
+  const config = readConfig();
+  return [...config.additional_manifest_files, ...DEFAULT_MANIFEST_FILES];
 }
 
 /**

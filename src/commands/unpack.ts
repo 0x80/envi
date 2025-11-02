@@ -21,6 +21,7 @@ import {
   generateKeyFromManifest,
   parseBlob,
 } from "~/utils/encryption";
+import { getManifestFiles } from "~/lib/config";
 
 /**
  * Write env file from parsed object
@@ -123,34 +124,41 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     consola.info(`Repository root: ${repoRoot}`);
 
-    /** Try to decrypt with package.json first, then prompt for secret if needed */
+    /** Try to decrypt with manifest files first, then prompt for secret if needed */
     let decrypted: string | null = null;
     let secret: string;
+    let foundManifest: string | null = null;
 
-    // Try to use package.json for decryption (JavaScript/TypeScript projects)
-    const packageJsonPath = join(repoRoot, "package.json");
-    if (existsSync(packageJsonPath)) {
-      consola.info("Found package.json - attempting decryption");
-      try {
-        const packageJsonContent = readFileSync(packageJsonPath, "utf-8");
-        secret = generateKeyFromManifest(packageJsonContent);
+    // Try to use any manifest file for decryption
+    const manifestFiles = getManifestFiles();
 
-        consola.start("Decrypting configuration...");
-        decrypted = decrypt(encryptedData, secret);
-        consola.success("Decryption successful using package.json");
-      } catch (error) {
-        // Decryption failed with package.json - might be using custom secret
-        consola.warn("Failed to decrypt with package.json");
-        consola.info("This blob may have been encrypted with a custom secret");
+    for (const filename of manifestFiles) {
+      const manifestPath = join(repoRoot, filename);
+      if (existsSync(manifestPath)) {
+        consola.info(`Found ${filename} - attempting decryption`);
+        try {
+          const manifestContent = readFileSync(manifestPath, "utf-8");
+          secret = generateKeyFromManifest(manifestContent);
+
+          consola.start("Decrypting configuration...");
+          decrypted = decrypt(encryptedData, secret);
+          consola.success(`Decryption successful using ${filename}`);
+          foundManifest = filename;
+          break;
+        } catch (error) {
+          // Decryption failed with this manifest - try next one
+          consola.warn(`Failed to decrypt with ${filename}`);
+        }
       }
     }
 
-    // If decryption failed or no package.json, prompt for custom secret
+    // If decryption failed with all manifests, prompt for custom secret
     if (!decrypted) {
-      if (!existsSync(packageJsonPath)) {
-        consola.info(
-          "No package.json found - this is expected for non-JavaScript/TypeScript projects"
-        );
+      if (!foundManifest) {
+        consola.info("No manifest files found in repository");
+        consola.info("Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...");
+      } else {
+        consola.info("This blob may have been encrypted with a custom secret");
       }
 
       const secretInput = await p.password({
@@ -179,7 +187,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
         consola.info("This could mean:");
         consola.info("  - The secret is incorrect");
         consola.info("  - The blob is corrupted");
-        consola.info("  - The blob was encrypted with a different package.json");
+        consola.info("  - The blob was encrypted with a different manifest file");
         process.exit(1);
       }
     }

@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from "node:crypto";
 import { gzipSync, gunzipSync } from "node:zlib";
 
 const ALGORITHM = "aes-256-gcm";
@@ -83,13 +83,21 @@ export function decrypt(encryptedData: string, secret: string): string {
 }
 
 /**
- * Generate a key from package.json contents
- * This allows colleagues in the same codebase to decrypt blobs
+ * Generate a key from manifest file contents using MD5 hash
+ *
+ * Supports all manifest types: package.json, Cargo.toml, go.mod, pyproject.toml,
+ * composer.json, pubspec.yaml, settings.gradle.kts, settings.gradle, pom.xml
+ *
+ * This allows colleagues with identical manifest files to decrypt blobs automatically
+ *
+ * @param manifestContent - Raw content of any manifest file
+ * @returns MD5 hash of the content (32-character hex string)
  */
-export function generateKeyFromManifest(packageJsonContent: string): string {
-  // Use the entire package.json content as the secret
-  // This ensures only someone with the same manifest can decrypt
-  return packageJsonContent;
+export function generateKeyFromManifest(manifestContent: string): string {
+  // Hash the manifest content with MD5
+  // This ensures consistent key length regardless of manifest file size
+  // Colleagues with identical manifests get the same hash
+  return createHash("md5").update(manifestContent).digest("hex");
 }
 
 /**

@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { parse, stringify } from "maml.js";
 import type { EnvObject } from "~/utils/parse-env-file";
 import { PACKAGE_EXTRACTORS } from "./package-name-extractors";
-import { readConfig } from "./config";
+import { getManifestFiles } from "./config";
 
 /** MAML file structure for storing env configurations */
 export interface EnviStore {
@@ -46,7 +46,7 @@ export function ensureStorageDir(): void {
 /**
  * Read package name from manifest files in repository
  *
- * Checks package manifest files in order specified by config (or defaults).
+ * Checks package manifest files in priority order (additional files from config first, then defaults).
  * Supports: package.json, Cargo.toml, go.mod, pyproject.toml, composer.json,
  * pubspec.yaml, settings.gradle.kts, settings.gradle, pom.xml
  *
@@ -54,8 +54,7 @@ export function ensureStorageDir(): void {
  * @returns Package name if found, null otherwise
  */
 export function getPackageName(repoPath: string): string | null {
-  const config = readConfig();
-  const filesToCheck = config.package_manifest_files;
+  const filesToCheck = getManifestFiles();
 
   for (const filename of filesToCheck) {
     const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === filename);

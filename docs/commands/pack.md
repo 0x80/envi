@@ -17,10 +17,11 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 ### Encryption Methods
 
 **For projects with a supported manifest file**:
-- The blob is automatically encrypted using your project's manifest file contents as the encryption key
-- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart), `pom.xml` (Java), `settings.gradle` (Gradle), and more
-- Only team members working in the same codebase (with the same manifest) can decrypt the blob
-- No manual secret management needed
+- The blob is automatically encrypted using an MD5 hash of your project's manifest file contents
+- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
+- **Custom manifests:** You can add your own manifest files via `additional_manifest_files` in `~/.envi/config.maml` - see [Multi-Language Support](/guides/multi-language-support#adding-custom-manifest-files)
+- Only team members working in the same codebase (with identical manifest file) can decrypt the blob
+- No manual secret management needed - the encryption key is automatically derived from your manifest
 
 **For projects without a supported manifest file**:
 - You'll be prompted to enter a custom encryption secret
@@ -98,9 +99,9 @@ The blob is automatically copied to your clipboard. Share both the blob (paste f
 1. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
 2. **Searches for .env files** - Finds all `.env` and `.env.*` files in your repository
 3. **Reads environment files** - Parses each file, preserving comments and structure
-4. **Detects project type** - Checks for supported manifest files in repository root (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle, etc.)
+4. **Detects project type** - Checks for supported manifest files in repository root (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle)
 5. **Generates encryption key**:
-   - If a supported manifest file exists: Uses its contents to generate the key
+   - If a supported manifest file exists: Creates an MD5 hash of the manifest file contents to use as the encryption key
    - If no supported manifest found: Prompts for a custom secret (minimum 8 characters)
 6. **Compresses data** - Uses gzip compression to reduce blob size by ~50%
 7. **Encrypts data** - Uses AES-256-GCM encryption with authentication on compressed data
@@ -156,9 +157,10 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 
 **Cons:**
 - ⚠️ **Insecure if codebase is compromised** - See warning above
-- Blob becomes unreadable if manifest file changes
-- Cannot be used as historical reference if dependencies change
+- Blob becomes unreadable if manifest file changes (even a single character difference)
+- Cannot be used as historical reference if manifest is updated
 - Only works with supported project types
+- MD5 hash means any whitespace or formatting change in manifest breaks decryption
 
 ### Using Custom Secret Encryption
 

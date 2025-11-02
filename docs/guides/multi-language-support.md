@@ -192,88 +192,131 @@ Check which manifest files Envi is configured to detect:
 cat ~/.envi/config.maml
 ```
 
-Default configuration:
+Built-in default manifest files (checked in this order):
 
-```maml
-{
-  use_version_control: false
-  package_manifest_files: [
-    "package.json"
-    "Cargo.toml"
-    "go.mod"
-    "pyproject.toml"
-    "composer.json"
-    "pubspec.yaml"
-    "settings.gradle.kts"
-    "settings.gradle"
-    "pom.xml"
-  ]
-}
-```
+1. `package.json` - JavaScript/TypeScript
+2. `Cargo.toml` - Rust
+3. `go.mod` - Go
+4. `pyproject.toml` - Python
+5. `composer.json` - PHP
+6. `pubspec.yaml` - Dart/Flutter
+7. `settings.gradle.kts` - Kotlin/Android
+8. `settings.gradle` - Java/Gradle
+9. `pom.xml` - Java/Maven
 
-### Customizing Detection Order
+These defaults are always checked and cannot be removed.
 
-You can customize which manifest files to check and in what order:
+### Adding Custom Manifest Files
+
+If your project uses a non-standard manifest file, you can add it to be checked **before** the defaults:
 
 **Edit** `~/.envi/config.maml`:
 
 ```maml
 {
   use_version_control: false
-  package_manifest_files: [
-    "Cargo.toml"        # Check Rust projects first
-    "go.mod"            # Then Go projects
-    "package.json"      # Then JavaScript/TypeScript
+  additional_manifest_files: [
+    "my-custom-manifest.json"  # Checked first
+    "app.yaml"                 # Checked second
   ]
+  # Default files are checked after additional files
 }
 ```
 
-### Adding Custom Manifest Files
+**Note:** Envi will skip unknown manifest files that don't have built-in extractors. You would need to implement a custom extractor for `my-custom-manifest.json` to work.
 
-If your project uses a non-standard manifest file, you can add it to the list:
+### Priority Order
 
-```maml
-{
-  use_version_control: false
-  package_manifest_files: [
-    "package.json"
-    "my-custom-manifest.json"
-    "Cargo.toml"
-  ]
-}
+The final detection order is:
+1. **Additional files** from `~/.envi/config.maml` (if configured)
+2. **Default files** (built-in list above)
+
+This allows you to prioritize custom manifest files while always falling back to the standard detection.
+
+## Encryption Support
+
+**All supported manifest files can be used for automatic blob encryption**, not just package.json!
+
+### How It Works
+
+When you run `envi pack` or `envi unpack`, Envi:
+
+1. Checks for any supported manifest file in your repository root (in priority order)
+2. Generates an MD5 hash of the manifest file contents
+3. Uses that hash as the encryption/decryption key
+4. No manual secret needed if you have a supported manifest file
+
+### Supported Languages for Auto-Encryption
+
+| Language | Manifest File | Status |
+|----------|--------------|--------|
+| JavaScript/TypeScript | `package.json` | ✅ Fully supported |
+| Rust | `Cargo.toml` | ✅ Fully supported |
+| Go | `go.mod` | ✅ Fully supported |
+| Python | `pyproject.toml` | ✅ Fully supported |
+| PHP | `composer.json` | ✅ Fully supported |
+| Dart/Flutter | `pubspec.yaml` | ✅ Fully supported |
+| Kotlin | `settings.gradle.kts` | ✅ Fully supported |
+| Java (Gradle) | `settings.gradle` | ✅ Fully supported |
+| Java (Maven) | `pom.xml` | ✅ Fully supported |
+
+### Example Workflows
+
+**Rust Project:**
+
+```bash
+# Team member A creates encrypted blob (has Cargo.toml)
+envi pack
+# Output: Using Cargo.toml for encryption key
+# Blob copied to clipboard
+
+# Team member B decrypts blob (has same Cargo.toml)
+envi unpack
+# Output: Found Cargo.toml - attempting decryption
+# ✔ Decryption successful using Cargo.toml
 ```
 
-**Note:** Envi will skip unknown manifest files that don't have built-in extractors. The above example would skip `my-custom-manifest.json` and continue to the next file.
+**Go Project:**
 
-### Language-Specific Configurations
+```bash
+# Team member creates blob (has go.mod)
+envi pack
+# Output: Using go.mod for encryption key
 
-**Only JavaScript/TypeScript projects:**
-
-```maml
-{
-  package_manifest_files: ["package.json"]
-}
+# Colleague decrypts (has same go.mod)
+envi unpack
+# Output: Found go.mod - attempting decryption
+# ✔ Decryption successful using go.mod
 ```
 
-**Only Python projects:**
+**Python Project:**
 
-```maml
-{
-  package_manifest_files: ["pyproject.toml"]
-}
+```bash
+# Create blob with pyproject.toml
+envi pack
+# Output: Using pyproject.toml for encryption key
+
+# Decrypt with same pyproject.toml
+envi unpack
+# Output: Found pyproject.toml - attempting decryption
+# ✔ Decryption successful using pyproject.toml
 ```
 
-**Multiple languages (custom order):**
+### Important Notes
 
-```maml
-{
-  package_manifest_files: [
-    "go.mod"
-    "Cargo.toml"
-    "pyproject.toml"
-  ]
-}
-```
+- **Identical files required**: The manifest file must be byte-for-byte identical for decryption to work
+- **Any change breaks decryption**: Even whitespace or formatting changes will cause decryption to fail
+- **MD5 hash**: The entire file contents are hashed with MD5 to create a consistent encryption key
+- **Fallback to custom secret**: If no manifest found or decryption fails, you'll be prompted for a custom secret
+- **Custom manifest files**: You can add your own manifest files using `additional_manifest_files` in `~/.envi/config.maml` (see [Adding Custom Manifest Files](#adding-custom-manifest-files) above). These will be checked first, before the built-in defaults, and can be used for encryption too.
+
+### Security Implications
+
+The same security considerations apply to all manifest-based encryption:
+
+⚠️ **WARNING**: Blobs encrypted with manifest files are only secure while your codebase remains private. Anyone with access to your repository can decrypt your blobs.
+
+**For production secrets**: Use a custom secret instead of manifest-based encryption. See [Pack](/commands/pack#security-considerations) for details.
 
 ## Programmatic Usage
 
@@ -350,18 +393,13 @@ const customExtractor: PackageExtractor = {
 
 **Problem:** Envi detects the wrong manifest file because your project has multiple manifest files.
 
-**Solution:** Customize the detection order in `~/.envi/config.maml` to prioritize your primary language.
+**Solution:** The default detection order prioritizes package.json first, then Cargo.toml, go.mod, etc. If you need different behavior, you have a few options:
 
-**Example:** A Rust project with a `package.json` for frontend tooling:
+1. **Accept the default** - The first detected manifest file will be used
+2. **Rename manifest files** - Temporarily remove or rename unwanted manifest files during capture
+3. **Use folder name** - If no manifest file is found, Envi uses the folder name as the storage key
 
-```maml
-{
-  package_manifest_files: [
-    "Cargo.toml"      # Check Rust first
-    "package.json"    # Then JavaScript/TypeScript
-  ]
-}
-```
+**Note:** The default manifest file order cannot be changed, but you can add custom manifest files that will be checked first using `additional_manifest_files`.
 
 ### Monorepo with Multiple Languages
 
@@ -403,10 +441,10 @@ This allows you to use `envi` in projects written in any language, not just Java
 
 ### Configuration Recommendations
 
-1. **Keep defaults** if you work with multiple languages
-2. **Customize order** if you primarily use specific languages
-3. **Limit to one language** if you only need Envi for specific project types
-4. **Use GitHub integration** to sync configurations across machines
+1. **Use defaults** - The built-in manifest files cover all supported languages
+2. **Add custom files** - Only add `additional_manifest_files` if you have non-standard manifest files
+3. **Prioritize custom files** - Additional files are checked before defaults, so you can prioritize specific patterns
+4. **Use GitHub integration** - Sync your custom configuration across machines
 
 ### Storage Organization
 

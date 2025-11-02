@@ -2,7 +2,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getConfigPath, readConfig, updateConfig, writeConfig } from "./config";
+import {
+  getConfigPath,
+  getManifestFiles,
+  readConfig,
+  updateConfig,
+  writeConfig,
+} from "./config";
 import { parse, stringify } from "maml.js";
 import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 
@@ -34,7 +40,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
     });
 
@@ -48,7 +54,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: "github" as const,
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
     });
 
@@ -64,7 +70,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
     });
   });
@@ -76,7 +82,7 @@ describe("config", () => {
 
       writeConfig({
         use_version_control: "github",
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
 
       expect(mkdirSync).toHaveBeenCalledWith(join("/home/user", ".envi"), {
@@ -85,7 +91,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github",
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
 
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -108,8 +114,32 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github" as const,
-        package_manifest_files: DEFAULT_MANIFEST_FILES,
+        additional_manifest_files: [],
       });
+    });
+  });
+
+  describe("getManifestFiles", () => {
+    it("should return only defaults when no additional files configured", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      const result = getManifestFiles();
+
+      expect(result).toEqual(DEFAULT_MANIFEST_FILES);
+    });
+
+    it("should prepend additional files from config", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        additional_manifest_files: ["custom.json", "app.yaml"],
+      });
+
+      const result = getManifestFiles();
+
+      expect(result).toEqual(["custom.json", "app.yaml", ...DEFAULT_MANIFEST_FILES]);
     });
   });
 });

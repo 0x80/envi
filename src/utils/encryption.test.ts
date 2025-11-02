@@ -62,14 +62,16 @@ describe("encryption", () => {
   });
 
   describe("generateKeyFromManifest", () => {
-    it("should use entire package.json content as secret", () => {
+    it("should generate MD5 hash from manifest content", () => {
       const packageJson = JSON.stringify({ name: "test", version: "1.0.0" });
       const key = generateKeyFromManifest(packageJson);
 
-      expect(key).toBe(packageJson);
+      // MD5 hash is always 32 characters (hex)
+      expect(key).toHaveLength(32);
+      expect(key).toMatch(/^[a-f0-9]{32}$/);
     });
 
-    it("should produce same key for same manifest", () => {
+    it("should produce same hash for same manifest content", () => {
       const packageJson = JSON.stringify({ name: "test" });
       const key1 = generateKeyFromManifest(packageJson);
       const key2 = generateKeyFromManifest(packageJson);
@@ -77,7 +79,7 @@ describe("encryption", () => {
       expect(key1).toBe(key2);
     });
 
-    it("should produce different keys for different manifests", () => {
+    it("should produce different hashes for different manifest content", () => {
       const packageJson1 = JSON.stringify({ name: "test1" });
       const packageJson2 = JSON.stringify({ name: "test2" });
 
@@ -85,6 +87,35 @@ describe("encryption", () => {
       const key2 = generateKeyFromManifest(packageJson2);
 
       expect(key1).not.toBe(key2);
+    });
+
+    it("should work with different manifest file types", () => {
+      const packageJson = '{"name": "my-package"}';
+      const cargoToml = '[package]\nname = "my-package"';
+      const goMod = 'module github.com/user/my-package';
+
+      // All should produce valid MD5 hashes
+      const key1 = generateKeyFromManifest(packageJson);
+      const key2 = generateKeyFromManifest(cargoToml);
+      const key3 = generateKeyFromManifest(goMod);
+
+      expect(key1).toHaveLength(32);
+      expect(key2).toHaveLength(32);
+      expect(key3).toHaveLength(32);
+
+      // All should be different since content is different
+      expect(key1).not.toBe(key2);
+      expect(key2).not.toBe(key3);
+      expect(key1).not.toBe(key3);
+    });
+
+    it("should produce consistent hash for same content", () => {
+      const content = "some manifest content";
+      const expected = "47fc87eb7fe16ccd6533b7f92489695e"; // MD5 hash of "some manifest content"
+
+      const key = generateKeyFromManifest(content);
+
+      expect(key).toBe(expected);
     });
   });
 

@@ -1,7 +1,7 @@
 import { consola } from "consola";
 import * as p from "@clack/prompts";
 import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { join, basename } from "node:path";
 import clipboard from "clipboardy";
 import { stringify } from "maml.js";
 import {
@@ -15,6 +15,7 @@ import {
   formatBlob,
   generateKeyFromManifest,
 } from "~/utils/encryption";
+import { getManifestFiles } from "~/lib/config";
 
 /**
  * Execute the pack command
@@ -72,23 +73,30 @@ export async function packCommand(): Promise<void> {
     /** Generate or prompt for encryption key */
     let secret: string;
     let usingManifest = false;
+    let manifestFileName: string | null = null;
 
-    // Try to use package.json for encryption (JavaScript/TypeScript projects)
-    const packageJsonPath = join(repoRoot, "package.json");
-    if (existsSync(packageJsonPath)) {
-      const packageJsonContent = readFileSync(packageJsonPath, "utf-8");
-      secret = generateKeyFromManifest(packageJsonContent);
-      usingManifest = true;
-      consola.info("Using package.json for encryption key");
-      consola.warn(
-        "Note: Only colleagues with the same package.json can decrypt this blob"
-      );
-    } else {
-      // No package.json - prompt for custom secret
-      consola.warn("No package.json found in repository root");
-      consola.info(
-        "This is expected for non-JavaScript/TypeScript projects."
-      );
+    // Try to find any manifest file for encryption
+    const manifestFiles = getManifestFiles();
+
+    for (const filename of manifestFiles) {
+      const manifestPath = join(repoRoot, filename);
+      if (existsSync(manifestPath)) {
+        const manifestContent = readFileSync(manifestPath, "utf-8");
+        secret = generateKeyFromManifest(manifestContent);
+        usingManifest = true;
+        manifestFileName = filename;
+        consola.info(`Using ${filename} for encryption key`);
+        consola.warn(
+          `Note: Only colleagues with the same ${filename} can decrypt this blob`
+        );
+        break;
+      }
+    }
+
+    if (!usingManifest) {
+      // No manifest found - prompt for custom secret
+      consola.warn("No manifest file found in repository root");
+      consola.info("Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...");
       consola.info("You'll need to provide a secret for encryption.");
 
       const secretInput = await p.password({
@@ -133,7 +141,7 @@ export async function packCommand(): Promise<void> {
     /** Output instructions */
     if (usingManifest) {
       consola.info("\nBlob is now on your clipboard!");
-      consola.info("Share it with colleagues who have the same package.json");
+      consola.info(`Share it with colleagues who have the same ${manifestFileName}`);
       consola.info("They can restore it using: envi unpack");
     } else {
       consola.info("\nBlob is now on your clipboard!");
