@@ -7,7 +7,7 @@ Envi stores environment configurations in [MAML](https://maml.dev) format - a hu
 Envi uses MAML instead of JSON for a critical technical reason: **guaranteed key order preservation**.
 
 Comment preservation works by storing comments as special keys that must maintain their exact position:
-- `__c_00`, `__c_01`, `__c_02`... - Full-line comments in order
+- `__l_00`, `__l_01`, `__l_02`... - Full-line comments and empty lines in order
 - `__i_00`, `__i_01`, `__i_02`... - Inline comments adjacent to their values
 
 If keys were reordered during serialization/deserialization, the reconstructed `.env` files would have comments in wrong positions or next to wrong values. MAML's specification explicitly guarantees key order, making it the reliable choice for this use case.
@@ -55,7 +55,7 @@ Comments are stored as special keys with incrementing numbers to preserve their 
 
 ### Full-Line Comments
 
-Full-line comments use the pattern `__c_00`, `__c_01`, `__c_02`, etc.
+Full-line comments use the pattern `__l_00`, `__l_01`, `__l_02`, etc.
 
 **Input `.env` file:**
 ```bash
@@ -70,18 +70,18 @@ API_KEY=secret123
 **Stored as MAML:**
 ```maml
 env: {
-  __c_00: "# Database configuration"
-  __c_01: "# Production settings"
+  __l_00: "# Database configuration"
+  __l_01: "# Production settings"
   DATABASE_URL: "postgres://localhost:5432/db"
-  __c_02: ""
-  __c_03: "# API Keys"
+  __l_02: ""
+  __l_03: "# API Keys"
   API_KEY: "secret123"
 }
 ```
 
 Notice:
-- Each comment gets an incrementing number: `__c_00`, `__c_01`, `__c_02`, `__c_03`
-- Empty lines become empty string values: `__c_02: ""`
+- Each comment gets an incrementing number: `__l_00`, `__l_01`, `__l_02`, `__l_03`
+- Empty lines become empty string values: `__l_02: ""`
 - Comments maintain their exact position relative to variables
 
 ### Inline Comments
@@ -136,19 +136,19 @@ API_KEY=secret123  # Production key
 **Stored as MAML:**
 ```maml
 env: {
-  __c_00: "# Application Configuration"
+  __l_00: "# Application Configuration"
   APP_NAME: "MyApp"
   __i_00: "# Current environment"
   APP_ENV: "production"
-  __c_01: ""
-  __c_02: "# Database Settings"
+  __l_01: ""
+  __l_02: "# Database Settings"
   DB_HOST: "localhost"
   __i_01: "# PostgreSQL default port"
   DB_PORT: "5432"
   DB_NAME: "myapp_db"
-  __c_03: ""
-  __c_04: "# API Configuration"
-  __c_05: "# External service credentials"
+  __l_03: ""
+  __l_04: "# API Configuration"
+  __l_05: "# External service credentials"
   API_URL: "https://api.example.com"
   __i_02: "# Production key"
   API_KEY: "secret123"
@@ -173,7 +173,7 @@ API_KEY=secret123  # Production key
 ```
 
 Notice:
-- Full-line comments: `__c_00` through `__c_05` (including empty lines)
+- Full-line comments: `__l_00` through `__l_05` (including empty lines)
 - Inline comments: `__i_00` through `__i_02`
 - Each type has its own incrementing counter
 - The restored file is identical to the original
@@ -193,7 +193,7 @@ Here's what a complete stored configuration looks like:
     {
       path: ".env"
       env: {
-        __c_00: "# Production Environment"
+        __l_00: "# Production Environment"
         NODE_ENV: "production"
         __i_00: "# Main application port"
         PORT: "3000"
@@ -202,7 +202,7 @@ Here's what a complete stored configuration looks like:
     {
       path: "apps/api/.env.local"
       env: {
-        __c_00: "# API Configuration"
+        __l_00: "# API Configuration"
         DATABASE_URL: "postgres://localhost:5432/api_db"
         __i_00: "# Internal API secret"
         API_SECRET: "super-secret-key"

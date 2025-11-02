@@ -19,8 +19,8 @@ function writeEnvFile(filePath: string, env: Record<string, string>): void {
   const lines: string[] = [];
 
   for (const [key, value] of Object.entries(env)) {
-    /** Handle full-line comments */
-    if (key.startsWith("__c_")) {
+    /** Handle full-line comments and empty lines */
+    if (key.startsWith("__l_")) {
       lines.push(value);
       continue;
     }

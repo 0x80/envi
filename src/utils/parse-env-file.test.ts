@@ -23,7 +23,7 @@ KEY2=value2`;
     });
   });
 
-  it("should preserve comments with __c keys", () => {
+  it("should preserve comments with __l keys", () => {
     const content = `# First comment
 KEY1=value1
 # Second comment
@@ -34,9 +34,9 @@ KEY2=value2`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __c_00: "# First comment",
+      __l_00: "# First comment",
       KEY1: "value1",
-      __c_01: "# Second comment",
+      __l_01: "# Second comment",
       KEY2: "value2",
     });
   });
@@ -82,7 +82,7 @@ KEY_A=valueA`;
 
     const result = parseEnvFile("/test/.env");
 
-    expect(Object.keys(result)).toEqual(["__c_00", "KEY_Z", "__c_01", "KEY_A"]);
+    expect(Object.keys(result)).toEqual(["__l_00", "KEY_Z", "__l_01", "KEY_A"]);
   });
 
   it("should preserve inline comments", () => {
@@ -144,19 +144,19 @@ KEY2=value2`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __c_00: "# Full-line comment",
+      __l_00: "# Full-line comment",
       __i_00: "# Inline comment",
       KEY1: "value1",
-      __c_01: "# Another full-line comment",
+      __l_01: "# Another full-line comment",
       KEY2: "value2",
     });
 
     /** Verify order: comment, inline, key, comment, key */
     expect(Object.keys(result)).toEqual([
-      "__c_00",
+      "__l_00",
       "__i_00",
       "KEY1",
-      "__c_01",
+      "__l_01",
       "KEY2",
     ]);
   });
