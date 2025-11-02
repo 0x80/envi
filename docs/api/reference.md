@@ -82,8 +82,8 @@ import { parseEnvFile } from "@codecompose/envi";
 
 const env = parseEnvFile("/path/to/.env");
 // Returns: {
-//   __c00: "# Comment",
-//   __i00: "# Inline comment",
+//   __c_00: "# Comment",
+//   __i_00: "# Inline comment",
 //   KEY: "value"
 // }
 ```
@@ -287,8 +287,8 @@ Parsed environment file object.
 import type { EnvObject } from "@codecompose/envi";
 
 const env: EnvObject = {
-  __c00: "# Comment",
-  __i00: "# Inline comment",
+  __c_00: "# Comment",
+  __i_00: "# Inline comment",
   KEY: "value",
 };
 ```

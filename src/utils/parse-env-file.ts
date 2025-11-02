@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
 
-/** Environment variable object with comments preserved as __c00, __c01, etc. */
+/** Environment variable object with comments preserved as __c_00, __c_01, etc. */
 export type EnvObject = Record<string, string>;
 
 /**
  * Parse a .env file while preserving comments
  *
- * Comments are stored as __c00, __c01, etc. (zero-padded, incremental)
+ * Comments are stored as __c_00, __c_01, etc. (zero-padded, incremental)
  * Full-line comments starting with # are preserved in their original order
- * Inline comments are stored as __i00, __i01, etc. right before the value
+ * Inline comments are stored as __i_00, __i_01, etc. right before the value
  *
  * @param filePath - Absolute path to .env file
  * @returns Object with env vars and comment keys
@@ -30,7 +30,7 @@ export function parseEnvFile(filePath: string): EnvObject {
 
     /** Handle full-line comments */
     if (trimmed.startsWith("#")) {
-      const commentKey = `__c${commentIndex.toString().padStart(2, "0")}`;
+      const commentKey = `__c_${commentIndex.toString().padStart(2, "0")}`;
       result[commentKey] = trimmed;
       commentIndex++;
       continue;
@@ -86,7 +86,7 @@ export function parseEnvFile(filePath: string): EnvObject {
 
       /** Add inline comment key before the value */
       if (inlineComment) {
-        const inlineKey = `__i${inlineCommentIndex.toString().padStart(2, "0")}`;
+        const inlineKey = `__i_${inlineCommentIndex.toString().padStart(2, "0")}`;
         result[inlineKey] = inlineComment;
         inlineCommentIndex++;
       }

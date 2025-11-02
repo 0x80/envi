@@ -39,7 +39,10 @@ export default defineConfig({
       },
       {
         text: "Reference",
-        items: [{ text: "API Reference", link: "/api/reference" }],
+        items: [
+          { text: "File Format", link: "/file-format" },
+          { text: "API Reference", link: "/api/reference" },
+        ],
       },
     ],
     socialLinks: [

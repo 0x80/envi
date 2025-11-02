@@ -20,13 +20,13 @@ function writeEnvFile(filePath: string, env: Record<string, string>): void {
 
   for (const [key, value] of Object.entries(env)) {
     /** Handle full-line comments */
-    if (key.startsWith("__c")) {
+    if (key.startsWith("__c_")) {
       lines.push(value);
       continue;
     }
 
     /** Handle inline comments */
-    if (key.startsWith("__i")) {
+    if (key.startsWith("__i_")) {
       /** Store for next key-value pair */
       const nextKey = Object.keys(env)[Object.keys(env).indexOf(key) + 1];
       if (nextKey && !nextKey.startsWith("__")) {
@@ -45,7 +45,7 @@ function writeEnvFile(filePath: string, env: Record<string, string>): void {
     const keyIndex = Object.keys(env).indexOf(key);
     if (keyIndex > 0) {
       const prevKey = Object.keys(env)[keyIndex - 1];
-      if (prevKey && prevKey.startsWith("__i")) {
+      if (prevKey && prevKey.startsWith("__i_")) {
         const inlineComment = env[prevKey];
         if (inlineComment) {
           line = `${line} ${inlineComment}`;

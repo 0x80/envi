@@ -34,9 +34,9 @@ KEY2=value2`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __c00: "# First comment",
+      __c_00: "# First comment",
       KEY1: "value1",
-      __c01: "# Second comment",
+      __c_01: "# Second comment",
       KEY2: "value2",
     });
   });
@@ -82,7 +82,7 @@ KEY_A=valueA`;
 
     const result = parseEnvFile("/test/.env");
 
-    expect(Object.keys(result)).toEqual(["__c00", "KEY_Z", "__c01", "KEY_A"]);
+    expect(Object.keys(result)).toEqual(["__c_00", "KEY_Z", "__c_01", "KEY_A"]);
   });
 
   it("should preserve inline comments", () => {
@@ -94,7 +94,7 @@ KEY2=value2`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __i00: "# This is an inline comment",
+      __i_00: "# This is an inline comment",
       KEY1: "value1",
       KEY2: "value2",
     });
@@ -110,11 +110,11 @@ KEY3=unquoted # Third comment`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __i00: "# Comment",
+      __i_00: "# Comment",
       KEY1: "value with spaces",
-      __i01: "# Another comment",
+      __i_01: "# Another comment",
       KEY2: "single quoted",
-      __i02: "# Third comment",
+      __i_02: "# Third comment",
       KEY3: "unquoted",
     });
   });
@@ -144,19 +144,19 @@ KEY2=value2`;
     const result = parseEnvFile("/test/.env");
 
     expect(result).toEqual({
-      __c00: "# Full-line comment",
-      __i00: "# Inline comment",
+      __c_00: "# Full-line comment",
+      __i_00: "# Inline comment",
       KEY1: "value1",
-      __c01: "# Another full-line comment",
+      __c_01: "# Another full-line comment",
       KEY2: "value2",
     });
 
     /** Verify order: comment, inline, key, comment, key */
     expect(Object.keys(result)).toEqual([
-      "__c00",
-      "__i00",
+      "__c_00",
+      "__i_00",
       "KEY1",
-      "__c01",
+      "__c_01",
       "KEY2",
     ]);
   });

@@ -118,40 +118,11 @@ Envi stores your environment configurations in:
 └── config.maml      # Global configuration
 ```
 
-## File Format
-
-Files are stored in [MAML](https://maml.dev) format, which is:
-
-- Human-readable and easy to edit
-- Preserves key order (important for comments)
-- Simple syntax (similar to YAML)
-- Version control friendly
-
-Example stored file:
-
-```maml
-{
-  __envi_version: 1
-  metadata: {
-    updated_from: "/Users/you/projects/myapp"
-    updated_at: "2025-11-01T12:00:00.000Z"
-  }
-  files: [
-    {
-      path: ".env.local"
-      env: {
-        __c00: "# Database configuration"
-        __i00: "# Production database"
-        DATABASE_URL: "postgres://localhost:5432/db"
-        API_KEY: "secret123"
-      }
-    }
-  ]
-}
-```
+Files are stored in human-readable [MAML](https://maml.dev) format. See the [File Format](/file-format) documentation for technical details.
 
 ## Next Steps
 
 - Learn about all available [commands](/commands/capture)
+- Understand the [file format](/file-format) and how comments are preserved
 - Set up [GitHub integration](/guides/github-integration) for automatic version control
 - Explore [monorepo usage](/guides/monorepo)

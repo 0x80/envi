@@ -72,7 +72,7 @@ DATABASE_URL=postgres://localhost:5432/db
 Stored as:
 
 ```maml
-__c00: "# This is a database configuration"
+__c_00: "# This is a database configuration"
 DATABASE_URL: "postgres://localhost:5432/db"
 ```
 
@@ -85,7 +85,7 @@ API_KEY=secret123 # Production API key
 Stored as:
 
 ```maml
-__i00: "# Production API key"
+__i_00: "# Production API key"
 API_KEY: "secret123"
 ```
 
