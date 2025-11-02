@@ -33,6 +33,7 @@ export default defineConfig({
       {
         text: "Guides",
         items: [
+          { text: "Git Worktrees with AI Tools", link: "/guides/git-worktrees" },
           { text: "Multi-Language Support", link: "/guides/multi-language-support" },
           { text: "Sharing Configurations", link: "/guides/sharing-configs" },
           { text: "GitHub Integration", link: "/guides/github-integration" },

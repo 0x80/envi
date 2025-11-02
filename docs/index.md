@@ -54,8 +54,8 @@ features:
         <circle cx="6" cy="18" r="3"/>
         <path d="M18 9a9 9 0 0 1-9 9"/>
       </svg>
-    title: Git Worktree Friendly
-    details: Easily initialize git worktree instances with proper environment configurations
+    title: AI Tools & Worktrees
+    details: Perfect for Cursor parallel agents and git worktrees - automatically restore env files to isolated working directories
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
@@ -102,6 +102,7 @@ envi restore
 
 ## Notable Features
 
+- **Perfect for AI Development** - Solves the git worktrees env file problem for Cursor parallel agents and other AI tools. Simply add `envi restore` to your `.cursor/worktrees.json` setup script and all env files are automatically restored to each isolated worktree
 - **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JavaScript/TypeScript
 - **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by package name (supports scoped packages like `@org/package`)
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs (~50% size reduction) - works independently of global storage, reads directly from your repository
@@ -114,6 +115,7 @@ envi restore
 ## Learn More
 
 - [Getting Started](/getting-started) - Installation and basic usage
+- [Git Worktrees with AI Tools](/guides/git-worktrees) - Configure Cursor parallel agents and worktrees
 - [Commands](/commands/capture) - Detailed command documentation
 - [File Format](/file-format) - How Envi stores and preserves your configurations
 - [GitHub Integration](/guides/github-integration) - Set up automatic version control

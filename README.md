@@ -8,6 +8,7 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 
 ## Features
 
+- **AI Tools & Worktrees** - Perfect for Cursor parallel agents - automatically restore env files to isolated worktrees
 - **Language Agnostic** - Works with any programming language when installed globally (Rust, Go, Python, PHP, Java, Ruby, and more)
 - **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
 - **Easy Restoration** - Restore env files on new systems or git worktrees
@@ -38,7 +39,9 @@ envi restore
 Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete documentation including:
 
 - **[Getting Started](https://envi.codecompose.dev/getting-started)** - Installation and basic usage
+- **[Git Worktrees with AI Tools](https://envi.codecompose.dev/guides/git-worktrees)** - Configure Cursor parallel agents
 - **[Commands](https://envi.codecompose.dev/commands/capture)** - Detailed command documentation
+- **[Multi-Language Support](https://envi.codecompose.dev/guides/multi-language-support)** - Using with Rust, Go, Python, and more
 - **[GitHub Integration](https://envi.codecompose.dev/guides/github-integration)** - Set up automatic version control
 - **[Monorepo Support](https://envi.codecompose.dev/guides/monorepo)** - Working with monorepos
 - **[API Reference](https://envi.codecompose.dev/api-reference)** - Programmatic usage
