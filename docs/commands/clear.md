@@ -10,7 +10,7 @@ envi clear
 
 ## What It Does
 
-1. **Finds project root** - Locates the project directory (looks for `.git`, or prompts you to confirm the current directory)
+1. **Finds project root** - Locates the project directory (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts you to confirm the current directory)
 2. **Locates storage file** - Finds the stored configuration for this project
 3. **Prompts for confirmation** - Requires explicit confirmation (default: No)
 4. **Deletes configuration** - Removes the stored MAML file from `~/.envi/store/`

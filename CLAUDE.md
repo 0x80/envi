@@ -51,7 +51,7 @@ pnpm docs:preview       # Preview built docs
 ### Core Data Flow
 
 **Capture Flow:**
-1. `findRepoRoot()` - Locates git repository root (checks for `.git`, prompts if not found)
+1. `findRepoRoot()` - Locates repository root (checks for VCS markers: `.git`, `.jj`, `.hg`, `.svn`, prompts if not found)
 2. `findEnvFiles()` - Searches for `.env` and `.env.*` files using fast-glob, respecting `.gitignore` directory patterns
 3. `parseEnvFile()` - Parses each file, preserving comments as special keys (`__c00`, `__c01` for full-line comments; `__i00`, `__i01` for inline comments)
 4. `saveToStorage()` - Saves to `~/.envi/store/[package-name].maml` or `~/.envi/store/[folder-name].maml`, only writes if content differs
@@ -129,7 +129,7 @@ Tests use Vitest with:
 
 3. **Content Comparison**: When capturing or restoring, compare parsed env objects (not raw strings) to ignore formatting differences while detecting actual changes.
 
-4. **Repository Root Detection**: Always starts from CWD, traverses up to find `.git`, prompts user if not found to prevent accidental execution in wrong directory.
+4. **Repository Root Detection**: Always starts from CWD, traverses up to find VCS markers (`.git`, `.jj`, `.hg`, `.svn`), prompts user if not found to prevent accidental execution in wrong directory.
 
 5. **GitHub Integration**: Requires `gh` CLI installed and authenticated. Creates/uses private `envi-store` repository. Only commits if actual file changes detected.
 

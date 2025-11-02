@@ -56,4 +56,26 @@ describe("findRepoRoot", () => {
     const result = await findRepoRoot(testDir);
     expect(result).toBe(testDir);
   });
+
+  it("should find .jj directory in current directory", async () => {
+    const testDir = "/project";
+    vi.mocked(existsSync).mockImplementation((path) => {
+      return path === join(testDir, ".jj");
+    });
+
+    const result = await findRepoRoot(testDir);
+    expect(result).toBe(testDir);
+  });
+
+  it("should find .jj directory in parent directory", async () => {
+    const testDir = "/project/src";
+    const parentDir = "/project";
+
+    vi.mocked(existsSync).mockImplementation((path) => {
+      return path === join(parentDir, ".jj");
+    });
+
+    const result = await findRepoRoot(testDir);
+    expect(result).toBe(parentDir);
+  });
 });

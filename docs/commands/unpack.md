@@ -157,7 +157,7 @@ You can decline any of the interactive prompts:
 
 1. **Reads blob** - From clipboard if no argument provided, or from the argument
 2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
-3. **Finds project root** - Locates your project root (looks for `.git`, or prompts for confirmation)
+3. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
 4. **Attempts decryption**:
    - If a supported manifest file exists (package.json, Cargo.toml, go.mod, etc.): Tries decryption using its contents
    - If decryption fails or no supported manifest found: Prompts for custom secret

@@ -67,7 +67,7 @@ $ envi capture
 ...
 ```
 
-It traverses up looking for `.git`, so you can run it from anywhere in the monorepo.
+It traverses up looking for version control markers (`.git`, `.jj`, `.hg`, `.svn`), so you can run it from anywhere in the monorepo.
 
 ## Stored Format
 

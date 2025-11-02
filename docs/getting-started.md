@@ -85,7 +85,7 @@ envi capture
 
 This will:
 
-- Find your project root (looks for `.git`, or prompts you to confirm the current directory)
+- Find your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts you to confirm the current directory)
 - Discover all `.env` and `.env.*` files
 - Store them in `~/.envi/store/` organized by package name
 
