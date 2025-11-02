@@ -7,8 +7,8 @@ import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 /** Global configuration structure */
 export interface EnviConfig {
   use_version_control: "github" | false;
-  /** Additional manifest files to check on top of the defaults (in priority order) */
-  additional_manifest_files: string[];
+  /** Manifest files to check for package name and encryption (in priority order) */
+  manifest_files: string[];
   /** Environment variables to redact (replace with __envi_redacted__) when capturing or packing */
   redacted_variables: string[];
 }
@@ -16,7 +16,7 @@ export interface EnviConfig {
 /** Default configuration */
 const DEFAULT_CONFIG: EnviConfig = {
   use_version_control: false,
-  additional_manifest_files: [],
+  manifest_files: [...DEFAULT_MANIFEST_FILES],
   redacted_variables: ["GITHUB_PAT"],
 };
 
@@ -57,16 +57,45 @@ export function readConfig(): EnviConfig {
 }
 
 /**
- * Get the complete list of package manifest files to check
- *
- * Combines the default manifest files with any additional files from the config.
- * Additional files are checked first (in case user wants to override priority).
+ * Get the list of manifest files to check for package name and encryption
  *
  * @returns Array of manifest filenames in priority order
  */
 export function getManifestFiles(): string[] {
   const config = readConfig();
-  return [...config.additional_manifest_files, ...DEFAULT_MANIFEST_FILES];
+  return config.manifest_files;
+}
+
+/**
+ * Add a manifest file to the list
+ *
+ * @param filename - Manifest filename to add
+ */
+export function addToManifestFiles(filename: string): void {
+  const config = readConfig();
+  if (!config.manifest_files.includes(filename)) {
+    config.manifest_files = [...config.manifest_files, filename];
+    writeConfig(config);
+  }
+}
+
+/**
+ * Remove a manifest file from the list
+ *
+ * @param filename - Manifest filename to remove
+ * @returns True if file was removed, false if it wasn't in the list
+ */
+export function removeFromManifestFiles(filename: string): boolean {
+  const config = readConfig();
+  const index = config.manifest_files.indexOf(filename);
+
+  if (index === -1) {
+    return false;
+  }
+
+  config.manifest_files = config.manifest_files.filter(f => f !== filename);
+  writeConfig(config);
+  return true;
 }
 
 /**
@@ -99,7 +128,7 @@ export function getRedactedVariables(): string[] {
 export function addToRedactionList(variable: string): void {
   const config = readConfig();
   if (!config.redacted_variables.includes(variable)) {
-    config.redacted_variables.push(variable);
+    config.redacted_variables = [...config.redacted_variables, variable];
     writeConfig(config);
   }
 }
@@ -118,7 +147,7 @@ export function removeFromRedactionList(variable: string): boolean {
     return false;
   }
 
-  config.redacted_variables.splice(index, 1);
+  config.redacted_variables = config.redacted_variables.filter(v => v !== variable);
   writeConfig(config);
   return true;
 }

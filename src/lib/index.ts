@@ -1,10 +1,12 @@
 /** Barrel file for lib */
 export {
+  addToManifestFiles,
   addToRedactionList,
   getConfigPath,
   getManifestFiles,
   getRedactedVariables,
   readConfig,
+  removeFromManifestFiles,
   removeFromRedactionList,
   updateConfig,
   writeConfig,

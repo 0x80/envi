@@ -3,11 +3,13 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  addToManifestFiles,
   addToRedactionList,
   getConfigPath,
   getManifestFiles,
   getRedactedVariables,
   readConfig,
+  removeFromManifestFiles,
   removeFromRedactionList,
   updateConfig,
   writeConfig,
@@ -43,7 +45,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
     });
@@ -58,7 +60,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: "github" as const,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
     });
@@ -75,7 +77,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
     });
@@ -88,7 +90,7 @@ describe("config", () => {
 
       writeConfig({
         use_version_control: "github",
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
 
@@ -98,7 +100,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github",
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
 
@@ -122,7 +124,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github" as const,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
     });
@@ -138,17 +140,17 @@ describe("config", () => {
       expect(result).toEqual(DEFAULT_MANIFEST_FILES);
     });
 
-    it("should prepend additional files from config", () => {
+    it("should return custom manifest files from config", () => {
       vi.mocked(homedir).mockReturnValue("/home/user");
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue("maml content");
       vi.mocked(parse).mockReturnValue({
-        additional_manifest_files: ["custom.json", "app.yaml"],
+        manifest_files: ["custom.json", "app.yaml"],
       });
 
       const result = getManifestFiles();
 
-      expect(result).toEqual(["custom.json", "app.yaml", ...DEFAULT_MANIFEST_FILES]);
+      expect(result).toEqual(["custom.json", "app.yaml"]);
     });
   });
 
@@ -183,7 +185,7 @@ describe("config", () => {
       vi.mocked(readFileSync).mockReturnValue("maml content");
       vi.mocked(parse).mockReturnValue({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
       vi.mocked(stringify).mockReturnValue("updated");
@@ -192,7 +194,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT", "API_KEY"],
       });
     });
@@ -203,7 +205,7 @@ describe("config", () => {
       vi.mocked(readFileSync).mockReturnValue("maml content");
       vi.mocked(parse).mockReturnValue({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
 
@@ -220,7 +222,7 @@ describe("config", () => {
       vi.mocked(readFileSync).mockReturnValue("maml content");
       vi.mocked(parse).mockReturnValue({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT", "API_KEY"],
       });
       vi.mocked(stringify).mockReturnValue("updated");
@@ -230,7 +232,7 @@ describe("config", () => {
       expect(result).toBe(true);
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
     });
@@ -241,11 +243,87 @@ describe("config", () => {
       vi.mocked(readFileSync).mockReturnValue("maml content");
       vi.mocked(parse).mockReturnValue({
         use_version_control: false,
-        additional_manifest_files: [],
+        manifest_files: DEFAULT_MANIFEST_FILES,
         redacted_variables: ["GITHUB_PAT"],
       });
 
       const result = removeFromRedactionList("API_KEY");
+
+      expect(result).toBe(false);
+      expect(stringify).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("addToManifestFiles", () => {
+    it("should add manifest file to list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        manifest_files: DEFAULT_MANIFEST_FILES,
+        redacted_variables: ["GITHUB_PAT"],
+      });
+      vi.mocked(stringify).mockReturnValue("updated");
+
+      addToManifestFiles("custom.json");
+
+      expect(stringify).toHaveBeenCalledWith({
+        use_version_control: false,
+        manifest_files: [...DEFAULT_MANIFEST_FILES, "custom.json"],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+    });
+
+    it("should not add duplicate manifest file", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        manifest_files: DEFAULT_MANIFEST_FILES,
+        redacted_variables: ["GITHUB_PAT"],
+      });
+
+      addToManifestFiles("package.json");
+
+      expect(stringify).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("removeFromManifestFiles", () => {
+    it("should remove manifest file from list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        manifest_files: [...DEFAULT_MANIFEST_FILES, "custom.json"],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+      vi.mocked(stringify).mockReturnValue("updated");
+
+      const result = removeFromManifestFiles("custom.json");
+
+      expect(result).toBe(true);
+      expect(stringify).toHaveBeenCalledWith({
+        use_version_control: false,
+        manifest_files: DEFAULT_MANIFEST_FILES,
+        redacted_variables: ["GITHUB_PAT"],
+      });
+    });
+
+    it("should return false if manifest file not in list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        manifest_files: DEFAULT_MANIFEST_FILES,
+        redacted_variables: ["GITHUB_PAT"],
+      });
+
+      const result = removeFromManifestFiles("nonexistent.json");
 
       expect(result).toBe(false);
       expect(stringify).not.toHaveBeenCalled();

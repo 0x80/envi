@@ -204,34 +204,58 @@ Built-in default manifest files (checked in this order):
 8. `settings.gradle` - Java/Gradle
 9. `pom.xml` - Java/Maven
 
-These defaults are always checked and cannot be removed.
+### Managing Manifest Files
 
-### Adding Custom Manifest Files
+By default, Envi checks all supported manifest files in priority order. You can customize this list using CLI commands:
 
-If your project uses a non-standard manifest file, you can add it to be checked **before** the defaults:
+**List current manifest files:**
+```bash
+envi config manifest_files list
+```
 
-**Edit** `~/.envi/config.maml`:
+**Add a custom manifest file:**
+```bash
+envi config manifest_files add my-custom-manifest.json
+```
 
+**Remove a manifest file (including defaults):**
+```bash
+envi config manifest_files remove pom.xml
+```
+
+**Example output:**
+```bash
+$ envi config manifest_files list
+Manifest files (in priority order):
+  • package.json
+  • Cargo.toml
+  • go.mod
+  • pyproject.toml
+  • composer.json
+  • pubspec.yaml
+  • settings.gradle.kts
+  • settings.gradle
+  • pom.xml
+```
+
+The configuration is stored in `~/.envi/config.maml`:
 ```maml
 {
   use_version_control: false
-  additional_manifest_files: [
-    "my-custom-manifest.json"  # Checked first
-    "app.yaml"                 # Checked second
+  manifest_files: [
+    "package.json"
+    "Cargo.toml"
+    "go.mod"
+    # ... full list of manifest files
   ]
-  # Default files are checked after additional files
+  redacted_variables: ["GITHUB_PAT"]
 }
 ```
 
-**Note:** Envi will skip unknown manifest files that don't have built-in extractors. You would need to implement a custom extractor for `my-custom-manifest.json` to work.
-
-### Priority Order
-
-The final detection order is:
-1. **Additional files** from `~/.envi/config.maml` (if configured)
-2. **Default files** (built-in list above)
-
-This allows you to prioritize custom manifest files while always falling back to the standard detection.
+**Note:**
+- Custom manifest files need built-in extractors to work for package name detection
+- All manifest files (including custom ones) can be used for encryption
+- You have full control - you can even remove default files if needed
 
 ## Encryption Support
 
@@ -308,7 +332,7 @@ envi unpack
 - **Any change breaks decryption**: Even whitespace or formatting changes will cause decryption to fail
 - **MD5 hash**: The entire file contents are hashed with MD5 to create a consistent encryption key
 - **Fallback to custom secret**: If no manifest found or decryption fails, you'll be prompted for a custom secret
-- **Custom manifest files**: You can add your own manifest files using `additional_manifest_files` in `~/.envi/config.maml` (see [Adding Custom Manifest Files](#adding-custom-manifest-files) above). These will be checked first, before the built-in defaults, and can be used for encryption too.
+- **Custom manifest files**: You can add your own manifest files using `envi config manifest_files add <filename>` (see [Managing Manifest Files](#managing-manifest-files) above). All manifest files can be used for encryption.
 
 ### Security Implications
 
@@ -399,7 +423,7 @@ const customExtractor: PackageExtractor = {
 2. **Rename manifest files** - Temporarily remove or rename unwanted manifest files during capture
 3. **Use folder name** - If no manifest file is found, Envi uses the folder name as the storage key
 
-**Note:** The default manifest file order cannot be changed, but you can add custom manifest files that will be checked first using `additional_manifest_files`.
+**Note:** You can fully customize the manifest file list using `envi config manifest_files` commands. Add custom files, remove defaults, or reorder as needed.
 
 ### Monorepo with Multiple Languages
 
@@ -442,7 +466,7 @@ This allows you to use `envi` in projects written in any language, not just Java
 ### Configuration Recommendations
 
 1. **Use defaults** - The built-in manifest files cover all supported languages
-2. **Add custom files** - Only add `additional_manifest_files` if you have non-standard manifest files
+2. **Add custom files** - Only add custom manifest files using `envi config manifest_files add` if you have non-standard files
 3. **Prioritize custom files** - Additional files are checked before defaults, so you can prioritize specific patterns
 4. **Use GitHub integration** - Sync your custom configuration across machines
 

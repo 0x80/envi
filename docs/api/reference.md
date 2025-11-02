@@ -175,7 +175,7 @@ import { readConfig } from "@codecompose/envi";
 const config = readConfig();
 // Returns: {
 //   use_version_control: "github" | false,
-//   additional_manifest_files: string[]
+//   manifest_files: string[]
 // }
 ```
 
@@ -188,7 +188,7 @@ import { writeConfig } from "@codecompose/envi";
 
 writeConfig({
   use_version_control: "github",
-  additional_manifest_files: ["my-custom.json"]
+  manifest_files: ["my-custom.json"]
 });
 ```
 
@@ -204,7 +204,7 @@ updateConfig({ use_version_control: false });
 
 // Add additional manifest files to check (on top of defaults)
 updateConfig({
-  additional_manifest_files: [
+  manifest_files: [
     "my-custom.json",  // Custom manifest file
     "app.yaml"         // Another custom manifest
   ]
@@ -423,13 +423,13 @@ import type { EnviConfig } from "@codecompose/envi";
 
 const config: EnviConfig = {
   use_version_control: "github" | false,
-  additional_manifest_files: string[],
+  manifest_files: string[],
 };
 
 // Example with custom values (adds to defaults)
 const customConfig: EnviConfig = {
   use_version_control: false,
-  additional_manifest_files: [
+  manifest_files: [
     "my-custom.json",  // Checked before defaults
     "app.yaml",
   ],

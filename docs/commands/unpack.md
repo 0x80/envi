@@ -50,7 +50,7 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 **For projects with a supported manifest file**:
 - Automatically attempts decryption using an MD5 hash of your project's manifest file contents
 - **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
-- **Custom manifests:** You can add your own manifest files via `additional_manifest_files` in `~/.envi/config.maml` - see [Multi-Language Support](/guides/multi-language-support#adding-custom-manifest-files)
+- **Custom manifests:** You can add your own manifest files using `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files)
 - If decryption fails (blob was encrypted with a different manifest or custom secret), prompts for a custom secret
 - No manual secret entry needed if your manifest file is identical to the one used for encryption
 

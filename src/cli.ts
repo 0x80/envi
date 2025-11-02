@@ -15,6 +15,11 @@ import {
   configRedactRemoveCommand,
   configRedactListCommand,
 } from "~/commands/config-redact";
+import {
+  configManifestFilesAddCommand,
+  configManifestFilesRemoveCommand,
+  configManifestFilesListCommand,
+} from "~/commands/config-manifest-files";
 
 /** Capture command */
 const capture = defineCommand({
@@ -195,6 +200,66 @@ const configRedact = defineCommand({
   },
 });
 
+/** Config manifest_files add command */
+const configManifestFilesAdd = defineCommand({
+  meta: {
+    name: "add",
+    description: "Add a manifest file to the list",
+  },
+  args: {
+    filename: {
+      type: "positional",
+      description: "Manifest filename to add",
+      required: true,
+    },
+  },
+  async run({ args }) {
+    await configManifestFilesAddCommand(args.filename as string);
+  },
+});
+
+/** Config manifest_files remove command */
+const configManifestFilesRemove = defineCommand({
+  meta: {
+    name: "remove",
+    description: "Remove a manifest file from the list",
+  },
+  args: {
+    filename: {
+      type: "positional",
+      description: "Manifest filename to remove",
+      required: true,
+    },
+  },
+  async run({ args }) {
+    await configManifestFilesRemoveCommand(args.filename as string);
+  },
+});
+
+/** Config manifest_files list command */
+const configManifestFilesList = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all manifest files",
+  },
+  async run() {
+    await configManifestFilesListCommand();
+  },
+});
+
+/** Config manifest_files parent command */
+const configManifestFiles = defineCommand({
+  meta: {
+    name: "manifest_files",
+    description: "Manage manifest files for package name and encryption",
+  },
+  subCommands: {
+    add: configManifestFilesAdd,
+    remove: configManifestFilesRemove,
+    list: configManifestFilesList,
+  },
+});
+
 /** Config parent command */
 const config = defineCommand({
   meta: {
@@ -203,6 +268,7 @@ const config = defineCommand({
   },
   subCommands: {
     redact: configRedact,
+    manifest_files: configManifestFiles,
   },
 });
 

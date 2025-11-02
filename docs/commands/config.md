@@ -237,7 +237,12 @@ Redaction settings are stored in your global Envi configuration at `~/.envi/conf
 
 ```toml
 use_version_control = false
-additional_manifest_files = []
+manifest_files = [
+  "package.json"
+  "Cargo.toml"
+  "go.mod"
+  # ... full list of supported manifest files
+]
 redacted_variables = ["GITHUB_PAT", "GITLAB_TOKEN", "SLACK_WEBHOOK_URL"]
 ```
 

@@ -19,7 +19,7 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 **For projects with a supported manifest file**:
 - The blob is automatically encrypted using an MD5 hash of your project's manifest file contents
 - **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
-- **Custom manifests:** You can add your own manifest files via `additional_manifest_files` in `~/.envi/config.maml` - see [Multi-Language Support](/guides/multi-language-support#adding-custom-manifest-files)
+- **Custom manifests:** You can add your own manifest files using `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files)
 - Only team members working in the same codebase (with identical manifest file) can decrypt the blob
 - No manual secret management needed - the encryption key is automatically derived from your manifest
 

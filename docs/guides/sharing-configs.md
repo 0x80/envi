@@ -480,7 +480,12 @@ envi pack
 Redaction configuration is stored globally at `~/.envi/config.maml`:
 ```toml
 use_version_control = false
-additional_manifest_files = []
+manifest_files = [
+  "package.json"
+  "Cargo.toml"
+  "go.mod"
+  # ... full list of supported manifest files
+]
 redacted_variables = ["GITHUB_PAT", "SLACK_WEBHOOK_URL"]
 ```
 
