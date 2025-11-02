@@ -102,7 +102,7 @@ envi restore
 - **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation (critical for comment handling) and is easy to inspect and edit
 - **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
 
-## What's Next?
+## Learn More
 
 - [Getting Started](/getting-started) - Installation and basic usage
 - [Commands](/commands/capture) - Detailed command documentation

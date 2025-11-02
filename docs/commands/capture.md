@@ -14,9 +14,9 @@ The `capture` command traverses your repository to find all environment files (`
 
 ## What It Does
 
-1. **Finds repository root** - Looks for `.git` directory
+1. **Finds project root** - Looks for `.git` directory, or prompts you to confirm the current directory
 2. **Discovers env files** - Recursively searches for `.env` and `.env.*` files
-3. **Respects .gitignore** - Only uses directories from .gitignore, not file patterns
+3. **Respects .gitignore** - Only uses directories from .gitignore if present, not file patterns
 4. **Parses files** - Extracts key-value pairs and preserves comments
 5. **Stores configuration** - Saves to `~/.envi/store/{package-name}.maml`
 6. **Creates git commit** (if GitHub integration is enabled)

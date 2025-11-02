@@ -70,7 +70,6 @@ yarn envi capture
 ## Requirements
 
 - Node.js 20 or higher
-- Git (for repository detection)
 - GitHub CLI (optional, for GitHub integration)
 
 ## Basic Workflow
@@ -86,7 +85,7 @@ envi capture
 
 This will:
 
-- Find your repository root (looks for `.git`)
+- Find your project root (looks for `.git`, or prompts you to confirm the current directory)
 - Discover all `.env` and `.env.*` files
 - Store them in `~/.envi/store/` organized by package name
 

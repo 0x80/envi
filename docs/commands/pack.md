@@ -92,7 +92,7 @@ The blob is automatically copied to your clipboard. Share both the blob (paste f
 
 ## How It Works
 
-1. **Finds repository root** - Locates your project's git repository
+1. **Finds project root** - Locates your project root (looks for `.git`, or prompts for confirmation)
 2. **Searches for .env files** - Finds all `.env` and `.env.*` files in your repository
 3. **Reads environment files** - Parses each file, preserving comments and structure
 4. **Detects project type** - Checks for `package.json` in repository root
