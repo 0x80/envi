@@ -9,12 +9,15 @@ export interface EnviConfig {
   use_version_control: "github" | false;
   /** Additional manifest files to check on top of the defaults (in priority order) */
   additional_manifest_files: string[];
+  /** Environment variables to redact (replace with __envi_redacted__) when capturing or packing */
+  redacted_variables: string[];
 }
 
 /** Default configuration */
 const DEFAULT_CONFIG: EnviConfig = {
   use_version_control: false,
   additional_manifest_files: [],
+  redacted_variables: ["GITHUB_PAT"],
 };
 
 /**
@@ -76,6 +79,48 @@ export function writeConfig(config: EnviConfig): void {
   const configPath = getConfigPath();
   const mamlContent = stringify(config);
   writeFileSync(configPath, mamlContent, "utf-8");
+}
+
+/**
+ * Get the list of redacted environment variables
+ *
+ * @returns Array of variable names to redact
+ */
+export function getRedactedVariables(): string[] {
+  const config = readConfig();
+  return config.redacted_variables;
+}
+
+/**
+ * Add a variable to the redaction list
+ *
+ * @param variable - Variable name to redact
+ */
+export function addToRedactionList(variable: string): void {
+  const config = readConfig();
+  if (!config.redacted_variables.includes(variable)) {
+    config.redacted_variables.push(variable);
+    writeConfig(config);
+  }
+}
+
+/**
+ * Remove a variable from the redaction list
+ *
+ * @param variable - Variable name to stop redacting
+ * @returns True if variable was removed, false if it wasn't in the list
+ */
+export function removeFromRedactionList(variable: string): boolean {
+  const config = readConfig();
+  const index = config.redacted_variables.indexOf(variable);
+
+  if (index === -1) {
+    return false;
+  }
+
+  config.redacted_variables.splice(index, 1);
+  writeConfig(config);
+  return true;
 }
 
 /**

@@ -3,9 +3,12 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  addToRedactionList,
   getConfigPath,
   getManifestFiles,
+  getRedactedVariables,
   readConfig,
+  removeFromRedactionList,
   updateConfig,
   writeConfig,
 } from "./config";
@@ -41,6 +44,7 @@ describe("config", () => {
       expect(result).toEqual({
         use_version_control: false,
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
     });
 
@@ -55,6 +59,7 @@ describe("config", () => {
       expect(result).toEqual({
         use_version_control: "github" as const,
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
     });
 
@@ -71,6 +76,7 @@ describe("config", () => {
       expect(result).toEqual({
         use_version_control: false,
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
     });
   });
@@ -83,6 +89,7 @@ describe("config", () => {
       writeConfig({
         use_version_control: "github",
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
 
       expect(mkdirSync).toHaveBeenCalledWith(join("/home/user", ".envi"), {
@@ -92,6 +99,7 @@ describe("config", () => {
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github",
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
 
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -115,6 +123,7 @@ describe("config", () => {
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github" as const,
         additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
       });
     });
   });
@@ -140,6 +149,106 @@ describe("config", () => {
       const result = getManifestFiles();
 
       expect(result).toEqual(["custom.json", "app.yaml", ...DEFAULT_MANIFEST_FILES]);
+    });
+  });
+
+  describe("getRedactedVariables", () => {
+    it("should return default redacted variables when no config exists", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      const result = getRedactedVariables();
+
+      expect(result).toEqual(["GITHUB_PAT"]);
+    });
+
+    it("should return custom redacted variables from config", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        redacted_variables: ["API_KEY", "SECRET_TOKEN"],
+      });
+
+      const result = getRedactedVariables();
+
+      expect(result).toEqual(["API_KEY", "SECRET_TOKEN"]);
+    });
+  });
+
+  describe("addToRedactionList", () => {
+    it("should add variable to redaction list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+      vi.mocked(stringify).mockReturnValue("updated");
+
+      addToRedactionList("API_KEY");
+
+      expect(stringify).toHaveBeenCalledWith({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT", "API_KEY"],
+      });
+    });
+
+    it("should not add duplicate variable", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+
+      addToRedactionList("GITHUB_PAT");
+
+      expect(stringify).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("removeFromRedactionList", () => {
+    it("should remove variable from redaction list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT", "API_KEY"],
+      });
+      vi.mocked(stringify).mockReturnValue("updated");
+
+      const result = removeFromRedactionList("API_KEY");
+
+      expect(result).toBe(true);
+      expect(stringify).toHaveBeenCalledWith({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+    });
+
+    it("should return false if variable not in list", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        use_version_control: false,
+        additional_manifest_files: [],
+        redacted_variables: ["GITHUB_PAT"],
+      });
+
+      const result = removeFromRedactionList("API_KEY");
+
+      expect(result).toBe(false);
+      expect(stringify).not.toHaveBeenCalled();
     });
   });
 });

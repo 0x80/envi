@@ -10,6 +10,11 @@ import { globalClearCommand } from "~/commands/global/clear";
 import { restoreCommand } from "~/commands/restore";
 import { packCommand } from "~/commands/pack";
 import { unpackCommand } from "~/commands/unpack";
+import {
+  configRedactAddCommand,
+  configRedactRemoveCommand,
+  configRedactListCommand,
+} from "~/commands/config-redact";
 
 /** Capture command */
 const capture = defineCommand({
@@ -130,6 +135,77 @@ const github = defineCommand({
   },
 });
 
+/** Config redact add command */
+const configRedactAdd = defineCommand({
+  meta: {
+    name: "add",
+    description: "Add a variable to the redaction list",
+  },
+  args: {
+    variable: {
+      type: "positional",
+      description: "Variable name to redact",
+      required: true,
+    },
+  },
+  async run({ args }) {
+    await configRedactAddCommand(args.variable as string);
+  },
+});
+
+/** Config redact remove command */
+const configRedactRemove = defineCommand({
+  meta: {
+    name: "remove",
+    description: "Remove a variable from the redaction list",
+  },
+  args: {
+    variable: {
+      type: "positional",
+      description: "Variable name to stop redacting",
+      required: true,
+    },
+  },
+  async run({ args }) {
+    await configRedactRemoveCommand(args.variable as string);
+  },
+});
+
+/** Config redact list command */
+const configRedactList = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all redacted variables",
+  },
+  async run() {
+    await configRedactListCommand();
+  },
+});
+
+/** Config redact parent command */
+const configRedact = defineCommand({
+  meta: {
+    name: "redact",
+    description: "Manage redacted environment variables",
+  },
+  subCommands: {
+    add: configRedactAdd,
+    remove: configRedactRemove,
+    list: configRedactList,
+  },
+});
+
+/** Config parent command */
+const config = defineCommand({
+  meta: {
+    name: "config",
+    description: "Configuration management commands",
+  },
+  subCommands: {
+    redact: configRedact,
+  },
+});
+
 /** Global parent command */
 const global = defineCommand({
   meta: {
@@ -155,6 +231,7 @@ const main = defineCommand({
     pack,
     unpack,
     clear,
+    config,
     global,
   },
 });

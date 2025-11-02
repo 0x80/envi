@@ -6,6 +6,7 @@ import { parse } from "maml.js";
 import { getPackageName, getStorageDir, getStorageFilename } from "~/lib";
 import type { EnviStore } from "~/lib";
 import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
+import { mergeRedactedValues, REDACTED_PLACEHOLDER } from "~/utils/redact";
 
 /**
  * Write env file from parsed object
@@ -118,12 +119,32 @@ export async function restoreCommand(): Promise<void> {
     const restored: string[] = [];
     const skipped: string[] = [];
     const unchanged: string[] = [];
+    const mergedRedacted: string[] = [];
     let overwriteAll = false;
 
     /** Process each file */
     for (const fileEntry of data.files) {
       const targetPath = join(repoRoot, fileEntry.path);
       const fileExists = existsSync(targetPath);
+
+      /** Check if this file has redacted values */
+      const hasRedactedValues = Object.values(fileEntry.env).some(
+        (value) => value === REDACTED_PLACEHOLDER,
+      );
+
+      let envToWrite = fileEntry.env;
+
+      /** If file has redacted values and target exists, merge with existing values */
+      if (hasRedactedValues && fileExists) {
+        try {
+          const existingEnv = parseEnvFile(targetPath);
+          envToWrite = mergeRedactedValues(fileEntry.env, existingEnv);
+          mergedRedacted.push(fileEntry.path);
+        } catch {
+          /** If parsing fails, use stored values as-is */
+          envToWrite = fileEntry.env;
+        }
+      }
 
       if (fileExists) {
         /**
@@ -133,9 +154,8 @@ export async function restoreCommand(): Promise<void> {
          */
         try {
           const existingEnv = parseEnvFile(targetPath);
-          const storedEnv = fileEntry.env;
 
-          if (JSON.stringify(existingEnv) === JSON.stringify(storedEnv)) {
+          if (JSON.stringify(existingEnv) === JSON.stringify(envToWrite)) {
             unchanged.push(fileEntry.path);
             continue;
           }
@@ -171,13 +191,20 @@ export async function restoreCommand(): Promise<void> {
         }
 
         /** Overwrite the file */
-        writeEnvFile(targetPath, fileEntry.env);
+        writeEnvFile(targetPath, envToWrite);
         restored.push(fileEntry.path);
       } else {
         /** File doesn't exist, create it */
-        writeEnvFile(targetPath, fileEntry.env);
+        writeEnvFile(targetPath, envToWrite);
         restored.push(fileEntry.path);
       }
+    }
+
+    /** Show redacted variable merge info */
+    if (mergedRedacted.length > 0) {
+      consola.info(
+        `\nℹ Preserved redacted variable(s) from existing files in ${mergedRedacted.length} file(s)`,
+      );
     }
 
     /** Show summary */

@@ -104,6 +104,40 @@ This will:
 - Restore all `.env` files to their original locations
 - Preserve all comments (full-line and inline)
 
+## Protecting Personal Tokens
+
+Envi includes a **variable redaction** feature to prevent accidentally sharing personal tokens with your team.
+
+### Quick Start
+
+By default, `GITHUB_PAT` (GitHub Personal Access Token) is automatically redacted because it's tied to your individual GitHub account, not your organization. Each developer should have their own `GITHUB_PAT` for local development.
+
+Add more variables as needed:
+
+```bash
+# Add variables to redaction list
+envi config redact add SLACK_WEBHOOK_URL
+envi config redact add GITLAB_TOKEN
+
+# View redacted variables
+envi config redact list
+```
+
+When you capture or pack environment files, redacted variables will:
+- Be replaced with `__envi_redacted__` in storage and blobs
+- Preserve their real values when you restore or unpack
+
+**Example:**
+
+```bash
+$ envi capture
+⚠ Redacted 2 variable(s): GITHUB_PAT, SLACK_WEBHOOK_URL
+ℹ These values will be stored as __envi_redacted__
+✔ Captured 3 file(s) to storage
+```
+
+Learn more in the [Sharing Configurations](/guides/sharing-configs#variable-redaction) guide.
+
 ## Storage Location
 
 Envi stores your environment configurations in:
@@ -122,6 +156,8 @@ Files are stored in human-readable [MAML](https://maml.dev) format. See the [Fil
 ## Next Steps
 
 - Learn about all available [commands](/commands/capture)
+- Understand [variable redaction](/commands/config) and how to protect personal tokens
+- Learn about [sharing configurations](/guides/sharing-configs) with your team
 - Understand the [file format](/file-format) and how comments are preserved
 - Set up [GitHub integration](/guides/github-integration) for automatic version control
 - Explore [monorepo usage](/guides/monorepo)

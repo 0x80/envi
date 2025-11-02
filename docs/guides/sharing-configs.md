@@ -284,6 +284,208 @@ envi unpack  # Reads blob from clipboard
 npm run dev  # Now has correct environment
 ```
 
+## Variable Redaction
+
+Envi provides a **variable redaction** feature to prevent accidental sharing of personal or sensitive tokens. This is especially important when sharing blobs with team members.
+
+### What is Redaction?
+
+Redaction allows you to mark specific environment variables as "redacted". When you capture or pack environment files, these variables:
+- Are **replaced with a placeholder** (`__envi_redacted__`) in storage and blobs
+- **Preserve their real values** in your local files during restore/unpack operations
+- **Cannot be shared** via encrypted blobs or global storage
+
+This protects personal tokens like:
+- Personal access tokens (GitHub, GitLab, etc.)
+- API keys tied to individual accounts
+- Developer-specific credentials
+- Local development secrets
+
+### Default Redacted Variables
+
+By default, Envi redacts:
+- `GITHUB_PAT` - GitHub Personal Access Token
+
+::: tip Why GITHUB_PAT is Redacted by Default
+`GITHUB_PAT` is a **personal access token** that belongs to an individual GitHub user, not your organization.
+
+🧠 **Practical Implications**
+
+✅ You can use a GITHUB_PAT to access org resources if that user has access to them
+
+❌ You cannot create a PAT that belongs to the organization itself — it always belongs to a user (or bot user)
+
+⚠️ Using a real user's PAT for org automation is discouraged — it can break when that user leaves or their password resets
+
+**For team automation:** Use GitHub Apps, deploy keys, or organization-level tokens instead.
+
+**For local development:** Each developer needs their own GITHUB_PAT, which is why it's redacted by default to prevent accidental sharing.
+:::
+
+### Managing Redacted Variables
+
+Add a variable to the redaction list:
+```bash
+envi config redact add SLACK_WEBHOOK_URL
+```
+
+Remove a variable from the redaction list:
+```bash
+envi config redact remove GITHUB_PAT
+```
+
+List all redacted variables:
+```bash
+envi config redact list
+```
+
+### How Redaction Works
+
+**When capturing or packing:**
+```bash
+envi capture
+# or
+envi pack
+
+# Output shows what was redacted:
+⚠ Redacted 2 variable(s): GITHUB_PAT, SLACK_WEBHOOK_URL
+These values will be stored as __envi_redacted__
+```
+
+**When restoring or unpacking:**
+```bash
+envi restore
+# or
+envi unpack
+
+# If redacted variables are found and you have existing files:
+ℹ Preserved redacted variable(s) from existing files in 2 file(s)
+```
+
+### Example Workflow
+
+#### Setting Up Redaction for Your Team
+
+```bash
+# Each developer adds their personal tokens to redaction list
+envi config redact add GITHUB_PAT
+envi config redact add PERSONAL_API_KEY
+
+# Create blob to share with team
+envi pack
+
+# The blob will NOT contain GITHUB_PAT or PERSONAL_API_KEY values
+# They are stored as __envi_redacted__ instead
+```
+
+#### Receiving a Blob with Redacted Variables
+
+```bash
+# Receive blob from teammate
+envi unpack
+
+# If you already have a .env file with real values:
+# → Redacted variables preserve your existing values
+# → Non-redacted variables are updated from blob
+
+# If you don't have a .env file:
+# → Redacted variables will be set to __envi_redacted__
+# → You need to manually add the real values
+```
+
+### Use Cases
+
+#### Personal Tokens
+
+Each developer has their own personal access token:
+```bash
+# In your .env
+GITHUB_PAT=ghp_YourPersonalToken123
+SHARED_API_KEY=shared-team-key-456
+
+# Add personal token to redaction
+envi config redact add GITHUB_PAT
+
+# When you pack and share:
+# → GITHUB_PAT is redacted (not shared)
+# → SHARED_API_KEY is included in blob
+```
+
+#### Developer-Specific Configuration
+
+Different developers need different values:
+```bash
+# Developer A's .env
+LOCAL_DB_PORT=5432
+DEVELOPER_NAME=alice
+API_DEBUG_MODE=true
+
+# Developer A adds personal config to redaction
+envi config redact add DEVELOPER_NAME
+envi config redact add LOCAL_DB_PORT
+
+# When sharing blob:
+# → API_DEBUG_MODE is shared with team
+# → DEVELOPER_NAME and LOCAL_DB_PORT remain personal
+```
+
+#### Hybrid Sharing
+
+Mix team-shared and personal variables:
+```bash
+# .env file
+# Team-shared variables
+DATABASE_URL=postgres://localhost/myapp
+API_ENDPOINT=https://api.example.com
+
+# Personal variables (redacted)
+GITHUB_PAT=ghp_personal123
+SLACK_WEBHOOK_URL=https://hooks.slack.com/yourwebhook
+
+# Configure redaction
+envi config redact add GITHUB_PAT
+envi config redact add SLACK_WEBHOOK_URL
+
+# Share with team
+envi pack
+# → DATABASE_URL and API_ENDPOINT are shared
+# → GITHUB_PAT and SLACK_WEBHOOK_URL are redacted
+```
+
+### Best Practices
+
+**DO redact:**
+- ✅ Personal access tokens (GitHub, GitLab, Bitbucket) - These are tied to individual user accounts
+- ✅ Developer-specific API keys
+- ✅ Individual Slack/Discord webhooks
+- ✅ Local development credentials
+- ✅ Machine-specific configuration
+
+**DON'T redact:**
+- ❌ Team-shared API keys - Meant to be shared across the team
+- ❌ Shared service credentials - Used by all developers
+- ❌ Organization-level tokens - GitHub Apps, deploy keys, etc.
+- ❌ Common development URLs
+- ❌ Team database credentials
+- ❌ Public configuration values
+
+**Tips:**
+1. **Add redaction before first capture/pack** - Set up your redaction list early to avoid accidentally sharing personal tokens
+2. **Document team standards** - Agree which variables should be redacted across the team
+3. **Review before sharing** - Check the redaction warning when packing to ensure correct variables are redacted
+4. **Keep existing files** - When unpacking, keep your existing `.env` files so redacted variables preserve their real values
+
+### Configuration Location
+
+Redaction configuration is stored globally at `~/.envi/config.maml`:
+```toml
+use_version_control = false
+additional_manifest_files = []
+redacted_variables = ["GITHUB_PAT", "SLACK_WEBHOOK_URL"]
+```
+
+This configuration is **personal to your machine** and won't be shared with others.
+
 ## Troubleshooting
 
 ### "Failed to decrypt blob"
@@ -455,6 +657,7 @@ envi pack
 - [`envi unpack`](/commands/unpack) - Decrypt and restore blob
 - [`envi capture`](/commands/capture) - Capture environment files
 - [`envi restore`](/commands/restore) - Restore from storage
+- [`envi config redact`](/commands/config) - Manage redacted variables
 
 ## Example Scenarios
 

@@ -5,6 +5,7 @@ import {
   commitAndPush,
   getEnviDir,
   getPackageName,
+  getRedactedVariables,
   getStorageDir,
   getStorageFilename,
   readConfig,
@@ -16,6 +17,7 @@ import {
   getErrorMessage,
   parseEnvFile,
 } from "~/utils";
+import { applyRedaction } from "~/utils/redact";
 
 /**
  * Execute the capture command
@@ -82,9 +84,32 @@ export async function captureCommand(): Promise<void> {
       };
     });
 
+    /** Apply redaction to env files */
+    const redactedVariables = getRedactedVariables();
+    const allRedactedKeys = new Set<string>();
+
+    const redactedEnvFiles = envFiles.map((file) => {
+      const { redacted, redactedKeys } = applyRedaction(
+        file.env,
+        redactedVariables,
+      );
+      redactedKeys.forEach((key) => allRedactedKeys.add(key));
+      return {
+        path: file.path,
+        env: redacted,
+      };
+    });
+
+    if (allRedactedKeys.size > 0) {
+      consola.warn(
+        `⚠ Redacted ${allRedactedKeys.size} variable(s): ${Array.from(allRedactedKeys).join(", ")}`,
+      );
+      consola.info("These values will be stored as __envi_redacted__");
+    }
+
     /** Save to storage */
     consola.start("Saving to storage...");
-    const hasChanges = saveToStorage(repoRoot, envFiles, packageName);
+    const hasChanges = saveToStorage(repoRoot, redactedEnvFiles, packageName);
 
     const storageDir = getStorageDir();
     const filename = getStorageFilename(repoRoot, packageName);

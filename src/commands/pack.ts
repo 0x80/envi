@@ -15,7 +15,8 @@ import {
   formatBlob,
   generateKeyFromManifest,
 } from "~/utils/encryption";
-import { getManifestFiles } from "~/lib/config";
+import { getManifestFiles, getRedactedVariables } from "~/lib/config";
+import { applyRedaction } from "~/utils/redact";
 
 /**
  * Execute the pack command
@@ -58,6 +59,29 @@ export async function packCommand(): Promise<void> {
       };
     });
 
+    /** Apply redaction to env files */
+    const redactedVariables = getRedactedVariables();
+    const allRedactedKeys = new Set<string>();
+
+    const redactedEnvFiles = envFiles.map((file) => {
+      const { redacted, redactedKeys } = applyRedaction(
+        file.env,
+        redactedVariables,
+      );
+      redactedKeys.forEach((key) => allRedactedKeys.add(key));
+      return {
+        path: file.path,
+        env: redacted,
+      };
+    });
+
+    if (allRedactedKeys.size > 0) {
+      consola.warn(
+        `⚠ Redacted ${allRedactedKeys.size} variable(s) from blob: ${Array.from(allRedactedKeys).join(", ")}`,
+      );
+      consola.info("These values will be stored as __envi_redacted__");
+    }
+
     /** Create MAML structure */
     const data = {
       __envi_version: 1,
@@ -65,7 +89,7 @@ export async function packCommand(): Promise<void> {
         updated_from: repoRoot,
         updated_at: new Date().toISOString(),
       },
-      files: envFiles,
+      files: redactedEnvFiles,
     };
 
     const mamlData = stringify(data);

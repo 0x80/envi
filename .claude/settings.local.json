@@ -17,7 +17,8 @@
       "Bash(pnpm test:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm test:coverage:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pnpm docs:build:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,14 @@
 /** Barrel file for lib */
-export { getConfigPath, readConfig, updateConfig, writeConfig } from "./config";
+export {
+  addToRedactionList,
+  getConfigPath,
+  getManifestFiles,
+  getRedactedVariables,
+  readConfig,
+  removeFromRedactionList,
+  updateConfig,
+  writeConfig,
+} from "./config";
 export type { EnviConfig } from "./config";
 export {
   addRemote,
