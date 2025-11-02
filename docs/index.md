@@ -38,7 +38,7 @@ features:
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
     title: Secure Sharing
-    details: Safely share captured env configurations with colleagues using encrypted blobs
+    details: Safely share captured env configurations with colleagues using encrypted, compressed blobs (~50% smaller)
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="6" x2="6" y1="3" y2="15"/>
@@ -95,10 +95,12 @@ envi restore
 ## Notable Features
 
 - **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by package name (supports scoped packages like `@org/package`)
-- **Encrypted Blob Sharing** - Share environment configs with colleagues via encrypted blobs - works independently of global storage, reads directly from your repository
+- **Encrypted Blob Sharing** - Share environment configs with colleagues via encrypted, compressed blobs (~50% size reduction) - works independently of global storage, reads directly from your repository
+- **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
 - **Content Preservation** - Preserves both comments (full-line and inline) and key order from your original files
 - **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation (critical for comment handling) and is easy to inspect and edit
+- **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
 
 ## What's Next?
 

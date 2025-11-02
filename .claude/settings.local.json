@@ -15,7 +15,8 @@
       "Bash(pnpm remove:*)",
       "mcp__chrome-devtools__click",
       "Bash(pnpm test:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:coverage:*)"
     ],
     "deny": [],
     "ask": []

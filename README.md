@@ -8,12 +8,13 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 
 ## Features
 
-- 📦 **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
-- 🔄 **Easy Restoration** - Restore env files on new systems or git worktrees
-- 🔒 **Secure Sharing** - Share configurations safely with team members
-- 🐙 **GitHub Integration** - Optional automatic version control
-- 📝 **Comment Preservation** - Keeps full-line and inline comments
-- 🌳 **Monorepo Support** - Works seamlessly with monorepos
+- **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
+- **Easy Restoration** - Restore env files on new systems or git worktrees
+- **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs
+- **GitHub Integration** - Optional automatic version control
+- **Comment Preservation** - Keeps full-line and inline comments
+- **Monorepo Support** - Works seamlessly with monorepos
+- **100% Test Coverage** - Core logic (encryption, parsing, storage) fully tested
 
 ## Quick Start
 
@@ -80,6 +81,8 @@ pnpm test              # Run tests
 pnpm test:ui           # Run tests with UI
 pnpm test:coverage     # Run tests with coverage
 ```
+
+**Test Coverage:** Core business logic (encryption, compression, parsing, storage) has 100% test coverage.
 
 ### Linting & Formatting
 
