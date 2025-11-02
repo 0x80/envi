@@ -49,7 +49,7 @@ export default defineConfig({
       },
     ],
     socialLinks: [
-      { icon: "github", link: "https://github.com/codecompose/envi" },
+      { icon: "github", link: "https://github.com/0x80/envi" },
     ],
     footer: {
       message: "Released under the MIT License.",

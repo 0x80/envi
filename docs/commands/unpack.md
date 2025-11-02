@@ -47,20 +47,21 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 
 ### Decryption Methods
 
-**For JavaScript/TypeScript projects** (with `package.json`):
-- Automatically attempts decryption using your `package.json` contents
-- If decryption fails (blob was encrypted with a different `package.json` or custom secret), prompts for a custom secret
-- No manual secret entry needed if `package.json` matches
+**For projects with a supported manifest file**:
+- Automatically attempts decryption using your project's manifest file contents
+- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart), `pom.xml` (Java), `settings.gradle` (Gradle), and more
+- If decryption fails (blob was encrypted with a different manifest or custom secret), prompts for a custom secret
+- No manual secret entry needed if manifest matches
 
-**For other projects** (without `package.json`):
+**For projects without a supported manifest file**:
 - Prompts you to enter the decryption secret
 - The secret must match the one used when creating the blob
 
 ## Examples
 
-### JavaScript/TypeScript Project (from clipboard)
+### Projects with Manifest Files (from clipboard)
 
-The easiest way - just copy the blob from your team member and run:
+The easiest way - just copy the blob from your team member and run (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
 
 ```bash
 envi unpack
@@ -93,7 +94,9 @@ Restored 3 file(s):
 ✔ Unpack complete!
 ```
 
-### JavaScript/TypeScript Project (with blob argument)
+> **Note:** The output will mention the specific manifest file found (package.json, Cargo.toml, go.mod, etc.). The decryption key is derived from that file's contents.
+
+### Projects with Manifest Files (with blob argument)
 
 You can also provide the blob as an argument:
 
@@ -105,9 +108,9 @@ __envi_end__"
 
 The flow is the same, but skips reading from clipboard.
 
-### Non-JavaScript/TypeScript Project (from clipboard)
+### Projects without Supported Manifest Files (from clipboard)
 
-For projects without package.json, copy the blob and run:
+For projects without a supported manifest file, copy the blob and run:
 
 ```bash
 envi unpack
@@ -121,7 +124,7 @@ Interactive flow:
 Blob format validated
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
-No package.json found - this is expected for non-JavaScript/TypeScript projects
+No supported manifest file found - this is expected for some project types
 
 ? Enter the decryption secret: ********
 
@@ -156,8 +159,8 @@ You can decline any of the interactive prompts:
 2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
 3. **Finds project root** - Locates your project root (looks for `.git`, or prompts for confirmation)
 4. **Attempts decryption**:
-   - If `package.json` exists: Tries decryption using its contents
-   - If decryption fails or no `package.json`: Prompts for custom secret
+   - If a supported manifest file exists (package.json, Cargo.toml, go.mod, etc.): Tries decryption using its contents
+   - If decryption fails or no supported manifest found: Prompts for custom secret
 5. **Decrypts data** - Uses AES-256-GCM decryption
 6. **Validates configuration** - Ensures decrypted data is valid envi format
 7. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
@@ -185,7 +188,7 @@ Note: The parser automatically handles whitespace, newlines, and formatting issu
 If automatic decryption fails, you'll be prompted for a secret:
 ```bash
 Found package.json - attempting decryption
-⚠ Failed to decrypt with package.json
+⚠ Failed to decrypt with manifest file
 This blob may have been encrypted with a custom secret
 
 ? Enter the decryption secret: ________
@@ -197,23 +200,51 @@ If the provided secret is also incorrect:
 This could mean:
   - The secret is incorrect
   - The blob is corrupted
-  - The blob was encrypted with a different package.json
+  - The blob was encrypted with a different manifest file
 ```
 
 **Solutions:**
 - Ask the sender which secret they used
 - Verify you have the correct blob (not corrupted during copy-paste)
-- For package.json-encrypted blobs, ensure you have the same `package.json` as the sender
+- For manifest-encrypted blobs, ensure you have the same manifest file as the sender (package.json, Cargo.toml, etc.)
 
-### No package.json Found
+### No Supported Manifest File Found
 
 ```bash
-No package.json found - this is expected for non-JavaScript/TypeScript projects
+No supported manifest file found - this is expected for some project types
 
 ? Enter the decryption secret: ________
 ```
 
 **Solution:** Enter the secret that was used when creating the blob. The sender should have shared this with you.
+
+## Security Considerations
+
+### ⚠️ Important: Blob Security
+
+**Before accepting and unpacking a blob, understand the security implications:**
+
+#### If Encrypted with Manifest File (Automatic Encryption)
+
+- The blob can be decrypted by anyone with access to the codebase
+- If the codebase ever becomes public or is compromised, the blob can be decrypted
+- **Only unpack blobs from trusted sources** and shared through secure channels
+- **Applies to:** JavaScript/TypeScript (package.json), Rust (Cargo.toml), Go (go.mod), Python (pyproject.toml), PHP (composer.json), Dart (pubspec.yaml), Java (pom.xml, settings.gradle), and all other manifest-based encryption
+
+#### If Encrypted with Custom Secret
+
+- The blob is secure as long as the secret remains private
+- Ensure the secret was shared through a secure, separate channel (not the same place as the blob)
+- Use strong secrets for sensitive data
+
+#### General Security
+
+- **Verify the source** - Only unpack blobs from team members you trust
+- **Check what you're restoring** - Review which files will be overwritten before confirming
+- **Audit blob contents** - After unpacking, review the restored `.env` files to ensure they contain expected values
+- **Don't blindly accept** - If a blob appears in an untrusted channel, don't unpack it
+
+**See the [Sharing Environment Configurations](/guides/sharing-configs#security-considerations) guide for comprehensive security information.**
 
 ## Related Commands
 

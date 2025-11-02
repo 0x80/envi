@@ -16,12 +16,13 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 
 ### Encryption Methods
 
-**For JavaScript/TypeScript projects** (with `package.json`):
-- The blob is automatically encrypted using your `package.json` contents as the encryption key
-- Only team members working in the same codebase (with the same `package.json`) can decrypt the blob
+**For projects with a supported manifest file**:
+- The blob is automatically encrypted using your project's manifest file contents as the encryption key
+- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart), `pom.xml` (Java), `settings.gradle` (Gradle), and more
+- Only team members working in the same codebase (with the same manifest) can decrypt the blob
 - No manual secret management needed
 
-**For other projects** (without `package.json`):
+**For projects without a supported manifest file**:
 - You'll be prompted to enter a custom encryption secret
 - The secret must be at least 8 characters for security
 - You must share both the blob AND the secret with your team members
@@ -29,9 +30,9 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 
 ## Examples
 
-### JavaScript/TypeScript Project
+### Projects with Manifest Files
 
-Create a blob using package.json for encryption:
+Create a blob using your project's manifest file for encryption (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
 
 ```bash
 envi pack
@@ -51,15 +52,17 @@ Using package.json for encryption key
 ✔ Blob copied to clipboard!
 
 Blob is now on your clipboard!
-Share it with team members who have the same package.json
+Share it with team members who have the same manifest file
 They can restore it using: envi unpack
 ```
 
 The blob is now in your clipboard and ready to paste into Slack, email, or any messaging platform. Your team members can simply run `envi unpack` without any arguments - it will automatically read the blob from their clipboard!
 
-### Non-JavaScript/TypeScript Project
+> **Note:** The output will mention the specific manifest file found (package.json, Cargo.toml, go.mod, etc.). The encryption key is derived from that file's contents.
 
-For projects without package.json, you'll be prompted for a secret:
+### Projects without Supported Manifest Files
+
+For projects without a supported manifest file, you'll be prompted for a secret:
 
 ```bash
 envi pack
@@ -72,8 +75,8 @@ Repository root: /Users/you/projects/myapp
 ✔ Searching for .env files...
 ✔ Found 2 file(s) to pack
 ✔ Reading environment files...
-⚠ No package.json found in repository root
-This is expected for non-JavaScript/TypeScript projects.
+⚠ No supported manifest file found in repository root
+This is expected for some project types.
 You'll need to provide a secret for encryption.
 
 ? Enter an encryption secret: ********
@@ -95,10 +98,10 @@ The blob is automatically copied to your clipboard. Share both the blob (paste f
 1. **Finds project root** - Locates your project root (looks for `.git`, or prompts for confirmation)
 2. **Searches for .env files** - Finds all `.env` and `.env.*` files in your repository
 3. **Reads environment files** - Parses each file, preserving comments and structure
-4. **Detects project type** - Checks for `package.json` in repository root
+4. **Detects project type** - Checks for supported manifest files in repository root (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle, etc.)
 5. **Generates encryption key**:
-   - If `package.json` exists: Uses its contents to generate the key
-   - If no `package.json`: Prompts for a custom secret (minimum 8 characters)
+   - If a supported manifest file exists: Uses its contents to generate the key
+   - If no supported manifest found: Prompts for a custom secret (minimum 8 characters)
 6. **Compresses data** - Uses gzip compression to reduce blob size by ~50%
 7. **Encrypts data** - Uses AES-256-GCM encryption with authentication on compressed data
 8. **Formats blob** - Wraps encrypted data in `__envi_start__` and `__envi_end__` delimiters
@@ -117,22 +120,50 @@ If clipboard operations fail (e.g., in headless environments), the blob is displ
 
 ## Security Considerations
 
-### Using package.json (JavaScript/TypeScript projects)
+### ⚠️ Critical Security Warning
+
+**IMPORTANT:** Blobs encrypted with manifest files (automatic encryption) are **only secure while your codebase remains private**.
+
+#### The Risk
+
+When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
+- Anyone with access to your codebase can decrypt your blobs
+- An attacker could iterate through git commit history to find the commit that decrypts the blob
+- **Never post blobs in publicly accessible locations**
+
+**Safe sharing channels:**
+- ✅ Private direct messages
+- ✅ Password managers (1Password, Bitwarden)
+- ✅ Encrypted messaging (Signal, etc.)
+
+**Unsafe sharing channels:**
+- ❌ Public Slack/Discord channels
+- ❌ Public GitHub issues or wikis
+- ❌ Public documentation
+- ❌ Team wikis accessible to contractors
+- ❌ Any location that might become public
+
+**For truly sensitive data:** Use a custom strong secret (minimum 20+ random characters) instead of relying on manifest-based encryption. See the [Sharing Environment Configurations](/guides/sharing-configs#security-considerations) guide for detailed security information.
+
+### Using Manifest-Based Encryption (Automatic)
 
 **Pros:**
 - No need to share secrets separately
 - Works out of the box for teams
 - Blob can only be decrypted in the same codebase
 - Automatic key consistency across the team
+- Supports many languages (JavaScript/TypeScript, Rust, Go, Python, PHP, Dart, Java, etc.)
 
 **Cons:**
-- Blob becomes unreadable if `package.json` changes
+- ⚠️ **Insecure if codebase is compromised** - See warning above
+- Blob becomes unreadable if manifest file changes
 - Cannot be used as historical reference if dependencies change
-- Limited to JavaScript/TypeScript ecosystem
+- Only works with supported project types
 
-### Using Custom Secret (Other projects)
+### Using Custom Secret Encryption
 
 **Pros:**
+- ✅ **Secure even if codebase is compromised** (if secret is strong and kept separate)
 - Blob remains readable regardless of codebase changes
 - Can be stored as historical reference
 - Full control over who can decrypt
@@ -142,6 +173,8 @@ If clipboard operations fail (e.g., in headless environments), the blob is displ
 - Must share secret separately (through secure channel)
 - Secret must be remembered/stored securely
 - Requires manual secret management
+
+**Recommendation:** For production credentials or highly sensitive data, always use a custom strong secret (20+ random characters) regardless of project type.
 
 ## Related Commands
 

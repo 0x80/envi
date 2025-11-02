@@ -11,7 +11,7 @@ hero:
       link: /getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/codecompose/envi
+      link: https://github.com/0x80/envi
 
 features:
   - icon: |

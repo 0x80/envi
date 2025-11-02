@@ -45,10 +45,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codecompose/envi.git"
+    "url": "https://github.com/0x80/envi.git"
   },
   "bugs": {
-    "url": "https://github.com/codecompose/envi/issues"
+    "url": "https://github.com/0x80/envi/issues"
   },
   "homepage": "https://envi.codecompose.dev",
   "packageManager": "pnpm@10.12.1",

@@ -38,7 +38,7 @@ export async function enableCommand(): Promise<void> {
     const readmePath = join(enviDir, "README.md");
     const readmeContent = `# Envi Store
 
-This repository contains captured environment file configurations managed by [envi](https://github.com/codecompose/envi).
+This repository contains captured environment file configurations managed by [envi](https://github.com/0x80/envi).
 
 ## Structure
 
