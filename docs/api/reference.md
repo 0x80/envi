@@ -173,7 +173,10 @@ Read global configuration.
 import { readConfig } from "@codecompose/envi";
 
 const config = readConfig();
-// Returns: { use_version_control: "github" | false }
+// Returns: {
+//   use_version_control: "github" | false,
+//   package_manifest_files: string[]
+// }
 ```
 
 ### writeConfig()
@@ -183,7 +186,10 @@ Write global configuration.
 ```typescript
 import { writeConfig } from "@codecompose/envi";
 
-writeConfig({ use_version_control: "github" });
+writeConfig({
+  use_version_control: "github",
+  package_manifest_files: ["package.json", "Cargo.toml"]
+});
 ```
 
 ### updateConfig()
@@ -193,7 +199,102 @@ Update global configuration (merges with existing).
 ```typescript
 import { updateConfig } from "@codecompose/envi";
 
+// Update version control setting
 updateConfig({ use_version_control: false });
+
+// Customize manifest file detection
+updateConfig({
+  package_manifest_files: [
+    "Cargo.toml",  // Check Rust projects first
+    "package.json"
+  ]
+});
+```
+
+## Multi-Language Support
+
+### getPackageName()
+
+Extract package name from manifest files (supports multiple languages).
+
+```typescript
+import { getPackageName } from "@codecompose/envi";
+
+const name = getPackageName("/path/to/repo");
+// Returns package name from:
+// - package.json (JavaScript/TypeScript)
+// - Cargo.toml (Rust)
+// - go.mod (Go)
+// - pyproject.toml (Python)
+// - composer.json (PHP)
+// - pubspec.yaml (Dart/Flutter)
+// - settings.gradle.kts (Kotlin)
+// - settings.gradle (Java/Gradle)
+// - pom.xml (Java/Maven)
+```
+
+### DEFAULT_MANIFEST_FILES
+
+List of default manifest files checked for package name detection.
+
+```typescript
+import { DEFAULT_MANIFEST_FILES } from "@codecompose/envi";
+
+console.log(DEFAULT_MANIFEST_FILES);
+// [
+//   "package.json",
+//   "Cargo.toml",
+//   "go.mod",
+//   "pyproject.toml",
+//   "composer.json",
+//   "pubspec.yaml",
+//   "settings.gradle.kts",
+//   "settings.gradle",
+//   "pom.xml"
+// ]
+```
+
+### PACKAGE_EXTRACTORS
+
+Registry of all available package extractors.
+
+```typescript
+import { PACKAGE_EXTRACTORS } from "@codecompose/envi";
+
+// Find specific extractor
+const rustExtractor = PACKAGE_EXTRACTORS.find(
+  e => e.filename === "Cargo.toml"
+);
+
+if (rustExtractor) {
+  const packageName = rustExtractor.extract("/path/to/rust/project");
+  console.log(packageName); // "my-rust-app"
+}
+
+// Try all extractors
+for (const extractor of PACKAGE_EXTRACTORS) {
+  const name = extractor.extract("/path/to/project");
+  if (name) {
+    console.log(`Found ${name} from ${extractor.filename}`);
+    break;
+  }
+}
+```
+
+### PackageExtractor Type
+
+Interface for custom package extractors.
+
+```typescript
+import type { PackageExtractor } from "@codecompose/envi";
+
+const customExtractor: PackageExtractor = {
+  filename: "my-manifest.json",
+  extract: (repoPath: string): string | null => {
+    // Custom extraction logic
+    return "custom-package-name";
+  }
+};
 ```
 
 ## Git Operations
@@ -322,7 +423,33 @@ import type { EnviConfig } from "@codecompose/envi";
 
 const config: EnviConfig = {
   use_version_control: "github" | false,
+  package_manifest_files: string[],
 };
+
+// Example with custom values
+const customConfig: EnviConfig = {
+  use_version_control: false,
+  package_manifest_files: [
+    "package.json",
+    "Cargo.toml",
+    "go.mod",
+  ],
+};
+```
+
+### PackageExtractor
+
+Package extractor interface.
+
+```typescript
+import type { PackageExtractor } from "@codecompose/envi";
+
+interface PackageExtractor {
+  /** The filename to look for in repository root */
+  filename: string;
+  /** Extract package name from file, returns null if extraction fails */
+  extract: (repositoryPath: string) => string | null;
+}
 ```
 
 ## Example: Custom Backup Script

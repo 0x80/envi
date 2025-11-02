@@ -16,7 +16,8 @@
       "mcp__chrome-devtools__click",
       "Bash(pnpm test:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm test:coverage:*)"
+      "Bash(pnpm test:coverage:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

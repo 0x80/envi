@@ -12,6 +12,7 @@ export {
   commitAndPush,
   createInitialCommit,
   createPrivateRepo,
+  DEFAULT_MANIFEST_FILES,
   getConfigPath,
   getEnviDir,
   getGhUsername,
@@ -23,13 +24,14 @@ export {
   isGhAuthenticated,
   isGhInstalled,
   isGitRepo,
+  PACKAGE_EXTRACTORS,
   readConfig,
   repoExists,
   saveToStorage,
   updateConfig,
   writeConfig,
 } from "~/lib";
-export type { EnviConfig, EnviStore } from "~/lib";
+export type { EnviConfig, EnviStore, PackageExtractor } from "~/lib";
 export {
   findEnvFiles,
   findRepoRoot,

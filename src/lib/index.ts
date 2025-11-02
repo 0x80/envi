@@ -18,6 +18,11 @@ export {
   repoExists,
 } from "./github-cli";
 export {
+  DEFAULT_MANIFEST_FILES,
+  PACKAGE_EXTRACTORS,
+} from "./package-name-extractors";
+export type { PackageExtractor } from "./package-name-extractors";
+export {
   ensureStorageDir,
   getEnviDir,
   getPackageName,

@@ -2,15 +2,19 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { parse, stringify } from "maml.js";
+import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 
 /** Global configuration structure */
 export interface EnviConfig {
   use_version_control: "github" | false;
+  /** List of package manifest files to check for package name detection (in priority order) */
+  package_manifest_files: string[];
 }
 
 /** Default configuration */
 const DEFAULT_CONFIG: EnviConfig = {
   use_version_control: false,
+  package_manifest_files: DEFAULT_MANIFEST_FILES,
 };
 
 /**

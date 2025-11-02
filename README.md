@@ -8,6 +8,7 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 
 ## Features
 
+- **Language Agnostic** - Works with any programming language when installed globally (Rust, Go, Python, PHP, Java, Ruby, and more)
 - **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
 - **Easy Restoration** - Restore env files on new systems or git worktrees
 - **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs

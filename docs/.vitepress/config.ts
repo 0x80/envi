@@ -33,6 +33,7 @@ export default defineConfig({
       {
         text: "Guides",
         items: [
+          { text: "Multi-Language Support", link: "/guides/multi-language-support" },
           { text: "Sharing Configurations", link: "/guides/sharing-configs" },
           { text: "GitHub Integration", link: "/guides/github-integration" },
           { text: "Using with Monorepos", link: "/guides/monorepo" },

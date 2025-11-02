@@ -16,6 +16,14 @@ hero:
 features:
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+      </svg>
+    title: Language Agnostic
+    details: Works with any programming language when installed globally - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not just JavaScript/TypeScript
+  - icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M16.5 9.4 7.55 4.24"/>
         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
         <polyline points="3.29 7 12 12 20.71 7"/>
@@ -94,6 +102,7 @@ envi restore
 
 ## Notable Features
 
+- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JavaScript/TypeScript
 - **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by package name (supports scoped packages like `@org/package`)
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs (~50% size reduction) - works independently of global storage, reads directly from your repository
 - **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths

@@ -3,6 +3,8 @@ import { join, basename, dirname } from "node:path";
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { parse, stringify } from "maml.js";
 import type { EnvObject } from "~/utils/parse-env-file";
+import { PACKAGE_EXTRACTORS } from "./package-name-extractors";
+import { readConfig } from "./config";
 
 /** MAML file structure for storing env configurations */
 export interface EnviStore {
@@ -42,25 +44,34 @@ export function ensureStorageDir(): void {
 }
 
 /**
- * Read package name from package.json in repository
+ * Read package name from manifest files in repository
+ *
+ * Checks package manifest files in order specified by config (or defaults).
+ * Supports: package.json, Cargo.toml, go.mod, pyproject.toml, composer.json,
+ * pubspec.yaml, settings.gradle.kts, settings.gradle, pom.xml
  *
  * @param repoPath - Absolute path to repository root
  * @returns Package name if found, null otherwise
  */
 export function getPackageName(repoPath: string): string | null {
-  const manifestPath = join(repoPath, "package.json");
+  const config = readConfig();
+  const filesToCheck = config.package_manifest_files;
 
-  if (!existsSync(manifestPath)) {
-    return null;
+  for (const filename of filesToCheck) {
+    const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === filename);
+
+    if (!extractor) {
+      continue; // Skip unknown manifest files
+    }
+
+    const packageName = extractor.extract(repoPath);
+
+    if (packageName) {
+      return packageName;
+    }
   }
 
-  try {
-    const content = readFileSync(manifestPath, "utf-8");
-    const manifest = JSON.parse(content);
-    return manifest.name || null;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 /**

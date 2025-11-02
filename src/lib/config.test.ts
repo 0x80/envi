@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getConfigPath, readConfig, updateConfig, writeConfig } from "./config";
 import { parse, stringify } from "maml.js";
+import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 
 vi.mock("node:os");
 vi.mock("node:fs");
@@ -33,6 +34,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
       });
     });
 
@@ -46,6 +48,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: "github" as const,
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
       });
     });
 
@@ -61,6 +64,7 @@ describe("config", () => {
 
       expect(result).toEqual({
         use_version_control: false,
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
       });
     });
   });
@@ -70,7 +74,10 @@ describe("config", () => {
       vi.mocked(homedir).mockReturnValue("/home/user");
       vi.mocked(stringify).mockReturnValue("maml content");
 
-      writeConfig({ use_version_control: "github" });
+      writeConfig({
+        use_version_control: "github",
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
+      });
 
       expect(mkdirSync).toHaveBeenCalledWith(join("/home/user", ".envi"), {
         recursive: true,
@@ -78,6 +85,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github",
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
       });
 
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -100,6 +108,7 @@ describe("config", () => {
 
       expect(stringify).toHaveBeenCalledWith({
         use_version_control: "github" as const,
+        package_manifest_files: DEFAULT_MANIFEST_FILES,
       });
     });
   });
