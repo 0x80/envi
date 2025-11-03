@@ -102,16 +102,16 @@ envi restore
 
 ## Notable Features
 
-- **Perfect for AI Development** - Solves the git worktrees env file problem for Cursor parallel agents and other AI tools. Simply add `envi restore` to your `.cursor/worktrees.json` setup script and all env files are automatically restored to each isolated worktree
-- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JavaScript/TypeScript
-- **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by package name (supports scoped packages like `@org/package`)
-- **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs (~50% size reduction) - works independently of global storage, reads directly from your repository
-- **Variable Redaction** - Protect personal tokens and developer-specific credentials from being shared. Configure variables like `GITHUB_PAT` to be automatically redacted when capturing or packing, while preserving real values during restore
+- **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
+- **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
 - **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
+- **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to automatically restore env files to each isolated worktree
 - **Content Preservation** - Preserves both comments (full-line and inline) and key order from your original files
-- **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation (critical for comment handling) and is easy to inspect and edit
+- **Variable Redaction** - Protect personal tokens and developer-specific credentials from being shared. Configure variables like `GITHUB_PAT` to be automatically redacted when capturing or packing
 - **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
+- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JavaScript/TypeScript
+- **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation
 
 ## Learn More
 
