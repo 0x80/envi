@@ -57,10 +57,12 @@
   },
   "devDependencies": {
     "@codecompose/typescript-config": "^2.2.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "latest",
     "@vitest/coverage-v8": "^4.0.6",
     "@vitest/ui": "latest",
     "oxlint": "latest",
+    "oxlint-tsgolint": "^0.4.0",
     "prettier": "latest",
     "prettier-plugin-jsdoc": "^1.5.0",
     "tsdown": "latest",
