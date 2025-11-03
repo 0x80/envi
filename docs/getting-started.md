@@ -12,6 +12,7 @@ Envi is designed for managing `.env` files across local development environments
 Envi shines when you need to:
 
 - Manage local development `.env` files across multiple projects
+- Handle `.env.local` overrides and other gitignored environment files that don't get checked into version control
 - Restore environment configurations to fresh git worktrees or checkouts
 - Share encrypted environment configurations with team members
 - Keep a version-controlled backup of your local development settings
