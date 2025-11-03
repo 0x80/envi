@@ -1,9 +1,13 @@
 import { defineConfig } from "vitepress";
+import mamlGrammar from "./maml.json";
 
 export default defineConfig({
   title: "Envi",
   description:
     "Environment file management tool - Capture, store, and restore .env files across your projects",
+  markdown: {
+    languages: [mamlGrammar as any],
+  },
   themeConfig: {
     nav: [
       { text: "Guide", link: "/getting-started" },

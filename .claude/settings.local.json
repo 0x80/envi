@@ -21,7 +21,8 @@
       "Bash(pnpm docs:build:*)",
       "Bash(pnpm upgrade:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpm check-types:*)"
+      "Bash(pnpm check-types:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
