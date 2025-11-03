@@ -21,7 +21,7 @@ features:
         <path d="M2 12h20"/>
       </svg>
     title: Language Agnostic
-    details: Works with any programming language when installed globally - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not just JavaScript/TypeScript
+    details: Works with any programming language when installed globally - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not just JS/TS
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M16.5 9.4 7.55 4.24"/>
@@ -30,7 +30,7 @@ features:
         <line x1="12" x2="12" y1="22" y2="12"/>
       </svg>
     title: Centralized Storage
-    details: Capture all .env files from your codebase into a central location that can be version controlled
+    details: Capture all .env files from all your codebases into a central location that can be version controlled
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -46,7 +46,7 @@ features:
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
     title: Secure Sharing
-    details: Safely share env configurations with encrypted blobs (~50% smaller). Variable redaction protects personal tokens from being shared
+    details: Safely share configurations using encrypted blobs. Variable redaction protects personal tokens from being shared
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="6" x2="6" y1="3" y2="15"/>
@@ -55,7 +55,7 @@ features:
         <path d="M18 9a9 9 0 0 1-9 9"/>
       </svg>
     title: AI Tools & Worktrees
-    details: Perfect for Cursor parallel agents and git worktrees - automatically restore env files to isolated working directories
+    details: Works well with Cursor parallel agents and git worktrees - automatically restore env files to isolated working directories
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
@@ -110,7 +110,7 @@ envi restore
 - **Content Preservation** - Preserves both comments (full-line and inline) and key order from your original files
 - **Variable Redaction** - Protect personal tokens and developer-specific credentials from being shared. Configure variables like `GITHUB_PAT` to be automatically redacted when capturing or packing
 - **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
-- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JavaScript/TypeScript
+- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JS/TS
 - **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation
 
 ## Learn More
