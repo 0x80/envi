@@ -1,7 +1,7 @@
 import { consola } from "consola";
 import * as p from "@clack/prompts";
 import { readFileSync, existsSync } from "node:fs";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 import clipboard from "clipboardy";
 import { stringify } from "maml.js";
 import {
@@ -95,7 +95,7 @@ export async function packCommand(): Promise<void> {
     const mamlData = stringify(data);
 
     /** Generate or prompt for encryption key */
-    let secret: string;
+    let secret!: string;
     let usingManifest = false;
     let manifestFileName: string | null = null;
 
@@ -157,7 +157,7 @@ export async function packCommand(): Promise<void> {
     try {
       await clipboard.write(blob);
       consola.success("Blob copied to clipboard!");
-    } catch (clipboardError) {
+    } catch {
       consola.warn("Failed to copy to clipboard - displaying blob instead");
       consola.box(blob);
     }

@@ -8,7 +8,7 @@ export default {
   Layout: () => {
     return h(DefaultTheme.Layout, null, {});
   },
-  enhanceApp({ app }) {
+  enhanceApp({ app: _app }) {
     // Custom app enhancements can go here
   },
 } satisfies Theme;

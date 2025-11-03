@@ -2,7 +2,7 @@ import { consola } from "consola";
 import * as p from "@clack/prompts";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { parse, stringify } from "maml.js";
+import { parse } from "maml.js";
 import clipboard from "clipboardy";
 import {
   ensureStorageDir,
@@ -92,7 +92,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
       try {
         blobContent = await clipboard.read();
         consola.success("Blob loaded from clipboard");
-      } catch (clipboardError) {
+      } catch {
         consola.error("Failed to read from clipboard");
         consola.info("Please provide the blob as an argument: envi unpack <blob>");
         process.exit(1);
@@ -146,7 +146,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
           consola.success(`Decryption successful using ${filename}`);
           foundManifest = filename;
           break;
-        } catch (error) {
+        } catch {
           // Decryption failed with this manifest - try next one
           consola.warn(`Failed to decrypt with ${filename}`);
         }
@@ -183,7 +183,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
       try {
         decrypted = decrypt(encryptedData, secret);
         consola.success("Decryption successful");
-      } catch (error) {
+      } catch {
         consola.error("Failed to decrypt blob with provided secret");
         consola.info("This could mean:");
         consola.info("  - The secret is incorrect");

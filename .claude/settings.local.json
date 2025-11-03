@@ -19,7 +19,9 @@
       "Bash(pnpm test:coverage:*)",
       "WebSearch",
       "Bash(pnpm docs:build:*)",
-      "Bash(pnpm upgrade:*)"
+      "Bash(pnpm upgrade:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm check-types:*)"
     ],
     "deny": [],
     "ask": []

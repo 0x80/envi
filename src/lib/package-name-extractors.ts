@@ -72,7 +72,8 @@ function extractFromGoMod(repositoryPath: string): string | null {
       return null;
     }
 
-    const modulePath = match[1].trim();
+    const modulePath = match[1]?.trim();
+    if (!modulePath) return null;
     // Extract last segment: "github.com/user/repo" -> "repo"
     const segments = modulePath.split("/");
     return segments[segments.length - 1] || null;
@@ -160,7 +161,7 @@ function extractFromSettingsGradleKts(repositoryPath: string): string | null {
     const content = readFileSync(filePath, "utf-8");
     const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
 
-    return match ? match[1] : null;
+    return match ? match[1] ?? null : null;
   } catch {
     return null;
   }
@@ -181,7 +182,7 @@ function extractFromSettingsGradle(repositoryPath: string): string | null {
     const content = readFileSync(filePath, "utf-8");
     const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
 
-    return match ? match[1] : null;
+    return match ? match[1] ?? null : null;
   } catch {
     return null;
   }
