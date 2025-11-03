@@ -55,7 +55,7 @@ features:
         <path d="M18 9a9 9 0 0 1-9 9"/>
       </svg>
     title: AI Tools & Worktrees
-    details: Works well with Cursor parallel agents and git worktrees - automatically restore env files to isolated working directories
+    details: Works with parallel agents using git worktrees - easily restore env files to isolated working directories
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
@@ -106,7 +106,7 @@ envi restore
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
 - **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
-- **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to automatically restore env files to each isolated worktree
+- **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to restore env files to each isolated worktree
 - **Content Preservation** - Preserves both comments (full-line and inline) and key order from your original files
 - **Variable Redaction** - Protect personal tokens and developer-specific credentials from being shared. Configure variables like `GITHUB_PAT` to be automatically redacted when capturing or packing
 - **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
