@@ -6,9 +6,10 @@ export type EnvObject = Record<string, string>;
 /**
  * Parse a .env file while preserving comments and empty lines
  *
- * Lines are stored as __l_00, __l_01, etc. (zero-padded, incremental)
- * Full-line comments starting with # and empty lines are preserved in their original order
- * Inline comments are stored as __i_00, __i_01, etc. right before the value
+ * Lines are stored as __l_00, __l_01, etc. (zero-padded, incremental) Full-line
+ * comments starting with # and empty lines are preserved in their original
+ * order Inline comments are stored as __i_00, __i_01, etc. right before the
+ * value
  *
  * @param filePath - Absolute path to .env file
  * @returns Object with env vars and comment keys

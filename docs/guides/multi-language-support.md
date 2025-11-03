@@ -6,17 +6,17 @@ Envi is language-agnostic and works with projects written in any programming lan
 
 Envi automatically detects package names from the following languages and frameworks:
 
-| Language/Framework | Manifest File | Example Package Name |
-|-------------------|--------------|---------------------|
-| JavaScript/TypeScript | `package.json` | `@org/app` or `myapp` |
-| Rust | `Cargo.toml` | `rust-app` |
-| Go | `go.mod` | `go-project` |
-| Python | `pyproject.toml` | `python-package` |
-| PHP | `composer.json` | `vendor/package` |
-| Dart/Flutter | `pubspec.yaml` | `flutter_app` |
-| Kotlin/Android | `settings.gradle.kts` | `kotlin-app` |
-| Java (Gradle) | `settings.gradle` | `java-app` |
-| Java (Maven) | `pom.xml` | `maven-app` |
+| Language/Framework    | Manifest File         | Example Package Name  |
+| --------------------- | --------------------- | --------------------- |
+| JavaScript/TypeScript | `package.json`        | `@org/app` or `myapp` |
+| Rust                  | `Cargo.toml`          | `rust-app`            |
+| Go                    | `go.mod`              | `go-project`          |
+| Python                | `pyproject.toml`      | `python-package`      |
+| PHP                   | `composer.json`       | `vendor/package`      |
+| Dart/Flutter          | `pubspec.yaml`        | `flutter_app`         |
+| Kotlin/Android        | `settings.gradle.kts` | `kotlin-app`          |
+| Java (Gradle)         | `settings.gradle`     | `java-app`            |
+| Java (Maven)          | `pom.xml`             | `maven-app`           |
 
 ## How It Works
 
@@ -209,21 +209,25 @@ Built-in default manifest files (checked in this order):
 By default, Envi checks all supported manifest files in priority order. You can customize this list using CLI commands:
 
 **List current manifest files:**
+
 ```bash
 envi config manifest_files list
 ```
 
 **Add a custom manifest file:**
+
 ```bash
 envi config manifest_files add my-custom-manifest.json
 ```
 
 **Remove a manifest file (including defaults):**
+
 ```bash
 envi config manifest_files remove pom.xml
 ```
 
 **Example output:**
+
 ```bash
 $ envi config manifest_files list
 Manifest files (in priority order):
@@ -239,6 +243,7 @@ Manifest files (in priority order):
 ```
 
 The configuration is stored in `~/.envi/config.maml`:
+
 ```maml
 {
   use_version_control: false
@@ -253,6 +258,7 @@ The configuration is stored in `~/.envi/config.maml`:
 ```
 
 **Note:**
+
 - Custom manifest files need built-in extractors to work for package name detection
 - All manifest files (including custom ones) can be used for encryption
 - You have full control - you can even remove default files if needed
@@ -272,17 +278,17 @@ When you run `envi pack` or `envi unpack`, Envi:
 
 ### Supported Languages for Auto-Encryption
 
-| Language | Manifest File | Status |
-|----------|--------------|--------|
-| JavaScript/TypeScript | `package.json` | ✅ Fully supported |
-| Rust | `Cargo.toml` | ✅ Fully supported |
-| Go | `go.mod` | ✅ Fully supported |
-| Python | `pyproject.toml` | ✅ Fully supported |
-| PHP | `composer.json` | ✅ Fully supported |
-| Dart/Flutter | `pubspec.yaml` | ✅ Fully supported |
-| Kotlin | `settings.gradle.kts` | ✅ Fully supported |
-| Java (Gradle) | `settings.gradle` | ✅ Fully supported |
-| Java (Maven) | `pom.xml` | ✅ Fully supported |
+| Language              | Manifest File         | Status             |
+| --------------------- | --------------------- | ------------------ |
+| JavaScript/TypeScript | `package.json`        | ✅ Fully supported |
+| Rust                  | `Cargo.toml`          | ✅ Fully supported |
+| Go                    | `go.mod`              | ✅ Fully supported |
+| Python                | `pyproject.toml`      | ✅ Fully supported |
+| PHP                   | `composer.json`       | ✅ Fully supported |
+| Dart/Flutter          | `pubspec.yaml`        | ✅ Fully supported |
+| Kotlin                | `settings.gradle.kts` | ✅ Fully supported |
+| Java (Gradle)         | `settings.gradle`     | ✅ Fully supported |
+| Java (Maven)          | `pom.xml`             | ✅ Fully supported |
 
 ### Example Workflows
 
@@ -394,11 +400,13 @@ const customExtractor: PackageExtractor = {
 **Solution:**
 
 1. Verify manifest file exists in project root:
+
    ```bash
    ls -la package.json Cargo.toml go.mod
    ```
 
 2. Check if file is valid:
+
    ```bash
    # For JSON files
    cat package.json | jq .

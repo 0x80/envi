@@ -42,6 +42,7 @@ feature-branch/
 ```
 
 **Problems with this approach:**
+
 - Error-prone (easy to forget files)
 - Hard to maintain (need to update setup script when adding new env files)
 - Doesn't work if main worktree also doesn't have env files
@@ -54,14 +55,12 @@ With Envi, you capture your env files once, and restore them to any worktree ins
 
 ```json
 {
-  "setup-worktree": [
-    "npm ci",
-    "envi restore"
-  ]
+  "setup-worktree": ["npm ci", "envi restore"]
 }
 ```
 
 **Benefits:**
+
 - ✅ One command restores all env files
 - ✅ Works in monorepos automatically
 - ✅ Independent of main worktree state
@@ -76,6 +75,7 @@ With Envi, you capture your env files once, and restore them to any worktree ins
 ### Prerequisites
 
 1. Install Envi globally:
+
    ```bash
    pnpm add -g @codecompose/envi
    ```
@@ -94,9 +94,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "envi restore"
-  ]
+  "setup-worktree": ["envi restore"]
 }
 ```
 
@@ -104,10 +102,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore"]
 }
 ```
 
@@ -115,11 +110,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore",
-    "pnpm db:migrate"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore", "pnpm db:migrate"]
 }
 ```
 
@@ -151,10 +142,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree-windows": [
-    "pnpm install",
-    "envi restore"
-  ]
+  "setup-worktree-windows": ["pnpm install", "envi restore"]
 }
 ```
 
@@ -162,10 +150,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore"]
 }
 ```
 
@@ -204,10 +189,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "cargo fetch",
-    "envi restore"
-  ]
+  "setup-worktree": ["cargo fetch", "envi restore"]
 }
 ```
 
@@ -215,10 +197,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "go mod download",
-    "envi restore"
-  ]
+  "setup-worktree": ["go mod download", "envi restore"]
 }
 ```
 
@@ -226,11 +205,7 @@ Create `.cursor/worktrees.json` in your project root:
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore",
-    "pnpm turbo build"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore", "pnpm turbo build"]
 }
 ```
 
@@ -310,11 +285,13 @@ envi global github enable
 **Team workflow:**
 
 1. **Lead developer** captures and pushes env files:
+
    ```bash
    envi capture  # Auto-commits to GitHub
    ```
 
 2. **Team members** restore from GitHub:
+
    ```bash
    envi global github restore  # One-time setup
    ```
@@ -344,6 +321,7 @@ envi global github enable
 ```
 
 **Issues:**
+
 - ❌ Breaks if `$ROOT_WORKTREE_PATH` doesn't have env files
 - ❌ Needs updating when new env files are added
 - ❌ Doesn't work across machines
@@ -354,14 +332,12 @@ envi global github enable
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore"]
 }
 ```
 
 **Advantages:**
+
 - ✅ Works even if main worktree is clean
 - ✅ Automatically handles new env files
 - ✅ Works across all machines (with GitHub sync)
@@ -421,10 +397,7 @@ pnpm add -g @codecompose/envi
 
 ```json
 {
-  "setup-worktree": [
-    "npm ci",
-    "envi restore"
-  ]
+  "setup-worktree": ["npm ci", "envi restore"]
 }
 ```
 
@@ -432,10 +405,7 @@ pnpm add -g @codecompose/envi
 
 ```json
 {
-  "setup-worktree": [
-    "yarn install --frozen-lockfile",
-    "envi restore"
-  ]
+  "setup-worktree": ["yarn install --frozen-lockfile", "envi restore"]
 }
 ```
 
@@ -443,10 +413,7 @@ pnpm add -g @codecompose/envi
 
 ```json
 {
-  "setup-worktree": [
-    "bun install",
-    "envi restore"
-  ]
+  "setup-worktree": ["bun install", "envi restore"]
 }
 ```
 
@@ -473,10 +440,7 @@ Ensures all env files are stored before you create parallel worktrees.
 
 ```json
 {
-  "setup-worktree": [
-    "pnpm install",
-    "envi restore"
-  ]
+  "setup-worktree": ["pnpm install", "envi restore"]
 }
 ```
 

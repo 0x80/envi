@@ -17,6 +17,7 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 ### Encryption Methods
 
 **For projects with a supported manifest file**:
+
 - The blob is automatically encrypted using an MD5 hash of your project's manifest file contents
 - **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
 - **Custom manifests:** You can add your own manifest files using `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files)
@@ -24,6 +25,7 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 - No manual secret management needed - the encryption key is automatically derived from your manifest
 
 **For projects without a supported manifest file**:
+
 - You'll be prompted to enter a custom encryption secret
 - The secret must be at least 8 characters for security
 - You must share both the blob AND the secret with your team members
@@ -40,6 +42,7 @@ envi pack
 ```
 
 Output:
+
 ```
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
@@ -70,6 +73,7 @@ envi pack
 ```
 
 Interactive flow:
+
 ```
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
@@ -128,16 +132,19 @@ If clipboard operations fail (e.g., in headless environments), the blob is displ
 #### The Risk
 
 When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
+
 - Anyone with access to your codebase can decrypt your blobs
 - An attacker could iterate through git commit history to find the commit that decrypts the blob
 - **Never post blobs in publicly accessible locations**
 
 **Safe sharing channels:**
+
 - ✅ Private direct messages
 - ✅ Password managers (1Password, Bitwarden)
 - ✅ Encrypted messaging (Signal, etc.)
 
 **Unsafe sharing channels:**
+
 - ❌ Public Slack/Discord channels
 - ❌ Public GitHub issues or wikis
 - ❌ Public documentation
@@ -149,6 +156,7 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 ### Using Manifest-Based Encryption (Automatic)
 
 **Pros:**
+
 - No need to share secrets separately
 - Works out of the box for teams
 - Blob can only be decrypted in the same codebase
@@ -156,6 +164,7 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 - Supports many languages (JavaScript/TypeScript, Rust, Go, Python, PHP, Dart, Java, etc.)
 
 **Cons:**
+
 - ⚠️ **Insecure if codebase is compromised** - See warning above
 - Blob becomes unreadable if manifest file changes (even a single character difference)
 - Cannot be used as historical reference if manifest is updated
@@ -165,6 +174,7 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 ### Using Custom Secret Encryption
 
 **Pros:**
+
 - ✅ **Secure even if codebase is compromised** (if secret is strong and kept separate)
 - Blob remains readable regardless of codebase changes
 - Can be stored as historical reference
@@ -172,6 +182,7 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 - Works for any project type
 
 **Cons:**
+
 - Must share secret separately (through secure channel)
 - Secret must be remembered/stored securely
 - Requires manual secret management

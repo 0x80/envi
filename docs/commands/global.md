@@ -121,6 +121,7 @@ envi global github restore
 ```
 
 This will restore:
+
 - All stored configurations
 - Global configuration
 - GitHub integration settings

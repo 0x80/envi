@@ -92,7 +92,7 @@ describe("encryption", () => {
     it("should work with different manifest file types", () => {
       const packageJson = '{"name": "my-package"}';
       const cargoToml = '[package]\nname = "my-package"';
-      const goMod = 'module github.com/user/my-package';
+      const goMod = "module github.com/user/my-package";
 
       // All should produce valid MD5 hashes
       const key1 = generateKeyFromManifest(packageJson);

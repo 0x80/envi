@@ -46,9 +46,10 @@ export function ensureStorageDir(): void {
 /**
  * Read package name from manifest files in repository
  *
- * Checks package manifest files in priority order (additional files from config first, then defaults).
- * Supports: package.json, Cargo.toml, go.mod, pyproject.toml, composer.json,
- * pubspec.yaml, settings.gradle.kts, settings.gradle, pom.xml
+ * Checks package manifest files in priority order (additional files from config
+ * first, then defaults). Supports: package.json, Cargo.toml, go.mod,
+ * pyproject.toml, composer.json, pubspec.yaml, settings.gradle.kts,
+ * settings.gradle, pom.xml
  *
  * @param repoPath - Absolute path to repository root
  * @returns Package name if found, null otherwise

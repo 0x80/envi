@@ -21,7 +21,8 @@ import { applyRedaction } from "~/utils/redact";
 /**
  * Execute the pack command
  *
- * Finds all .env files in repository, encrypts them, and creates a shareable blob
+ * Finds all .env files in repository, encrypts them, and creates a shareable
+ * blob
  */
 export async function packCommand(): Promise<void> {
   try {
@@ -111,7 +112,7 @@ export async function packCommand(): Promise<void> {
         manifestFileName = filename;
         consola.info(`Using ${filename} for encryption key`);
         consola.warn(
-          `Note: Only colleagues with the same ${filename} can decrypt this blob`
+          `Note: Only colleagues with the same ${filename} can decrypt this blob`,
         );
         break;
       }
@@ -120,7 +121,9 @@ export async function packCommand(): Promise<void> {
     if (!usingManifest) {
       // No manifest found - prompt for custom secret
       consola.warn("No manifest file found in repository root");
-      consola.info("Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...");
+      consola.info(
+        "Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...",
+      );
       consola.info("You'll need to provide a secret for encryption.");
 
       const secretInput = await p.password({
@@ -165,12 +168,16 @@ export async function packCommand(): Promise<void> {
     /** Output instructions */
     if (usingManifest) {
       consola.info("\nBlob is now on your clipboard!");
-      consola.info(`Share it with colleagues who have the same ${manifestFileName}`);
+      consola.info(
+        `Share it with colleagues who have the same ${manifestFileName}`,
+      );
       consola.info("They can restore it using: envi unpack");
     } else {
       consola.info("\nBlob is now on your clipboard!");
       consola.info("Share the blob and the secret with your colleagues");
-      consola.info("They will be prompted for the secret when running: envi unpack");
+      consola.info(
+        "They will be prompted for the secret when running: envi unpack",
+      );
     }
   } catch (error) {
     consola.error(getErrorMessage(error));

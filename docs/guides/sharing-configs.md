@@ -14,6 +14,7 @@ Envi allows you to securely share environment configurations with team members t
 ## Quick Start
 
 **Sender (creating the blob):**
+
 ```bash
 # Pack reads .env files directly from your repository
 # No need to capture first!
@@ -22,6 +23,7 @@ envi pack
 ```
 
 **Receiver (using the blob):**
+
 ```bash
 # Copy the blob from chat/email and run (reads from clipboard automatically)
 envi unpack
@@ -37,6 +39,7 @@ envi unpack
 Envi uses **gzip compression** followed by **AES-256-GCM encryption** with authentication to secure your environment data. Compression reduces blob size by approximately 50%, making blobs easier to share in chat applications and reducing copy-paste errors.
 
 **Automatic encryption** (when a manifest file is detected):
+
 - The encryption key is automatically derived from your project's manifest file
 - **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart), `pom.xml` (Java), `settings.gradle` (Gradle), and more
 - ✅ No need to share secrets separately
@@ -45,6 +48,7 @@ Envi uses **gzip compression** followed by **AES-256-GCM encryption** with authe
 - ⚠️ Blobs become unreadable if manifest file changes
 
 **Custom secret encryption** (when no manifest detected, or by choice):
+
 - You'll be prompted to enter a custom encryption secret when packing
 - ✅ Works for any project type
 - ✅ Full control over encryption
@@ -61,6 +65,7 @@ __envi_end__
 ```
 
 This format makes blobs:
+
 - Easy to copy-paste
 - Identifiable in messages
 - Resilient to formatting changes (whitespace, newlines, indentation are automatically handled)
@@ -71,11 +76,13 @@ This format makes blobs:
 Envi automatically handles clipboard operations to make sharing seamless:
 
 **When packing:**
+
 - The blob is automatically copied to your system clipboard
 - You can immediately paste it into Slack, email, or any messaging platform
 - If clipboard operations fail (e.g., headless environments), the blob is displayed in the terminal
 
 **When unpacking:**
+
 - If you don't provide a blob argument, envi automatically reads from your clipboard
 - Simply copy the blob from chat/email and run `envi unpack`
 - No need to manually paste the blob as a command argument
@@ -87,6 +94,7 @@ Envi automatically handles clipboard operations to make sharing seamless:
 **Best for:** Regular team collaboration when a manifest file is present (JavaScript/TypeScript, Rust, Go, Python, PHP, etc.)
 
 **How to share:**
+
 ```bash
 # Sender
 envi pack
@@ -99,12 +107,14 @@ envi unpack
 ```
 
 **Pros:**
+
 - No secret management needed
 - Automatic team synchronization
 - Simple workflow
 - Works out of the box
 
 **Cons:**
+
 - Stops working if manifest file changes
 - Not suitable for historical reference
 - Only works with supported project types
@@ -116,6 +126,7 @@ envi unpack
 **Best for:** Projects without manifest files, long-term storage, or documentation
 
 **How to share:**
+
 ```bash
 # Sender (will be prompted for secret)
 envi pack
@@ -131,12 +142,14 @@ envi unpack
 ```
 
 **Pros:**
+
 - Works for any project type (Python, Go, Rust, etc.)
 - Works regardless of codebase changes
 - Can be stored in documentation
 - Survives dependency updates
 
 **Cons:**
+
 - Must manage and share secret separately
 - Secret must be communicated securely
 
@@ -145,12 +158,14 @@ envi unpack
 ### Choosing an Encryption Method
 
 Use **automatic encryption** (when manifest file is present) when:
+
 - Sharing with current team members in same codebase
 - Quick environment setup
 - Active development phase
 - Working with supported project types (JS/TS, Rust, Go, Python, PHP, etc.)
 
 Use **custom secret** (prompted when no manifest, or for extra security) when:
+
 - Working with projects without manifest files
 - Documenting setup in README
 - Creating onboarding materials
@@ -163,6 +178,7 @@ Use **custom secret** (prompted when no manifest, or for extra security) when:
 When using custom secrets (projects without manifest files or by choice):
 
 1. **Choose meaningful secrets:**
+
    ```bash
    # When prompted, use descriptive secrets
    ? Enter an encryption secret: mycompany-api-setup-2024
@@ -187,12 +203,14 @@ When using custom secrets (projects without manifest files or by choice):
 ### Blob Sharing
 
 **Safe channels:**
+
 - Private Slack/Teams channels
 - Direct messages
 - Company wiki (with access control)
 - Password-protected documents
 
 **Avoid:**
+
 - Public repositories
 - Public Slack channels
 - Unencrypted emails
@@ -205,6 +223,7 @@ When using custom secrets (projects without manifest files or by choice):
 #### Projects with Manifest Files (JS/TS, Rust, Go, Python, etc.)
 
 1. **Prepare onboarding blob:**
+
    ```bash
    # One-time setup by team lead
    envi pack
@@ -212,13 +231,16 @@ When using custom secrets (projects without manifest files or by choice):
    ```
 
 2. **Add to documentation:**
-   ```markdown
+
+   ````markdown
    ## Environment Setup
 
    Run this command with the blob from #team-secrets:
+
    ```bash
    envi unpack <blob>
    ```
+   ````
 
 3. **New member runs:**
    ```bash
@@ -233,6 +255,7 @@ When using custom secrets (projects without manifest files or by choice):
 #### Projects without Manifest Files
 
 1. **Prepare onboarding blob:**
+
    ```bash
    # One-time setup by team lead
    envi pack
@@ -240,14 +263,17 @@ When using custom secrets (projects without manifest files or by choice):
    ```
 
 2. **Add to documentation:**
-   ```markdown
+
+   ````markdown
    ## Environment Setup
 
    Run this command with the blob from #team-secrets:
+
    ```bash
    envi unpack <blob>
    # When prompted, enter: onboarding-2024
    ```
+   ````
 
 3. **New member runs:**
    ```bash
@@ -291,11 +317,13 @@ Envi provides a **variable redaction** feature to prevent accidental sharing of 
 ### What is Redaction?
 
 Redaction allows you to mark specific environment variables as "redacted". When you capture or pack environment files, these variables:
+
 - Are **replaced with a placeholder** (`__envi_redacted__`) in storage and blobs
 - **Preserve their real values** in your local files during restore/unpack operations
 - **Cannot be shared** via encrypted blobs or global storage
 
 This protects personal tokens like:
+
 - Personal access tokens (GitHub, GitLab, etc.)
 - API keys tied to individual accounts
 - Developer-specific credentials
@@ -304,6 +332,7 @@ This protects personal tokens like:
 ### Default Redacted Variables
 
 By default, Envi redacts:
+
 - `GITHUB_PAT` - GitHub Personal Access Token
 
 ::: tip Why GITHUB_PAT is Redacted by Default
@@ -325,16 +354,19 @@ By default, Envi redacts:
 ### Managing Redacted Variables
 
 Add a variable to the redaction list:
+
 ```bash
 envi config redact add SLACK_WEBHOOK_URL
 ```
 
 Remove a variable from the redaction list:
+
 ```bash
 envi config redact remove GITHUB_PAT
 ```
 
 List all redacted variables:
+
 ```bash
 envi config redact list
 ```
@@ -342,6 +374,7 @@ envi config redact list
 ### How Redaction Works
 
 **When capturing or packing:**
+
 ```bash
 envi capture
 # or
@@ -353,6 +386,7 @@ These values will be stored as __envi_redacted__
 ```
 
 **When restoring or unpacking:**
+
 ```bash
 envi restore
 # or
@@ -398,6 +432,7 @@ envi unpack
 #### Personal Tokens
 
 Each developer has their own personal access token:
+
 ```bash
 # In your .env
 GITHUB_PAT=ghp_YourPersonalToken123
@@ -414,6 +449,7 @@ envi config redact add GITHUB_PAT
 #### Developer-Specific Configuration
 
 Different developers need different values:
+
 ```bash
 # Developer A's .env
 LOCAL_DB_PORT=5432
@@ -432,6 +468,7 @@ envi config redact add LOCAL_DB_PORT
 #### Hybrid Sharing
 
 Mix team-shared and personal variables:
+
 ```bash
 # .env file
 # Team-shared variables
@@ -455,6 +492,7 @@ envi pack
 ### Best Practices
 
 **DO redact:**
+
 - ✅ Personal access tokens (GitHub, GitLab, Bitbucket) - These are tied to individual user accounts
 - ✅ Developer-specific API keys
 - ✅ Individual Slack/Discord webhooks
@@ -462,6 +500,7 @@ envi pack
 - ✅ Machine-specific configuration
 
 **DON'T redact:**
+
 - ❌ Team-shared API keys - Meant to be shared across the team
 - ❌ Shared service credentials - Used by all developers
 - ❌ Organization-level tokens - GitHub Apps, deploy keys, etc.
@@ -470,6 +509,7 @@ envi pack
 - ❌ Public configuration values
 
 **Tips:**
+
 1. **Add redaction before first capture/pack** - Set up your redaction list early to avoid accidentally sharing personal tokens
 2. **Document team standards** - Agree which variables should be redacted across the team
 3. **Review before sharing** - Check the redaction warning when packing to ensure correct variables are redacted
@@ -478,6 +518,7 @@ envi pack
 ### Configuration Location
 
 Redaction configuration is stored globally at `~/.envi/config.maml`:
+
 ```toml
 use_version_control = false
 manifest_files = [
@@ -496,6 +537,7 @@ This configuration is **personal to your machine** and won't be shared with othe
 ### "Failed to decrypt blob"
 
 **Causes:**
+
 - Different manifest file (projects using automatic encryption)
 - Wrong custom secret (custom encrypted blobs)
 - Corrupted blob
@@ -503,6 +545,7 @@ This configuration is **personal to your machine** and won't be shared with othe
 **Solutions:**
 
 For projects with automatic encryption:
+
 ```bash
 # If automatic decryption fails, you'll be prompted:
 envi unpack <blob>
@@ -512,6 +555,7 @@ Found package.json - attempting decryption
 ```
 
 For projects with custom secrets:
+
 ```bash
 # Ensure you're entering the correct secret
 envi unpack <blob>
@@ -519,6 +563,7 @@ envi unpack <blob>
 ```
 
 If issues persist:
+
 - Verify you have the same manifest file as sender (for automatic encryption)
 - Ask sender to re-create blob if it may be corrupted
 - For projects with different manifests, sender can create new blob with custom secret
@@ -528,6 +573,7 @@ If issues persist:
 **Cause:** Incomplete copy-paste
 
 **Solution:** Ensure you copied entire blob including:
+
 ```
 __envi_start__
 [full encrypted string]
@@ -541,6 +587,7 @@ __envi_end__
 **Solutions:**
 
 If your project has a supported manifest file:
+
 ```bash
 # Navigate to repo root where manifest exists
 cd path/to/repo/root
@@ -548,6 +595,7 @@ envi unpack <blob>
 ```
 
 If your project doesn't have a manifest file:
+
 ```bash
 # This is expected - you'll be prompted for secret
 envi unpack <blob>
@@ -570,6 +618,7 @@ When using **automatic encryption** (based on your project's manifest file):
 - An attacker could iterate through git commit history to find the commit that decrypts the blob
 
 **Example attack scenario:**
+
 ```bash
 # Attacker gets access to your repository
 git clone your-private-repo
@@ -587,6 +636,7 @@ done
 #### Safe Sharing Practices
 
 **DO NOT post blobs in:**
+
 - ❌ Public Slack/Discord channels
 - ❌ Public GitHub issues
 - ❌ Public documentation
@@ -595,6 +645,7 @@ done
 - ❌ Any location that might become public later
 
 **SAFE channels (when codebase is private):**
+
 - ✅ Private Slack/Teams DMs
 - ✅ 1Password/Bitwarden shared vaults
 - ✅ Encrypted messaging (Signal, etc.)
@@ -688,6 +739,7 @@ envi unpack
 Setting up multiple related projects:
 
 JavaScript/TypeScript projects:
+
 ```bash
 # Create blob for each project (automatic encryption)
 cd project-a && envi pack  # Paste blob-a into docs
@@ -704,6 +756,7 @@ envi unpack
 ```
 
 Mixed or non-JS/TS projects:
+
 ```bash
 # Create blob for each project with same secret
 cd project-a && envi pack
@@ -731,7 +784,8 @@ envi unpack
 README with embedded instructions:
 
 For JavaScript/TypeScript projects:
-```markdown
+
+````markdown
 ## Development Setup
 
 1. Clone repository
@@ -742,9 +796,11 @@ For JavaScript/TypeScript projects:
    ```bash
    envi unpack
    ```
-   The blob will automatically decrypt using package.json
-4. Start dev server: `pnpm dev`
-```
+````
+
+The blob will automatically decrypt using package.json 4. Start dev server: `pnpm dev`
+
+````
 
 For non-JavaScript/TypeScript projects:
 ```markdown
@@ -757,8 +813,10 @@ For non-JavaScript/TypeScript projects:
    ```bash
    envi unpack
    # Enter secret when prompted
-   ```
+````
+
 3. Start dev server
+
 ```
 
 ## FAQ
@@ -777,3 +835,4 @@ A: No, encryption includes random salt, so each pack creates a unique blob even 
 
 **Q: What if I lose the secret?**
 A: For custom secret encryption, you cannot decrypt the blob without the secret. You'll need to re-capture and create a new blob. For manifest-based encryption, the "secret" is your manifest file (package.json, Cargo.toml, etc.) which is version controlled.
+```

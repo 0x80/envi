@@ -61,7 +61,7 @@ export async function clearCommand(): Promise<void> {
 
     consola.success(`Deleted stored configuration for this repository`);
     consola.info(
-      `Note: If you have GitHub integration enabled, you can restore this data using 'envi global github restore'`
+      `Note: If you have GitHub integration enabled, you can restore this data using 'envi global github restore'`,
     );
   } catch (error) {
     consola.error(getErrorMessage(error));

@@ -1,12 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { join } from "node:path";
-import { PACKAGE_EXTRACTORS, DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
+import {
+  PACKAGE_EXTRACTORS,
+  DEFAULT_MANIFEST_FILES,
+} from "./package-name-extractors";
 
-const FIXTURES_DIR = join(__dirname, "..", "__fixtures__", "package-extractors");
+const FIXTURES_DIR = join(
+  __dirname,
+  "..",
+  "__fixtures__",
+  "package-extractors",
+);
 
 describe("Package name extractors", () => {
   describe("package.json (JavaScript/TypeScript)", () => {
-    const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === "package.json");
+    const extractor = PACKAGE_EXTRACTORS.find(
+      (e) => e.filename === "package.json",
+    );
 
     it("should extract name from valid package.json", () => {
       const fixtureDir = join(FIXTURES_DIR, "javascript");
@@ -21,7 +31,9 @@ describe("Package name extractors", () => {
   });
 
   describe("composer.json (PHP)", () => {
-    const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === "composer.json");
+    const extractor = PACKAGE_EXTRACTORS.find(
+      (e) => e.filename === "composer.json",
+    );
 
     it("should extract name from valid composer.json", () => {
       const fixtureDir = join(FIXTURES_DIR, "php");
@@ -51,7 +63,9 @@ describe("Package name extractors", () => {
   });
 
   describe("Cargo.toml (Rust)", () => {
-    const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === "Cargo.toml");
+    const extractor = PACKAGE_EXTRACTORS.find(
+      (e) => e.filename === "Cargo.toml",
+    );
 
     it("should extract name from valid Cargo.toml", () => {
       const fixtureDir = join(FIXTURES_DIR, "rust");
@@ -83,7 +97,9 @@ describe("Package name extractors", () => {
   });
 
   describe("pubspec.yaml (Dart/Flutter)", () => {
-    const extractor = PACKAGE_EXTRACTORS.find((e) => e.filename === "pubspec.yaml");
+    const extractor = PACKAGE_EXTRACTORS.find(
+      (e) => e.filename === "pubspec.yaml",
+    );
 
     it("should extract name from valid pubspec.yaml", () => {
       const fixtureDir = join(FIXTURES_DIR, "dart");

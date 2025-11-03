@@ -19,11 +19,13 @@ envi unpack <blob>
 The encrypted blob to unpack. **If not provided, the blob is automatically read from your clipboard.**
 
 The parser is resilient to formatting issues - whitespace, newlines, and indentation are automatically handled. This means the blob will work even if it's been:
+
 - Reformatted by chat applications (Slack, Teams, Discord)
 - Copy-pasted with extra spacing
 - Modified with different line endings (Windows/Unix)
 
 You can pass the blob as:
+
 - No argument (reads from clipboard): `envi unpack`
 - A single argument: `envi unpack "$(cat blob.txt)"`
 - Multi-line with any formatting
@@ -31,6 +33,7 @@ You can pass the blob as:
 ## Description
 
 The `unpack` command decrypts an encrypted blob (from clipboard or argument) and:
+
 1. **First** prompts to restore the environment files directly to your repository
 2. **Then** optionally prompts to save to your global storage (`~/.envi/store/`)
 
@@ -39,6 +42,7 @@ The `unpack` command decrypts an encrypted blob (from clipboard or argument) and
 ### Clipboard Feature
 
 **When no blob argument is provided**, `unpack` automatically reads from your clipboard:
+
 1. Copy a blob shared by a team member (from Slack, email, etc.)
 2. Run `envi unpack` (no arguments!)
 3. The blob is automatically read from clipboard and decrypted
@@ -48,6 +52,7 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 ### Decryption Methods
 
 **For projects with a supported manifest file**:
+
 - Automatically attempts decryption using an MD5 hash of your project's manifest file contents
 - **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
 - **Custom manifests:** You can add your own manifest files using `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files)
@@ -55,6 +60,7 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 - No manual secret entry needed if your manifest file is identical to the one used for encryption
 
 **For projects without a supported manifest file**:
+
 - Prompts you to enter the decryption secret
 - The secret must match the one used when creating the blob
 
@@ -69,6 +75,7 @@ envi unpack
 ```
 
 Interactive flow:
+
 ```
 ✔ Reading blob from clipboard...
 ✔ Blob loaded from clipboard
@@ -118,6 +125,7 @@ envi unpack
 ```
 
 Interactive flow:
+
 ```
 ✔ Reading blob from clipboard...
 ✔ Blob loaded from clipboard
@@ -172,6 +180,7 @@ You can decline any of the interactive prompts:
 ### Invalid Blob Format
 
 If the blob format is invalid:
+
 ```bash
 ✗ Invalid blob format
 Expected format:
@@ -187,6 +196,7 @@ Note: The parser automatically handles whitespace, newlines, and formatting issu
 ### Decryption Failed
 
 If automatic decryption fails, you'll be prompted for a secret:
+
 ```bash
 Found package.json - attempting decryption
 ⚠ Failed to decrypt with manifest file
@@ -196,6 +206,7 @@ This blob may have been encrypted with a custom secret
 ```
 
 If the provided secret is also incorrect:
+
 ```bash
 ✗ Failed to decrypt blob with provided secret
 This could mean:
@@ -205,6 +216,7 @@ This could mean:
 ```
 
 **Solutions:**
+
 - Ask the sender which secret they used
 - Verify you have the correct blob (not corrupted during copy-paste)
 - For manifest-encrypted blobs, ensure you have the same manifest file as the sender (package.json, Cargo.toml, etc.)

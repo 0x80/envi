@@ -124,6 +124,7 @@ envi config redact list
 ```
 
 When you capture or pack environment files, redacted variables will:
+
 - Be replaced with `__envi_redacted__` in storage and blobs
 - Preserve their real values when you restore or unpack
 

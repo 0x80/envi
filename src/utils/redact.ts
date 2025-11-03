@@ -3,9 +3,7 @@ import type { EnvObject } from "./parse-env-file";
 /** Placeholder value for redacted environment variables */
 export const REDACTED_PLACEHOLDER = "__envi_redacted__";
 
-/**
- * Result of applying redaction to an environment object
- */
+/** Result of applying redaction to an environment object */
 export interface RedactionResult {
   /** Environment object with redacted values replaced */
   redacted: EnvObject;
@@ -16,7 +14,7 @@ export interface RedactionResult {
 /**
  * Apply redaction to an environment object
  *
- * Replaces values of redacted variables with __envi_redacted__ placeholder
+ * Replaces values of redacted variables with `__envi_redacted__` placeholder
  * Preserves comments and structure
  *
  * @param env - Environment object to redact
@@ -52,10 +50,11 @@ export function applyRedaction(
 /**
  * Merge redacted values from existing env file
  *
- * For keys with __envi_redacted__ placeholder, use the real value from the existing file
- * If no existing value, keep the placeholder
+ * For keys with `__envi_redacted__` placeholder, use the real value from the
+ * existing file If no existing value, keep the placeholder
  *
- * @param stored - Environment object from storage (may contain __envi_redacted__)
+ * @param stored - Environment object from storage (may contain
+ *   `__envi_redacted__`)
  * @param existing - Environment object from existing file (has real values)
  * @returns Merged environment object with real values for redacted keys
  */

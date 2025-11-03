@@ -73,7 +73,7 @@ export async function globalClearCommand(): Promise<void> {
 
     consola.success("Deleted entire envi directory");
     consola.info(
-      `Note: If you have GitHub integration enabled, you can restore all data using 'envi global github restore'`
+      `Note: If you have GitHub integration enabled, you can restore all data using 'envi global github restore'`,
     );
   } catch (error) {
     consola.error(getErrorMessage(error));

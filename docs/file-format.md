@@ -7,12 +7,14 @@ Envi stores environment configurations in [MAML](https://maml.dev) format - a hu
 Envi uses MAML instead of JSON for a critical technical reason: **guaranteed key order preservation**.
 
 Comment preservation works by storing comments as special keys that must maintain their exact position:
+
 - `__l_00`, `__l_01`, `__l_02`... - Full-line comments and empty lines in order
 - `__i_00`, `__i_01`, `__i_02`... - Inline comments adjacent to their values
 
 If keys were reordered during serialization/deserialization, the reconstructed `.env` files would have comments in wrong positions or next to wrong values. MAML's specification explicitly guarantees key order, making it the reliable choice for this use case.
 
 Additionally, MAML is:
+
 - More concise than JSON (no quotes for keys)
 - Human-readable and easy to edit
 - Version control friendly
@@ -58,6 +60,7 @@ Comments are stored as special keys with incrementing numbers to preserve their 
 Full-line comments use the pattern `__l_00`, `__l_01`, `__l_02`, etc.
 
 **Input `.env` file:**
+
 ```bash
 # Database configuration
 # Production settings
@@ -68,6 +71,7 @@ API_KEY=secret123
 ```
 
 **Stored as MAML:**
+
 ```maml
 env: {
   __l_00: "# Database configuration"
@@ -80,6 +84,7 @@ env: {
 ```
 
 Notice:
+
 - Each comment gets an incrementing number: `__l_00`, `__l_01`, `__l_02`, `__l_03`
 - Empty lines become empty string values: `__l_02: ""`
 - Comments maintain their exact position relative to variables
@@ -89,6 +94,7 @@ Notice:
 Inline comments use the pattern `__i_00`, `__i_01`, `__i_02`, etc., and are positioned immediately before their associated variable.
 
 **Input `.env` file:**
+
 ```bash
 DATABASE_URL=postgres://localhost:5432/db  # Production database
 API_KEY=secret123  # Main API key
@@ -96,6 +102,7 @@ SECRET_TOKEN=abc123  # Auth token
 ```
 
 **Stored as MAML:**
+
 ```maml
 env: {
   __i_00: "# Production database"
@@ -108,6 +115,7 @@ env: {
 ```
 
 Notice:
+
 - Each inline comment gets an incrementing number: `__i_00`, `__i_01`, `__i_02`
 - Inline comments appear **before** their variable in the MAML structure
 - During restoration, the comment is appended to the variable's line
@@ -117,6 +125,7 @@ Notice:
 Here's a realistic example showing both comment types together:
 
 **Input `.env` file:**
+
 ```bash
 # Application Configuration
 APP_NAME=MyApp
@@ -134,6 +143,7 @@ API_KEY=secret123  # Production key
 ```
 
 **Stored as MAML:**
+
 ```maml
 env: {
   __l_00: "# Application Configuration"
@@ -156,6 +166,7 @@ env: {
 ```
 
 **Restored `.env` file:**
+
 ```bash
 # Application Configuration
 APP_NAME=MyApp
@@ -173,6 +184,7 @@ API_KEY=secret123  # Production key
 ```
 
 Notice:
+
 - Full-line comments: `__l_00` through `__l_05` (including empty lines)
 - Inline comments: `__i_00` through `__i_02`
 - Each type has its own incrementing counter
@@ -213,6 +225,7 @@ Here's what a complete stored configuration looks like:
 ```
 
 This example shows:
+
 - Multiple files in a monorepo structure
 - Relative paths preserved
 - Comments in each file with independent numbering
@@ -223,6 +236,7 @@ This example shows:
 The critical feature of MAML is its **explicit guarantee** that object keys maintain their insertion order. This is defined in the MAML specification, unlike JSON where key order is implementation-dependent.
 
 This guarantee ensures that when Envi:
+
 1. Parses your `.env` file
 2. Stores it as MAML
 3. Reads the MAML back

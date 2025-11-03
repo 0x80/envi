@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Envi is an environment file management tool that captures, stores, and restores `.env` files across projects. It provides centralized storage for environment configurations with optional GitHub version control.
 
 Key features:
+
 - Captures all `.env` and `.env.*` files from repositories
 - Stores configurations in MAML format at `~/.envi/store/`
 - Preserves both full-line and inline comments
@@ -16,6 +17,7 @@ Key features:
 ## Development Commands
 
 ### Build and Development
+
 ```bash
 pnpm build              # Build with tsdown
 pnpm dev                # Watch mode with tsdown
@@ -23,6 +25,7 @@ pnpm prepare            # Auto-runs build (pre-commit hook)
 ```
 
 ### Testing
+
 ```bash
 pnpm test               # Run tests with Vitest
 pnpm test:ui            # Run tests with UI
@@ -31,6 +34,7 @@ vitest path/to/test.ts  # Run single test file
 ```
 
 ### Code Quality
+
 ```bash
 pnpm lint               # Lint with oxlint
 pnpm lint:fix           # Auto-fix linting issues
@@ -40,6 +44,7 @@ pnpm check-types        # TypeScript type checking
 ```
 
 ### Documentation
+
 ```bash
 pnpm docs:dev           # Start VitePress dev server
 pnpm docs:build         # Build documentation
@@ -51,6 +56,7 @@ pnpm docs:preview       # Preview built docs
 ### Core Data Flow
 
 **Capture Flow:**
+
 1. `findRepoRoot()` - Locates repository root (checks for VCS markers: `.git`, `.jj`, `.hg`, `.svn`, prompts if not found)
 2. `findEnvFiles()` - Searches for `.env` and `.env.*` files using fast-glob, respecting `.gitignore` directory patterns
 3. `parseEnvFile()` - Parses each file, preserving comments as special keys (`__c00`, `__c01` for full-line comments; `__i00`, `__i01` for inline comments)
@@ -58,6 +64,7 @@ pnpm docs:preview       # Preview built docs
 5. If GitHub integration enabled: `commitAndPush()` commits changes to version control
 
 **Restore Flow:**
+
 1. `findRepoRoot()` - Locates repository root
 2. Loads stored MAML from `~/.envi/store/` based on package name or folder name
 3. For each file: compares with existing file (if present), prompts for overwrite if different
@@ -66,34 +73,40 @@ pnpm docs:preview       # Preview built docs
 ### Key Modules
 
 **Storage (`src/lib/storage.ts`)**
+
 - Manages `~/.envi/store/` directory and MAML file operations
 - Storage filename logic: scoped packages create subdirectories (`@org/name.maml`), unscoped use `name.maml`, fallback to folder name
 - `isContentIdentical()` compares only `files` array, ignoring metadata like timestamps
 - MAML structure: `{ __envi_version, metadata: { updated_from, updated_at }, files: [{ path, env }] }`
 
 **Config (`src/lib/config.ts`)**
+
 - Global config stored at `~/.envi/config.maml`
 - Currently supports `use_version_control: "github" | false`
 - Merges with defaults when reading, creates directory if missing
 
 **Git/GitHub (`src/lib/git.ts`, `src/lib/github-cli.ts`)**
+
 - GitHub integration uses `gh` CLI (checks with `isGhInstalled()`, `isGhAuthenticated()`)
 - Creates private repo `envi-store` for authenticated user
 - All git operations use `execa` for process execution
 - `commitAndPush()` checks for actual changes before committing
 
 **Env Parsing (`src/utils/parse-env-file.ts`)**
+
 - Comments preserved as `__c00`, `__c01`, etc. (zero-padded incremental keys)
 - Inline comments stored as `__i00`, `__i01`, etc., positioned before their associated key-value
 - Handles quoted values (both single and double quotes)
 - Tracks quote state to properly identify `#` in comments vs values
 
 **File Discovery (`src/utils/find-env-files.ts`)**
+
 - Uses `fast-glob` with patterns: `.env`, `.env.*`, `**/.env`, `**/.env.*`
 - Combines default ignore patterns (node_modules, dist, build, etc.) with `.gitignore` directory patterns
 - Only respects directory patterns from `.gitignore`, not file patterns (so `.env` files are found even if gitignored)
 
 **CLI (`src/cli.ts`)**
+
 - Built with `citty` framework
 - Command hierarchy: main > {capture, restore, global > github > {enable, disable, restore}}
 - Uses `@clack/prompts` for interactive CLI prompts
@@ -102,12 +115,14 @@ pnpm docs:preview       # Preview built docs
 ### Path Resolution
 
 The project uses TypeScript path aliases:
+
 - `~` maps to `./src` (configured in vitest.config.ts and tsdown)
 - All imports use `~/` prefix for internal modules
 
 ### Testing
 
 Tests use Vitest with:
+
 - Global test environment enabled
 - Node environment
 - Path alias `~` for imports

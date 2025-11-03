@@ -7,12 +7,8 @@ import {
 } from "~/lib/config";
 import { getErrorMessage } from "~/utils";
 
-/**
- * Add a variable to the redaction list
- */
-export async function configRedactAddCommand(
-  variable: string,
-): Promise<void> {
+/** Add a variable to the redaction list */
+export async function configRedactAddCommand(variable: string): Promise<void> {
   try {
     if (!variable) {
       consola.error("Variable name is required");
@@ -40,7 +36,7 @@ export async function configRedactAddCommand(
     addToRedactionList(variable);
     consola.success(`Added ${variable} to redaction list`);
     consola.info(
-      `This variable will be replaced with __envi_redacted__ in capture and pack operations`
+      `This variable will be replaced with __envi_redacted__ in capture and pack operations`,
     );
   } catch (error) {
     consola.error(getErrorMessage(error));
@@ -48,9 +44,7 @@ export async function configRedactAddCommand(
   }
 }
 
-/**
- * Remove a variable from the redaction list
- */
+/** Remove a variable from the redaction list */
 export async function configRedactRemoveCommand(
   variable: string,
 ): Promise<void> {
@@ -83,7 +77,7 @@ export async function configRedactRemoveCommand(
     if (removed) {
       consola.success(`Removed ${variable} from redaction list`);
       consola.info(
-        `This variable will no longer be redacted in capture and pack operations`
+        `This variable will no longer be redacted in capture and pack operations`,
       );
     } else {
       consola.error(`Failed to remove ${variable} from redaction list`);
@@ -95,9 +89,7 @@ export async function configRedactRemoveCommand(
   }
 }
 
-/**
- * List all redacted variables
- */
+/** List all redacted variables */
 export async function configRedactListCommand(): Promise<void> {
   try {
     const redactedVariables = getRedactedVariables();
@@ -111,7 +103,7 @@ export async function configRedactListCommand(): Promise<void> {
     consola.box(
       `Redacted Variables (${redactedVariables.length}):\n\n` +
         redactedVariables.map((v) => `  • ${v}`).join("\n") +
-        "\n\nThese variables will be replaced with __envi_redacted__ when capturing or packing."
+        "\n\nThese variables will be replaced with __envi_redacted__ when capturing or packing.",
     );
   } catch (error) {
     consola.error(getErrorMessage(error));

@@ -134,7 +134,10 @@ export async function restoreCommand(): Promise<void> {
 
       let envToWrite = fileEntry.env;
 
-      /** If file has redacted values and target exists, merge with existing values */
+      /**
+       * If file has redacted values and target exists, merge with existing
+       * values
+       */
       if (hasRedactedValues && fileExists) {
         try {
           const existingEnv = parseEnvFile(targetPath);

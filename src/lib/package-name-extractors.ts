@@ -5,7 +5,8 @@ import { XMLParser } from "fast-xml-parser";
 import yaml from "js-yaml";
 
 /**
- * Package extractor function that attempts to extract a package name from a manifest file
+ * Package extractor function that attempts to extract a package name from a
+ * manifest file
  */
 export interface PackageExtractor {
   /** The filename to look for in the repository root */
@@ -14,9 +15,7 @@ export interface PackageExtractor {
   extract: (repositoryPath: string) => string | null;
 }
 
-/**
- * Extract package name from package.json (JavaScript/TypeScript)
- */
+/** Extract package name from package.json (JavaScript/TypeScript) */
 function extractFromPackageJson(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "package.json");
 
@@ -33,9 +32,7 @@ function extractFromPackageJson(repositoryPath: string): string | null {
   }
 }
 
-/**
- * Extract package name from composer.json (PHP)
- */
+/** Extract package name from composer.json (PHP) */
 function extractFromComposerJson(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "composer.json");
 
@@ -53,9 +50,8 @@ function extractFromComposerJson(repositoryPath: string): string | null {
 }
 
 /**
- * Extract package name from go.mod (Go)
- * Extracts the last segment of the module path
- * Example: "github.com/user/repo" -> "repo"
+ * Extract package name from go.mod (Go) Extracts the last segment of the module
+ * path Example: "github.com/user/repo" -> "repo"
  */
 function extractFromGoMod(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "go.mod");
@@ -82,9 +78,7 @@ function extractFromGoMod(repositoryPath: string): string | null {
   }
 }
 
-/**
- * Extract package name from Cargo.toml (Rust)
- */
+/** Extract package name from Cargo.toml (Rust) */
 function extractFromCargoToml(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "Cargo.toml");
 
@@ -104,9 +98,7 @@ function extractFromCargoToml(repositoryPath: string): string | null {
   }
 }
 
-/**
- * Extract package name from pyproject.toml (Python)
- */
+/** Extract package name from pyproject.toml (Python) */
 function extractFromPyprojectToml(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "pyproject.toml");
 
@@ -126,9 +118,7 @@ function extractFromPyprojectToml(repositoryPath: string): string | null {
   }
 }
 
-/**
- * Extract package name from pubspec.yaml (Dart/Flutter)
- */
+/** Extract package name from pubspec.yaml (Dart/Flutter) */
 function extractFromPubspecYaml(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "pubspec.yaml");
 
@@ -147,8 +137,8 @@ function extractFromPubspecYaml(repositoryPath: string): string | null {
 }
 
 /**
- * Extract package name from settings.gradle.kts (Kotlin/Gradle)
- * Looks for: rootProject.name = "my-app"
+ * Extract package name from settings.gradle.kts (Kotlin/Gradle) Looks for:
+ * rootProject.name = "my-app"
  */
 function extractFromSettingsGradleKts(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "settings.gradle.kts");
@@ -161,15 +151,15 @@ function extractFromSettingsGradleKts(repositoryPath: string): string | null {
     const content = readFileSync(filePath, "utf-8");
     const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
 
-    return match ? match[1] ?? null : null;
+    return match ? (match[1] ?? null) : null;
   } catch {
     return null;
   }
 }
 
 /**
- * Extract package name from settings.gradle (Java/Gradle)
- * Looks for: rootProject.name = 'my-app'
+ * Extract package name from settings.gradle (Java/Gradle) Looks for:
+ * rootProject.name = 'my-app'
  */
 function extractFromSettingsGradle(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "settings.gradle");
@@ -182,15 +172,15 @@ function extractFromSettingsGradle(repositoryPath: string): string | null {
     const content = readFileSync(filePath, "utf-8");
     const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
 
-    return match ? match[1] ?? null : null;
+    return match ? (match[1] ?? null) : null;
   } catch {
     return null;
   }
 }
 
 /**
- * Extract package name from pom.xml (Java/Maven)
- * Uses artifactId as the package name
+ * Extract package name from pom.xml (Java/Maven) Uses artifactId as the package
+ * name
  */
 function extractFromPomXml(repositoryPath: string): string | null {
   const filePath = join(repositoryPath, "pom.xml");
@@ -214,9 +204,7 @@ function extractFromPomXml(repositoryPath: string): string | null {
   }
 }
 
-/**
- * Default list of package manifest files to check (in priority order)
- */
+/** Default list of package manifest files to check (in priority order) */
 export const DEFAULT_MANIFEST_FILES = [
   "package.json", // JavaScript/TypeScript
   "Cargo.toml", // Rust
@@ -229,9 +217,7 @@ export const DEFAULT_MANIFEST_FILES = [
   "pom.xml", // Java/Maven
 ];
 
-/**
- * Registry of all available package extractors
- */
+/** Registry of all available package extractors */
 export const PACKAGE_EXTRACTORS: PackageExtractor[] = [
   { filename: "package.json", extract: extractFromPackageJson },
   { filename: "composer.json", extract: extractFromComposerJson },

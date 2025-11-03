@@ -1,5 +1,11 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from "node:crypto";
-import { gzipSync, gunzipSync } from "node:zlib";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+  scryptSync,
+} from "node:crypto";
+import { gunzipSync, gzipSync } from "node:zlib";
 
 const ALGORITHM = "aes-256-gcm";
 const KEY_LENGTH = 32;
@@ -7,17 +13,15 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 const SALT_LENGTH = 32;
 
-/**
- * Generate a 32-byte key from a password/secret using scrypt
- */
+/** Generate a 32-byte key from a password/secret using scrypt */
 function deriveKey(secret: string, salt: Buffer): Buffer {
   return scryptSync(secret, salt, KEY_LENGTH);
 }
 
 /**
- * Encrypt data with AES-256-GCM
- * Returns base64 encoded string containing: salt + iv + authTag + encrypted data
- * Data is compressed with gzip before encryption for significant size reduction
+ * Encrypt data with AES-256-GCM Returns base64 encoded string containing
+ *
+ * - Salt + iv + authTag + encrypted data
  */
 export function encrypt(data: string, secret: string): string {
   // Compress data first (text compresses very well)
@@ -32,10 +36,7 @@ export function encrypt(data: string, secret: string): string {
 
   // Create cipher and encrypt compressed data
   const cipher = createCipheriv(ALGORITHM, key, iv);
-  const encrypted = Buffer.concat([
-    cipher.update(compressed),
-    cipher.final()
-  ]);
+  const encrypted = Buffer.concat([cipher.update(compressed), cipher.final()]);
 
   // Get authentication tag
   const authTag = cipher.getAuthTag();
@@ -47,9 +48,9 @@ export function encrypt(data: string, secret: string): string {
 }
 
 /**
- * Decrypt data encrypted with encrypt()
- * Expects base64 encoded string containing: salt + iv + authTag + encrypted data
- * Automatically decompresses the data after decryption
+ * Decrypt data encrypted with encrypt() Expects base64 encoded string
+ * containing: salt + iv + authTag + encrypted data. Automatically decompresses
+ * the data after decryption
  */
 export function decrypt(encryptedData: string, secret: string): string {
   // Decode from base64
@@ -60,9 +61,11 @@ export function decrypt(encryptedData: string, secret: string): string {
   const iv = combined.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
   const authTag = combined.subarray(
     SALT_LENGTH + IV_LENGTH,
-    SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH
+    SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH,
   );
-  const encrypted = combined.subarray(SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH);
+  const encrypted = combined.subarray(
+    SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH,
+  );
 
   // Derive key from secret
   const key = deriveKey(secret, salt);
@@ -73,7 +76,7 @@ export function decrypt(encryptedData: string, secret: string): string {
 
   const decrypted = Buffer.concat([
     decipher.update(encrypted),
-    decipher.final()
+    decipher.final(),
   ]);
 
   // Decompress the data
@@ -85,10 +88,12 @@ export function decrypt(encryptedData: string, secret: string): string {
 /**
  * Generate a key from manifest file contents using MD5 hash
  *
- * Supports all manifest types: package.json, Cargo.toml, go.mod, pyproject.toml,
- * composer.json, pubspec.yaml, settings.gradle.kts, settings.gradle, pom.xml
+ * Supports all manifest types: package.json, Cargo.toml, go.mod,
+ * pyproject.toml, composer.json, pubspec.yaml, settings.gradle.kts,
+ * settings.gradle, pom.xml
  *
- * This allows colleagues with identical manifest files to decrypt blobs automatically
+ * This allows colleagues with identical manifest files to decrypt blobs
+ * automatically
  *
  * @param manifestContent - Raw content of any manifest file
  * @returns MD5 hash of the content (32-character hex string)
@@ -100,19 +105,17 @@ export function generateKeyFromManifest(manifestContent: string): string {
   return createHash("md5").update(manifestContent).digest("hex");
 }
 
-/**
- * Format encrypted data as an envi blob
- */
+/** Format encrypted data as an envi blob */
 export function formatBlob(encryptedData: string): string {
   return `__envi_start__\n${encryptedData}\n__envi_end__`;
 }
 
 /**
- * Extract encrypted data from an envi blob
- * Returns null if blob format is invalid
+ * Extract encrypted data from an envi blob Returns null if blob format is
+ * invalid
  *
- * Removes all whitespace and newlines before parsing to handle
- * formatting issues from copy-paste or chat applications
+ * Removes all whitespace and newlines before parsing to handle formatting
+ * issues from copy-paste or chat applications
  */
 export function parseBlob(blob: string): string | null {
   // Remove all whitespace and newlines
@@ -133,7 +136,7 @@ export function parseBlob(blob: string): string | null {
   // Extract encrypted data between markers
   const encryptedData = normalized.substring(
     startIndex + startMarker.length,
-    endIndex
+    endIndex,
   );
 
   // Return null if no data between markers

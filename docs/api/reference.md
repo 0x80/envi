@@ -188,7 +188,7 @@ import { writeConfig } from "@codecompose/envi";
 
 writeConfig({
   use_version_control: "github",
-  manifest_files: ["my-custom.json"]
+  manifest_files: ["my-custom.json"],
 });
 ```
 
@@ -205,9 +205,9 @@ updateConfig({ use_version_control: false });
 // Add additional manifest files to check (on top of defaults)
 updateConfig({
   manifest_files: [
-    "my-custom.json",  // Custom manifest file
-    "app.yaml"         // Another custom manifest
-  ]
+    "my-custom.json", // Custom manifest file
+    "app.yaml", // Another custom manifest
+  ],
 });
 ```
 
@@ -263,7 +263,7 @@ import { PACKAGE_EXTRACTORS } from "@codecompose/envi";
 
 // Find specific extractor
 const rustExtractor = PACKAGE_EXTRACTORS.find(
-  e => e.filename === "Cargo.toml"
+  (e) => e.filename === "Cargo.toml",
 );
 
 if (rustExtractor) {
@@ -293,7 +293,7 @@ const customExtractor: PackageExtractor = {
   extract: (repoPath: string): string | null => {
     // Custom extraction logic
     return "custom-package-name";
-  }
+  },
 };
 ```
 

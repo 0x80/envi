@@ -5,9 +5,7 @@ import {
   removeFromManifestFiles,
 } from "~/lib";
 
-/**
- * Add a manifest file to the configuration
- */
+/** Add a manifest file to the configuration */
 export async function configManifestFilesAddCommand(
   filename: string,
 ): Promise<void> {
@@ -22,9 +20,7 @@ export async function configManifestFilesAddCommand(
   consola.success(`Added '${filename}' to manifest files list`);
 }
 
-/**
- * Remove a manifest file from the configuration
- */
+/** Remove a manifest file from the configuration */
 export async function configManifestFilesRemoveCommand(
   filename: string,
 ): Promise<void> {
@@ -38,9 +34,7 @@ export async function configManifestFilesRemoveCommand(
   consola.success(`Removed '${filename}' from manifest files list`);
 }
 
-/**
- * List all manifest files in the configuration
- */
+/** List all manifest files in the configuration */
 export async function configManifestFilesListCommand(): Promise<void> {
   const manifestFiles = getManifestFiles();
 

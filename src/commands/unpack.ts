@@ -11,11 +11,7 @@ import {
   getStorageFilename,
   type EnviStore,
 } from "~/lib";
-import {
-  findRepoRoot,
-  getErrorMessage,
-  parseEnvFile,
-} from "~/utils";
+import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
 import {
   decrypt,
   generateKeyFromManifest,
@@ -94,7 +90,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
         consola.success("Blob loaded from clipboard");
       } catch {
         consola.error("Failed to read from clipboard");
-        consola.info("Please provide the blob as an argument: envi unpack <blob>");
+        consola.info(
+          "Please provide the blob as an argument: envi unpack <blob>",
+        );
         process.exit(1);
       }
     }
@@ -125,7 +123,10 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     consola.info(`Repository root: ${repoRoot}`);
 
-    /** Try to decrypt with manifest files first, then prompt for secret if needed */
+    /**
+     * Try to decrypt with manifest files first, then prompt for secret if
+     * needed
+     */
     let decrypted: string | null = null;
     let secret: string;
     let foundManifest: string | null = null;
@@ -157,7 +158,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
     if (!decrypted) {
       if (!foundManifest) {
         consola.info("No manifest files found in repository");
-        consola.info("Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...");
+        consola.info(
+          "Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...",
+        );
       } else {
         consola.info("This blob may have been encrypted with a custom secret");
       }
@@ -188,7 +191,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
         consola.info("This could mean:");
         consola.info("  - The secret is incorrect");
         consola.info("  - The blob is corrupted");
-        consola.info("  - The blob was encrypted with a different manifest file");
+        consola.info(
+          "  - The blob was encrypted with a different manifest file",
+        );
         process.exit(1);
       }
     }
@@ -245,7 +250,10 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
         let envToWrite = fileEntry.env;
 
-        /** If file has redacted values and target exists, merge with existing values */
+        /**
+         * If file has redacted values and target exists, merge with existing
+         * values
+         */
         if (hasRedactedValues && fileExists) {
           try {
             const existingEnv = parseEnvFile(targetPath);
@@ -260,8 +268,8 @@ export async function unpackCommand(blob?: string): Promise<void> {
         if (fileExists) {
           /**
            * Compare by parsing both files and checking if their env objects are
-           * identical This handles differences in formatting (quotes, whitespace,
-           * etc.)
+           * identical This handles differences in formatting (quotes,
+           * whitespace, etc.)
            */
           try {
             const existingEnv = parseEnvFile(targetPath);
@@ -276,7 +284,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
           /** File exists with different content - prompt user */
           if (!overwriteAll) {
-            consola.warn(`File exists with different content: ${fileEntry.path}`);
+            consola.warn(
+              `File exists with different content: ${fileEntry.path}`,
+            );
 
             const action = await p.select({
               message: "What would you like to do?",

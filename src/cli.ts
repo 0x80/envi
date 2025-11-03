@@ -58,12 +58,14 @@ const pack = defineCommand({
 const unpack = defineCommand({
   meta: {
     name: "unpack",
-    description: "Decrypt and restore configuration from blob (reads from clipboard if not provided)",
+    description:
+      "Decrypt and restore configuration from blob (reads from clipboard if not provided)",
   },
   args: {
     blob: {
       type: "positional",
-      description: "Encrypted blob to unpack (optional - reads from clipboard if not provided)",
+      description:
+        "Encrypted blob to unpack (optional - reads from clipboard if not provided)",
       required: false,
     },
   },

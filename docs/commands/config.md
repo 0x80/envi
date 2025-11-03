@@ -19,6 +19,7 @@ envi config redact add <VARIABLE_NAME>
 ```
 
 **Example:**
+
 ```bash
 envi config redact add GITHUB_PAT
 envi config redact add GITLAB_TOKEN
@@ -26,6 +27,7 @@ envi config redact add SLACK_WEBHOOK_URL
 ```
 
 When you add a variable to the redaction list:
+
 - It will be replaced with `__envi_redacted__` when capturing or packing
 - Real values will be preserved when restoring or unpacking (merged from existing files)
 - The variable is added to `~/.envi/config.maml`
@@ -39,11 +41,13 @@ envi config redact remove <VARIABLE_NAME>
 ```
 
 **Example:**
+
 ```bash
 envi config redact remove GITHUB_PAT
 ```
 
 **Output:**
+
 ```bash
 $ envi config redact remove GITLAB_TOKEN
 ✔ Removed 'GITLAB_TOKEN' from redaction list
@@ -61,6 +65,7 @@ envi config redact list
 ```
 
 **Example output:**
+
 ```bash
 $ envi config redact list
 Redacted variables:
@@ -70,6 +75,7 @@ Redacted variables:
 ```
 
 **When list is empty:**
+
 ```bash
 $ envi config redact list
 No redacted variables configured
@@ -83,6 +89,7 @@ Redaction prevents accidental sharing of personal or sensitive environment varia
 2. **During restore/unpack:** The placeholder is replaced with the real value from your existing `.env` file (if it exists)
 
 This allows you to:
+
 - Share environment configurations via blobs without exposing personal tokens
 - Store configurations in version control without personal credentials
 - Safely collaborate while keeping developer-specific values private
@@ -90,6 +97,7 @@ This allows you to:
 ## Default Redacted Variables
 
 By default, Envi redacts:
+
 - `GITHUB_PAT` - GitHub Personal Access Token
 
 ### Why GITHUB_PAT is Redacted by Default
@@ -109,6 +117,7 @@ By default, Envi redacts:
 **For local development:** Each developer should have their own GITHUB_PAT, which is why it's redacted by default.
 
 You can remove this default if needed:
+
 ```bash
 envi config redact remove GITHUB_PAT
 ```
@@ -126,6 +135,7 @@ $ envi capture
 ```
 
 The stored configuration contains:
+
 ```toml
 [[files]]
 path = ".env"
@@ -161,6 +171,7 @@ $ envi unpack
 ```
 
 The `.env` file will contain:
+
 ```bash
 DATABASE_URL=postgres://localhost/myapp
 SHARED_API_KEY=team-key-abc123
@@ -247,6 +258,7 @@ redacted_variables = ["GITHUB_PAT", "GITLAB_TOKEN", "SLACK_WEBHOOK_URL"]
 ```
 
 This configuration is:
+
 - **Global to your machine** - Applies to all projects
 - **Personal** - Not shared with other developers
 - **Persistent** - Survives across all capture/pack operations
@@ -256,6 +268,7 @@ This configuration is:
 ### What to Redact
 
 **DO redact:**
+
 - ✅ Personal access tokens (GitHub, GitLab, Bitbucket) - These are tied to individual user accounts
 - ✅ Developer-specific API keys
 - ✅ Individual Slack/Discord webhooks
@@ -264,6 +277,7 @@ This configuration is:
 - ✅ Email addresses and personal identifiers
 
 **DON'T redact:**
+
 - ❌ Team-shared API keys - Meant to be shared across the team
 - ❌ Shared service credentials - Used by all developers
 - ❌ Organization-level tokens - GitHub Apps, deploy keys, etc.
@@ -426,6 +440,7 @@ If you see `__envi_redacted__` in your `.env` files after restore/unpack:
 **Cause:** You didn't have an existing `.env` file with real values, or the file was deleted before restore.
 
 **Solution:**
+
 ```bash
 # Manually replace placeholders with real values
 # Edit .env:
@@ -437,6 +452,7 @@ GITHUB_PAT=ghp_your_real_token
 ```
 
 **Prevention:**
+
 - Keep your `.env` files when unpacking
 - Don't delete `.env` files before restoring
 - The merge will preserve your real values
@@ -446,6 +462,7 @@ GITHUB_PAT=ghp_your_real_token
 If you lost your personal tokens after restore:
 
 **Recovery:**
+
 1. Check if you have a backup of your `.env` files
 2. Check your password manager for stored tokens
 3. Regenerate tokens from service providers (GitHub, etc.)

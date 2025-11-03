@@ -1,7 +1,7 @@
+import { parse, stringify } from "maml.js";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { parse, stringify } from "maml.js";
 import { DEFAULT_MANIFEST_FILES } from "./package-name-extractors";
 
 /** Global configuration structure */
@@ -9,7 +9,10 @@ export interface EnviConfig {
   use_version_control: "github" | false;
   /** Manifest files to check for package name and encryption (in priority order) */
   manifest_files: string[];
-  /** Environment variables to redact (replace with __envi_redacted__) when capturing or packing */
+  /**
+   * Environment variables to redact (replace with `__envi_redacted__`) when
+   * capturing or packing
+   */
   redacted_variables: string[];
 }
 
@@ -93,7 +96,7 @@ export function removeFromManifestFiles(filename: string): boolean {
     return false;
   }
 
-  config.manifest_files = config.manifest_files.filter(f => f !== filename);
+  config.manifest_files = config.manifest_files.filter((f) => f !== filename);
   writeConfig(config);
   return true;
 }
@@ -147,7 +150,9 @@ export function removeFromRedactionList(variable: string): boolean {
     return false;
   }
 
-  config.redacted_variables = config.redacted_variables.filter(v => v !== variable);
+  config.redacted_variables = config.redacted_variables.filter(
+    (v) => v !== variable,
+  );
   writeConfig(config);
   return true;
 }
