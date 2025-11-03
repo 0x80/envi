@@ -2,6 +2,19 @@
 
 Get up and running with Envi in minutes.
 
+## Do You Need This Tool?
+
+Envi is designed for managing `.env` files across local development environments, git worktrees, and team collaboration. However, you might not need it if:
+
+- **Your platform has built-in secret management** - Services like Vercel, Netlify, Railway, and similar platforms often provide their own environment variable management through their dashboard or CLI
+- **You use cloud-native secret managers** - Tools like AWS Secrets Manager, Google Secret Manager, or HashiCorp Vault may already cover your needs for production environments
+
+Envi shines when you need to:
+- Manage local development `.env` files across multiple projects
+- Restore environment configurations to fresh git worktrees or checkouts
+- Share encrypted environment configurations with team members
+- Keep a version-controlled backup of your local development settings
+
 ## Installation
 
 Envi can be installed either globally or as a development dependency in your project.
