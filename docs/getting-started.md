@@ -10,6 +10,7 @@ Envi is designed for managing `.env` files across local development environments
 - **You use cloud-native secret managers** - Tools like AWS Secrets Manager, Google Secret Manager, or HashiCorp Vault may already cover your needs for production environments
 
 Envi shines when you need to:
+
 - Manage local development `.env` files across multiple projects
 - Restore environment configurations to fresh git worktrees or checkouts
 - Share encrypted environment configurations with team members

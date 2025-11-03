@@ -81,23 +81,8 @@ $ envi global clear
 **Complete reset:**
 
 ```bash
-# Start fresh with envi
+# Remove all global Envi data and config from your system
 envi global clear
-```
-
-**Free up space:**
-
-```bash
-# Remove all stored configs you no longer need
-envi global clear
-```
-
-**Before uninstalling:**
-
-```bash
-# Clean up before removing envi
-envi global clear
-pnpm remove -g @codecompose/envi
 ```
 
 ### What Gets Deleted
@@ -125,16 +110,6 @@ This will restore:
 - All stored configurations
 - Global configuration
 - GitHub integration settings
-
-### No Envi Directory
-
-If the envi directory doesn't exist:
-
-```bash
-$ envi global clear
-ℹ No envi directory found.
-ℹ Would have looked at: /Users/you/.envi
-```
 
 ## global github enable
 
@@ -257,13 +232,6 @@ $ envi global github restore
 
 ```bash
 # On new computer, restore all your env configs
-envi global github restore
-```
-
-**Team Member:**
-
-```bash
-# Team member can restore your shared configurations
 envi global github restore
 ```
 
