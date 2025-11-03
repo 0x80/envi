@@ -5,7 +5,6 @@ export default defineConfig({
   description:
     "Environment file management tool - Capture, store, and restore .env files across your projects",
   themeConfig: {
-    logo: "/logo.svg",
     nav: [
       { text: "Guide", link: "/getting-started" },
       { text: "Commands", link: "/commands/capture" },
