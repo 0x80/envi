@@ -35,6 +35,15 @@ export {
 } from "./package-name-extractors";
 export type { PackageExtractor } from "./package-name-extractors";
 export {
+  KEY_FILE_NAME,
+  generateKey,
+  getKeyFilePath,
+  hasKeyFile,
+  readEncryptionKey,
+  writeEncryptionKey,
+} from "./key-file";
+export type { WriteEncryptionKeyOptions } from "./key-file";
+export {
   ensureStorageDir,
   getEnviDir,
   getPackageName,
@@ -42,4 +51,4 @@ export {
   getStorageFilename,
   saveToStorage,
 } from "./storage";
-export type { EnviStore } from "./storage";
+export type { EnviStore, EnviStoreFile } from "./storage";

@@ -42,6 +42,26 @@ Files with identical content are skipped:
   - services/api/.env.dev
 ```
 
+### Encrypted Stores
+
+If the stored MAML was captured with [at-rest encryption](/commands/create-key) enabled, `restore` automatically decrypts each entry using `envi.maml` from the repository root:
+
+```bash
+$ envi restore
+...
+ℹ Decrypting env values with key from envi.maml
+✔ Found 3 file(s) to restore
+```
+
+If the store contains encrypted entries but `envi.maml` is missing, restore fails with a clear error:
+
+```bash
+ ERROR  Stored data is encrypted but no encryption_key was found in 'envi.maml'.
+ℹ Make sure envi.maml is present at the repository root and contains the original key (it should be committed to the source repo).
+```
+
+The same error appears if `envi.maml` exists but its `encryption_key` doesn't match the one used to capture (e.g., after a `--force` rotation). Re-capture from a checkout that has the original env files to recover.
+
 ### Modified Files
 
 When a file exists with different content, you'll be prompted:
@@ -160,4 +180,5 @@ envi restore  # Update files to match stored config
 ## Related Commands
 
 - [capture](/commands/capture) - Capture env files to storage
+- [create-key](/commands/create-key) - Enable at-rest encryption for captured values
 - [global github restore](/commands/global#restore) - Restore entire envi store from GitHub

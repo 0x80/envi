@@ -29,6 +29,7 @@ export default defineConfig({
           { text: "restore", link: "/commands/restore" },
           { text: "pack", link: "/commands/pack" },
           { text: "unpack", link: "/commands/unpack" },
+          { text: "create-key", link: "/commands/create-key" },
           { text: "clear", link: "/commands/clear" },
           { text: "global", link: "/commands/global" },
         ],

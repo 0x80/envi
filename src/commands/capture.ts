@@ -8,7 +8,9 @@ import {
   getRedactedVariables,
   getStorageDir,
   getStorageFilename,
+  KEY_FILE_NAME,
   readConfig,
+  readEncryptionKey,
   saveToStorage,
 } from "~/lib";
 import {
@@ -116,9 +118,16 @@ export async function captureCommand(): Promise<void> {
       consola.info("These values will be stored as __envi_redacted__");
     }
 
-    /** Save to storage */
+    /** Encrypt at rest when envi.maml in repo root supplies an encryption_key */
+    const encryptionKey = readEncryptionKey(repoRoot);
+    if (encryptionKey) {
+      consola.info(`Encrypting env values with key from ${KEY_FILE_NAME}`);
+    }
+
     consola.start("Saving to storage...");
-    const hasChanges = saveToStorage(repoRoot, redactedEnvFiles, packageName);
+    const hasChanges = saveToStorage(repoRoot, redactedEnvFiles, packageName, {
+      encryptionKey,
+    });
 
     const storageDir = getStorageDir();
     const filename = getStorageFilename(repoRoot, packageName);

@@ -3,9 +3,18 @@ import * as p from "@clack/prompts";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { parse } from "maml.js";
-import { getPackageName, getStorageDir, getStorageFilename } from "~/lib";
+import {
+  getPackageName,
+  getStorageDir,
+  getStorageFilename,
+  KEY_FILE_NAME,
+  readEncryptionKey,
+} from "~/lib";
 import type { EnviStore } from "~/lib";
+import { isEncryptedEntry } from "~/lib/storage";
 import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
+import type { EnvObject } from "~/utils";
+import { decrypt } from "~/utils/encryption";
 import { mergeRedactedValues, REDACTED_PLACEHOLDER } from "~/utils/redact";
 
 /**
@@ -113,7 +122,51 @@ export async function restoreCommand(): Promise<void> {
       return;
     }
 
-    consola.success(`Found ${data.files.length} file(s) to restore`);
+    /**
+     * Decrypt any encrypted entries up front so the rest of the flow operates
+     * on plaintext objects exactly as before.
+     */
+    const hasEncryptedEntries = data.files.some(isEncryptedEntry);
+    let encryptionKey: string | null = null;
+
+    if (hasEncryptedEntries) {
+      encryptionKey = readEncryptionKey(repoRoot);
+      if (!encryptionKey) {
+        consola.error(
+          `Stored data is encrypted but no encryption_key was found in '${KEY_FILE_NAME}'.`,
+        );
+        consola.info(
+          `Make sure ${KEY_FILE_NAME} is present at the repository root and contains the original key (it should be committed to the source repo).`,
+        );
+        process.exit(1);
+      }
+      consola.info(`Decrypting env values with key from ${KEY_FILE_NAME}`);
+    }
+
+    const plaintextFiles: Array<{ path: string; env: EnvObject }> = [];
+    for (const entry of data.files) {
+      if (isEncryptedEntry(entry)) {
+        try {
+          const json = decrypt(entry.encrypted_env, encryptionKey!);
+          plaintextFiles.push({
+            path: entry.path,
+            env: JSON.parse(json) as EnvObject,
+          });
+        } catch (error) {
+          consola.error(
+            `Failed to decrypt ${entry.path}: ${getErrorMessage(error)}`,
+          );
+          consola.info(
+            `The encryption_key in '${KEY_FILE_NAME}' may not match the key used to capture this data.`,
+          );
+          process.exit(1);
+        }
+      } else {
+        plaintextFiles.push(entry);
+      }
+    }
+
+    consola.success(`Found ${plaintextFiles.length} file(s) to restore`);
 
     /** Track results */
     const restored: string[] = [];
@@ -123,7 +176,7 @@ export async function restoreCommand(): Promise<void> {
     let overwriteAll = false;
 
     /** Process each file */
-    for (const fileEntry of data.files) {
+    for (const fileEntry of plaintextFiles) {
       const targetPath = join(repoRoot, fileEntry.path);
       const fileExists = existsSync(targetPath);
 
