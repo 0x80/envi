@@ -106,10 +106,7 @@ export function writeEncryptionKey(
   }
 
   const content = readFileSync(path, "utf-8");
-  const keyLine = new RegExp(
-    `^(\\s*)${ENCRYPTION_KEY_FIELD}:\\s*"[^"]*"`,
-    "m",
-  );
+  const keyLine = new RegExp(`^(\\s*)${ENCRYPTION_KEY_FIELD}:\\s*"[^"]*"`, "m");
 
   if (keyLine.test(content)) {
     if (!force) {
