@@ -102,12 +102,9 @@ jobs:
           EXPLICIT_VERSION: ${{ inputs.explicit_version }}
         run: |
           if [[ -n "$EXPLICIT_VERSION" ]]; then
-            # Fail fast on typos rather than letting `npm version` surface
-            # a less obvious error.
-            if [[ ! "$EXPLICIT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-              echo "::error::explicit_version must be a valid semver (e.g. 2.0.0 or 2.0.0-beta.1), got: $EXPLICIT_VERSION"
-              exit 1
-            fi
+            # `npm version` itself rejects invalid semver with a clear
+            # error before mutating package.json, so we don't add a
+            # second (looser) regex check here.
             npm version "$EXPLICIT_VERSION" --git-tag-version true
           else
             ARGS=("$BUMP")
@@ -152,20 +149,20 @@ jobs:
       # `pnpm build`); the explicit Build step above already produced the
       # artifact.
       - name: Publish to npm
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: |
           npm publish --provenance --ignore-scripts --tag ${{ steps.version.outputs.dist_tag }}
 
       - name: Push version commit
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: git push origin HEAD:${{ github.ref_name }}
 
       - name: Push version tag
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: git push origin ${{ steps.version.outputs.tag }}
 
       - name: Create GitHub Release
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: |
           PRERELEASE_FLAG=""
           if [[ "${{ steps.version.outputs.prerelease }}" == "true" ]]; then
