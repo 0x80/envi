@@ -2,93 +2,75 @@
   "name": "@codecompose/envi",
   "version": "1.0.0",
   "description": "Envi makes it easy to capture all env files from a codebase in a central location that can be version controlled, and restored for new checkouts and spawning git worktree instances.",
-  "type": "module",
-  "publishConfig": {
-    "access": "public"
+  "keywords": [
+    "ai-development",
+    "backup",
+    "cli",
+    "config",
+    "configuration",
+    "cursor",
+    "developer-tools",
+    "devtools",
+    "dotenv",
+    "encryption",
+    "env",
+    "environment",
+    "environment-variables",
+    "git-worktree",
+    "github",
+    "maml",
+    "monorepo",
+    "parallel-agents",
+    "restore",
+    "secret-management",
+    "tool",
+    "version-control",
+    "worktrees"
+  ],
+  "homepage": "https://envi.codecompose.dev",
+  "bugs": {
+    "url": "https://github.com/0x80/envi/issues"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "author": "Thijs Koerselman",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0x80/envi.git"
+  },
   "bin": {
     "envi": "./dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "prepare": "pnpm build",
+    "prepare": "lefthook install",
+    "prepublishOnly": "pnpm build",
     "build": "tsdown",
     "dev": "tsdown --watch",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "format": "prettier --write .",
-    "check-format": "prettier --check .",
+    "lint": "oxlint -c .oxlintrc.json --import-plugin --type-aware",
+    "lint:fix": "oxlint -c .oxlintrc.json --import-plugin --type-aware --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "check-types": "tsc --noEmit",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
-  },
-  "keywords": [
-    "env",
-    "environment",
-    "dotenv",
-    "environment-variables",
-    "config",
-    "configuration",
-    "cli",
-    "tool",
-    "git-worktree",
-    "worktrees",
-    "cursor",
-    "ai-development",
-    "parallel-agents",
-    "monorepo",
-    "secret-management",
-    "encryption",
-    "restore",
-    "backup",
-    "version-control",
-    "github",
-    "devtools",
-    "developer-tools",
-    "maml"
-  ],
-  "author": "Thijs Koerselman",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/0x80/envi.git"
-  },
-  "bugs": {
-    "url": "https://github.com/0x80/envi/issues"
-  },
-  "homepage": "https://envi.codecompose.dev",
-  "packageManager": "pnpm@10.12.1",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "devDependencies": {
-    "@codecompose/typescript-config": "^2.2.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "latest",
-    "@vitest/coverage-v8": "^4.0.6",
-    "@vitest/ui": "latest",
-    "oxlint": "latest",
-    "oxlint-tsgolint": "^0.4.0",
-    "prettier": "latest",
-    "prettier-plugin-jsdoc": "^1.5.0",
-    "tsdown": "latest",
-    "typescript": "latest",
-    "vitepress": "^1.6.4",
-    "vitest": "latest"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
@@ -102,9 +84,29 @@
     "js-yaml": "^4.1.0",
     "maml.js": "^0.0.3"
   },
-  "prettier": {
-    "plugins": [
-      "prettier-plugin-jsdoc"
+  "devDependencies": {
+    "@codecompose/typescript-config": "^3.2.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "latest",
+    "@vitest/coverage-v8": "^4.0.6",
+    "@vitest/ui": "latest",
+    "lefthook": "^2.1.6",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
+    "oxlint-tsgolint": "^0.21.1",
+    "tsdown": "^0.21.10",
+    "typescript": "^6.0.3",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.0.6"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lefthook"
     ]
   }
 }

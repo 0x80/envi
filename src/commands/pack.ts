@@ -168,7 +168,7 @@ export async function packCommand(): Promise<void> {
         process.exit(0);
       }
 
-      secret = secretInput as string;
+      secret = secretInput;
       consola.info("Using custom secret for encryption");
     }
 

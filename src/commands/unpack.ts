@@ -140,7 +140,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     const keyFromConfig = readEncryptionKey(repoRoot);
     if (keyFromConfig) {
-      consola.info(`Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`);
+      consola.info(
+        `Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`,
+      );
       try {
         consola.start("Decrypting configuration...");
         decrypted = decrypt(encryptedData, keyFromConfig);
@@ -200,7 +202,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
         process.exit(0);
       }
 
-      secret = secretInput as string;
+      secret = secretInput;
 
       consola.start("Decrypting configuration...");
       try {

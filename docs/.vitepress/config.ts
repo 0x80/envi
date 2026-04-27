@@ -6,6 +6,7 @@ export default defineConfig({
   description:
     "Environment file management tool - Capture, store, and restore .env files across your projects",
   markdown: {
+    // oxlint-disable-next-line typescript/no-explicit-any
     languages: [mamlGrammar as any],
   },
   themeConfig: {

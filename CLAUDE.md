@@ -22,7 +22,7 @@ Key features:
 ```bash
 pnpm build              # Build with tsdown
 pnpm dev                # Watch mode with tsdown
-pnpm prepare            # Auto-runs build (pre-commit hook)
+pnpm prepare            # Install lefthook git hooks (runs on pnpm install)
 ```
 
 ### Testing
@@ -37,12 +37,14 @@ vitest path/to/test.ts  # Run single test file
 ### Code Quality
 
 ```bash
-pnpm lint               # Lint with oxlint
+pnpm lint               # Lint with oxlint (type-aware, import plugin)
 pnpm lint:fix           # Auto-fix linting issues
-pnpm format             # Format with Prettier
-pnpm check-format       # Check if code is formatted
+pnpm format             # Format with oxfmt
+pnpm format:check       # Check if code is formatted
 pnpm check-types        # TypeScript type checking
 ```
+
+Pre-commit hooks are managed by lefthook (`lefthook.yml`). On commit, staged files are run through `oxfmt` (with auto-stage of fixes) and `oxlint` in parallel.
 
 ### Documentation
 
