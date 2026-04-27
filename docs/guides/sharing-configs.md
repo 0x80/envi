@@ -44,7 +44,7 @@ Envi uses **gzip compression** followed by **AES-256-GCM encryption** with authe
 - ✅ Stable across dependency updates (unlike manifest-derived keys)
 - ✅ No need to share secrets separately
 - ✅ Same key is used for at-rest encryption (`capture`/`restore`) too
-- ⚠️ Anyone with read access to the source repo can decrypt — only commit to **private** repos
+- ⚠️ Anyone with read access to the source repo can decrypt — best for **private** repos. On a public repo this partially defeats the purpose; skip `envi.maml` and let pack/unpack fall back to manifest-based encryption instead
 
 **Automatic encryption** (when a manifest file is detected):
 
