@@ -13,6 +13,52 @@ export function isGitRepo(dir: string): boolean {
 }
 
 /**
+ * Filter a list of paths to only those git considers ignored
+ *
+ * Uses `git check-ignore` so all gitignore semantics are honored: nested
+ * `.gitignore` files, repo-local `.git/info/exclude`, the user's global ignore
+ * file, and negation rules. Tracked files (including those added with `git add
+ * -f`) are NOT reported as ignored, which is what we want.
+ *
+ * @param repoRoot - Absolute path to the git repository root
+ * @param paths - Paths relative to `repoRoot` to check
+ * @returns Subset of `paths` that git considers ignored, in the same order
+ */
+export async function filterGitIgnoredFiles(
+  repoRoot: string,
+  paths: string[],
+): Promise<string[]> {
+  if (paths.length === 0) {
+    return [];
+  }
+
+  const result = await execa("git", ["check-ignore", "--stdin", "-z"], {
+    cwd: repoRoot,
+    input: paths.join("\0"),
+    reject: false,
+  });
+
+  /**
+   * Exit code 1 means "no paths matched" — not an error. Anything else non-zero
+   * is a real failure (e.g. not a git repo, git missing).
+   */
+  if (result.exitCode === 1) {
+    return [];
+  }
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `git check-ignore failed (exit ${result.exitCode}): ${result.stderr}`,
+    );
+  }
+
+  const ignored = new Set(
+    result.stdout.split("\0").filter((path) => path.length > 0),
+  );
+
+  return paths.filter((path) => ignored.has(path));
+}
+
+/**
  * Initialize a git repository
  *
  * @param dir - Directory to initialize

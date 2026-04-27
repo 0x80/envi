@@ -63,10 +63,17 @@ export async function captureCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for .env files...");
-    const envFilePaths = await findEnvFiles(repoRoot);
+    const { files: envFilePaths, skippedTracked } =
+      await findEnvFiles(repoRoot);
+
+    if (skippedTracked.length > 0) {
+      consola.info(
+        `Skipped ${skippedTracked.length} file(s) tracked by git: ${skippedTracked.join(", ")}`,
+      );
+    }
 
     if (envFilePaths.length === 0) {
-      consola.warn("No .env files found.");
+      consola.warn("No gitignored .env files found.");
       return;
     }
 

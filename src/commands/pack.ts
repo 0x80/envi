@@ -39,10 +39,17 @@ export async function packCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for .env files...");
-    const envFilePaths = await findEnvFiles(repoRoot);
+    const { files: envFilePaths, skippedTracked } =
+      await findEnvFiles(repoRoot);
+
+    if (skippedTracked.length > 0) {
+      consola.info(
+        `Skipped ${skippedTracked.length} file(s) tracked by git: ${skippedTracked.join(", ")}`,
+      );
+    }
 
     if (envFilePaths.length === 0) {
-      consola.error("No .env files found in repository.");
+      consola.error("No gitignored .env files found in repository.");
       consola.info("Add some .env files first before packing.");
       process.exit(1);
     }

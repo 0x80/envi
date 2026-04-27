@@ -1,8 +1,12 @@
 import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
 
-/** Default directories to always ignore */
+/**
+ * Default directories to always skip while globbing (performance, not
+ * semantics)
+ */
 const DEFAULT_IGNORE_PATTERNS = [
   "node_modules/**",
   ".git/**",
@@ -16,101 +20,92 @@ const DEFAULT_IGNORE_PATTERNS = [
   ".turbo/**",
 ];
 
-/**
- * Parse .gitignore file and return directory ignore patterns
- *
- * Only returns directory patterns, not file patterns, since we want to find env
- * files even if they're in .gitignore
- *
- * @param repoRoot - Absolute path to repository root
- * @returns Array of directory ignore patterns from .gitignore
- */
-function parseGitignore(repoRoot: string): string[] {
-  const gitignorePath = join(repoRoot, ".gitignore");
+export interface FindEnvFilesResult {
+  /** Paths (relative to repo root) Envi should capture */
+  files: string[];
+  /**
+   * Paths that matched the glob but are tracked by git (or otherwise not
+   * ignored). They are excluded from `files` because committing them to the
+   * Envi store would shadow the version-controlled copy.
+   */
+  skippedTracked: string[];
+}
 
+/**
+ * Parse a root `.gitignore` for top-level directory patterns only
+ *
+ * Used as a best-effort fallback when the project is not a git repo, so the
+ * glob does not descend into directories the user has marked as ignored (e.g.
+ * custom build outputs). File-level patterns are skipped because we still want
+ * to discover `.env` files that match them.
+ */
+function parseGitignoreDirsFallback(repoRoot: string): string[] {
+  const gitignorePath = join(repoRoot, ".gitignore");
   if (!existsSync(gitignorePath)) {
     return [];
   }
 
   try {
-    const gitignoreContent = readFileSync(gitignorePath, "utf-8");
-    const lines = gitignoreContent.split("\n");
+    const lines = readFileSync(gitignorePath, "utf-8").split("\n");
     const patterns: string[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
+      if (trimmed === "" || trimmed.startsWith("#")) continue;
+      if (trimmed.includes(".")) continue;
 
-      /** Skip empty lines and comments */
-      if (trimmed === "" || trimmed.startsWith("#")) {
-        continue;
-      }
-
-      /**
-       * Skip file patterns (containing dots like .env or .env.*) We only want
-       * directory patterns to avoid searching in ignored directories
-       */
-      if (trimmed.includes(".")) {
-        continue;
-      }
-
-      /** Convert gitignore patterns to glob patterns */
       let pattern = trimmed;
-
-      /** If pattern doesn't start with /, it applies to all directories */
-      if (!pattern.startsWith("/")) {
-        pattern = `**/${pattern}`;
+      if (pattern.startsWith("/")) {
+        pattern = pattern.substring(1);
       } else {
-        pattern = pattern.substring(1); // Remove leading /
+        pattern = `**/${pattern}`;
       }
-
-      /** Ensure directory patterns have /** */
       if (!pattern.endsWith("/**")) {
         pattern = `${pattern}/**`;
       }
-
       patterns.push(pattern);
     }
 
     return patterns;
   } catch {
-    /** If reading .gitignore fails, return empty array */
     return [];
   }
 }
 
 /**
- * Find all .env files in a directory
+ * Find `.env` and `.env.*` files Envi should capture.
  *
- * Matches:
- *
- * - `.env` (exact match)
- * - `.env.*` (anything starting with .env. like .env.local, .env.production)
- *
- * Respects .gitignore if present, otherwise uses default ignore list
+ * In a git repository, only files that git considers ignored are returned.
+ * Tracked files (including those added with `git add -f`) are placed in
+ * `skippedTracked` so the caller can surface them. Outside a git repository,
+ * all matched files are returned.
  *
  * @param repoRoot - Absolute path to repository root
- * @returns Array of relative paths from repo root
  */
-export async function findEnvFiles(repoRoot: string): Promise<string[]> {
-  const patterns = [
-    ".env", // Exact match for .env in root
-    ".env.*", // Match .env.* in root
-    "**/.env", // Exact match for .env in subdirectories
-    "**/.env.*", // Match .env.* in subdirectories
-  ];
+export async function findEnvFiles(
+  repoRoot: string,
+): Promise<FindEnvFilesResult> {
+  const patterns = [".env", ".env.*", "**/.env", "**/.env.*"];
 
-  /** Get gitignore patterns */
-  const gitignorePatterns = parseGitignore(repoRoot);
+  const inGitRepo = isGitRepo(repoRoot);
+  const ignorePatterns = inGitRepo
+    ? DEFAULT_IGNORE_PATTERNS
+    : [...DEFAULT_IGNORE_PATTERNS, ...parseGitignoreDirsFallback(repoRoot)];
 
-  /** Combine default ignore patterns with gitignore patterns */
-  const ignorePatterns = [...DEFAULT_IGNORE_PATTERNS, ...gitignorePatterns];
-
-  const files = await fg(patterns, {
+  const candidates = await fg(patterns, {
     cwd: repoRoot,
-    dot: true, // Include dotfiles
-    absolute: false, // Return relative paths
+    dot: true,
+    absolute: false,
     ignore: ignorePatterns,
   });
 
-  return files;
+  if (!inGitRepo) {
+    return { files: candidates, skippedTracked: [] };
+  }
+
+  const ignored = await filterGitIgnoredFiles(repoRoot, candidates);
+  const ignoredSet = new Set(ignored);
+  const skippedTracked = candidates.filter((path) => !ignoredSet.has(path));
+
+  return { files: ignored, skippedTracked };
 }
