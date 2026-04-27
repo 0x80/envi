@@ -46,7 +46,7 @@ export async function packCommand(): Promise<void> {
       const more =
         excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
-        `Skipped ${excluded.length} .env file(s) not in .gitignore: ${preview}${more}`,
+        `Skipped ${excluded.length} .env file(s) not ignored by git: ${preview}${more}`,
       );
     }
 
