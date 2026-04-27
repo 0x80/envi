@@ -9,9 +9,13 @@ import {
   getPackageName,
   getStorageDir,
   getStorageFilename,
+  KEY_FILE_NAME,
+  readEncryptionKey,
   type EnviStore,
 } from "~/lib";
+import { isEncryptedEntry } from "~/lib/storage";
 import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
+import type { EnvObject } from "~/utils";
 import {
   decrypt,
   generateKeyFromManifest,
@@ -124,40 +128,56 @@ export async function unpackCommand(blob?: string): Promise<void> {
     consola.info(`Repository root: ${repoRoot}`);
 
     /**
-     * Try to decrypt with manifest files first, then prompt for secret if
-     * needed
+     * Decryption key resolution order:
+     *   1. encryption_key from envi.maml (preferred — stable across dep updates)
+     *   2. Each configured manifest file (legacy / convenience)
+     *   3. Prompt for a custom secret
      */
     let decrypted: string | null = null;
     let secret: string;
     let foundManifest: string | null = null;
-
-    // Try to use any manifest file for decryption
     const manifestFiles = getManifestFiles();
 
-    for (const filename of manifestFiles) {
-      const manifestPath = join(repoRoot, filename);
-      if (existsSync(manifestPath)) {
-        consola.info(`Found ${filename} - attempting decryption`);
-        try {
-          const manifestContent = readFileSync(manifestPath, "utf-8");
-          secret = generateKeyFromManifest(manifestContent);
+    const keyFromConfig = readEncryptionKey(repoRoot);
+    if (keyFromConfig) {
+      consola.info(`Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`);
+      try {
+        consola.start("Decrypting configuration...");
+        decrypted = decrypt(encryptedData, keyFromConfig);
+        consola.success(`Decryption successful using ${KEY_FILE_NAME}`);
+      } catch {
+        consola.warn(
+          `Failed to decrypt with key from ${KEY_FILE_NAME} - falling back to other methods`,
+        );
+      }
+    }
 
-          consola.start("Decrypting configuration...");
-          decrypted = decrypt(encryptedData, secret);
-          consola.success(`Decryption successful using ${filename}`);
-          foundManifest = filename;
-          break;
-        } catch {
-          // Decryption failed with this manifest - try next one
-          consola.warn(`Failed to decrypt with ${filename}`);
+    if (!decrypted) {
+      for (const filename of manifestFiles) {
+        const manifestPath = join(repoRoot, filename);
+        if (existsSync(manifestPath)) {
+          consola.info(`Found ${filename} - attempting decryption`);
+          try {
+            const manifestContent = readFileSync(manifestPath, "utf-8");
+            secret = generateKeyFromManifest(manifestContent);
+
+            consola.start("Decrypting configuration...");
+            decrypted = decrypt(encryptedData, secret);
+            consola.success(`Decryption successful using ${filename}`);
+            foundManifest = filename;
+            break;
+          } catch {
+            // Decryption failed with this manifest - try next one
+            consola.warn(`Failed to decrypt with ${filename}`);
+          }
         }
       }
     }
 
     // If decryption failed with all manifests, prompt for custom secret
     if (!decrypted) {
-      if (!foundManifest) {
-        consola.info("No manifest files found in repository");
+      if (!foundManifest && !keyFromConfig) {
+        consola.info("No envi.maml or manifest files found in repository");
         consola.info(
           "Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...",
         );
@@ -219,6 +239,22 @@ export async function unpackCommand(blob?: string): Promise<void> {
       process.exit(1);
     }
 
+    /**
+     * Pack-style blobs always carry plaintext entries inside, but the
+     * `EnviStore.files` type also covers the at-rest encrypted shape — convert
+     * to the plaintext-only shape here so the rest of the flow is unchanged.
+     */
+    const plaintextFiles: Array<{ path: string; env: EnvObject }> = [];
+    for (const entry of data.files) {
+      if (isEncryptedEntry(entry)) {
+        consola.error(
+          `Blob contains an at-rest encrypted entry for '${entry.path}'. This is not supported in pack/unpack.`,
+        );
+        process.exit(1);
+      }
+      plaintextFiles.push(entry);
+    }
+
     /** Restore files to repository */
     const shouldRestore = await p.confirm({
       message: "Restore environment files to this repository?",
@@ -239,7 +275,7 @@ export async function unpackCommand(blob?: string): Promise<void> {
       let overwriteAll = false;
 
       /** Process each file */
-      for (const fileEntry of data.files) {
+      for (const fileEntry of plaintextFiles) {
         const targetPath = join(repoRoot, fileEntry.path);
         const fileExists = existsSync(targetPath);
 

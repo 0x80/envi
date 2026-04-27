@@ -3,6 +3,7 @@
 import { defineCommand, runMain } from "citty";
 import { captureCommand } from "~/commands/capture";
 import { clearCommand } from "~/commands/clear";
+import { createKeyCommand } from "~/commands/create-key";
 import { disableCommand as globalGithubDisable } from "~/commands/global/github/disable";
 import { enableCommand as globalGithubEnable } from "~/commands/global/github/enable";
 import { restoreCommand as globalGithubRestore } from "~/commands/global/github/restore";
@@ -82,6 +83,25 @@ const clear = defineCommand({
   },
   async run() {
     await clearCommand();
+  },
+});
+
+/** Create-key command */
+const createKey = defineCommand({
+  meta: {
+    name: "create-key",
+    description:
+      "Generate an encryption_key in envi.maml for at-rest encryption",
+  },
+  args: {
+    force: {
+      type: "boolean",
+      description: "Overwrite an existing encryption_key",
+      default: false,
+    },
+  },
+  async run({ args }) {
+    await createKeyCommand({ force: args.force as boolean });
   },
 });
 
@@ -298,6 +318,7 @@ const main = defineCommand({
     restore,
     pack,
     unpack,
+    "create-key": createKey,
     clear,
     config,
     global,

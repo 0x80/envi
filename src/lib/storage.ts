@@ -3,8 +3,20 @@ import { join, basename, dirname } from "node:path";
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { parse, stringify } from "maml.js";
 import type { EnvObject } from "~/utils/parse-env-file";
+import { decrypt, encrypt } from "~/utils/encryption";
 import { PACKAGE_EXTRACTORS } from "./package-name-extractors";
 import { getManifestFiles } from "./config";
+
+/**
+ * One file entry in a stored MAML.
+ *
+ * Either plaintext (`env`) or encrypted (`encrypted_env`, base64 ciphertext of
+ * `JSON.stringify(env)`). The shape is per-entry so a single store can mix
+ * encrypted and plaintext entries during a transition.
+ */
+export type EnviStoreFile =
+  | { path: string; env: EnvObject }
+  | { path: string; encrypted_env: string };
 
 /** MAML file structure for storing env configurations */
 export interface EnviStore {
@@ -13,10 +25,14 @@ export interface EnviStore {
     updated_from: string;
     updated_at: string;
   };
-  files: Array<{
-    path: string;
-    env: EnvObject;
-  }>;
+  files: EnviStoreFile[];
+}
+
+/** Type guard: is this entry the encrypted variant? */
+export function isEncryptedEntry(
+  entry: EnviStoreFile,
+): entry is { path: string; encrypted_env: string } {
+  return "encrypted_env" in entry;
 }
 
 /**
@@ -102,17 +118,19 @@ export function getStorageFilename(
 }
 
 /**
- * Check if the new files data is identical to existing file
+ * Compare incoming plaintext file entries against an existing on-disk store.
  *
- * Only compares the files array, ignoring metadata like timestamps
+ * Each encryption produces fresh IVs/salt so ciphertexts always differ — to
+ * preserve the "no commit on no-op capture" behaviour we always compare in
+ * plaintext space. Encrypted entries in the existing store are decrypted with
+ * the provided key for comparison.
  *
- * @param filePath - Path to check
- * @param newFiles - New files array to compare
- * @returns True if file exists and files content is identical
+ * @returns True if the existing file's `files` are equivalent to the new ones
  */
 function isContentIdentical(
   filePath: string,
   newFiles: Array<{ path: string; env: EnvObject }>,
+  encryptionKey: string | null,
 ): boolean {
   if (!existsSync(filePath)) {
     return false;
@@ -122,27 +140,67 @@ function isContentIdentical(
     const existingContent = readFileSync(filePath, "utf-8");
     const existingData = parse(existingContent) as EnviStore;
 
-    /** Compare only the files property, ignore metadata */
-    return JSON.stringify(existingData.files) === JSON.stringify(newFiles);
+    /**
+     * Force a rewrite when the on-disk format doesn't match the format we'd
+     * write now. Without this, running `envi create-key` followed by `envi
+     * capture` would silently leave the store as plaintext when values
+     * happen to be unchanged, which would be a serious foot-gun.
+     */
+    const willWriteEncrypted = encryptionKey !== null;
+    const existingHasEncrypted = existingData.files.some(isEncryptedEntry);
+    const existingHasPlaintext = existingData.files.some(
+      (entry) => !isEncryptedEntry(entry),
+    );
+    if (willWriteEncrypted && existingHasPlaintext) return false;
+    if (!willWriteEncrypted && existingHasEncrypted) return false;
+
+    const decryptedExisting: Array<{ path: string; env: EnvObject }> = [];
+    for (const entry of existingData.files) {
+      if (isEncryptedEntry(entry)) {
+        if (!encryptionKey) return false;
+        const json = decrypt(entry.encrypted_env, encryptionKey);
+        decryptedExisting.push({
+          path: entry.path,
+          env: JSON.parse(json) as EnvObject,
+        });
+      } else {
+        decryptedExisting.push(entry);
+      }
+    }
+
+    return JSON.stringify(decryptedExisting) === JSON.stringify(newFiles);
   } catch {
     return false;
   }
+}
+
+export interface SaveToStorageOptions {
+  /**
+   * If provided, encrypt each file's `env` block before writing. The same key
+   * is used to decrypt any existing encrypted entries for the no-op
+   * comparison.
+   */
+  encryptionKey?: string | null;
 }
 
 /**
  * Save env configuration to storage
  *
  * @param repoPath - Absolute path to repository root
- * @param envFiles - Array of env file data
+ * @param envFiles - Array of plaintext env file data
  * @param packageName - Optional package name (will be read if not provided)
+ * @param options - Optional encryption settings
  * @returns True if file was updated, false if no changes
  */
 export function saveToStorage(
   repoPath: string,
   envFiles: Array<{ path: string; env: EnvObject }>,
   packageName?: string | null,
+  options: SaveToStorageOptions = {},
 ): boolean {
   ensureStorageDir();
+
+  const encryptionKey = options.encryptionKey ?? null;
 
   /** Sort files by path for consistent comparison */
   const sortedFiles = [...envFiles].sort((a, b) =>
@@ -153,10 +211,17 @@ export function saveToStorage(
   const filename = getStorageFilename(repoPath, packageName);
   const filePath = join(storageDir, filename);
 
-  /** Check if content is identical to existing file */
-  if (isContentIdentical(filePath, sortedFiles)) {
+  /** Check if content is identical to existing file (compares in plaintext space) */
+  if (isContentIdentical(filePath, sortedFiles, encryptionKey)) {
     return false;
   }
+
+  const filesToWrite: EnviStoreFile[] = encryptionKey
+    ? sortedFiles.map((file) => ({
+        path: file.path,
+        encrypted_env: encrypt(JSON.stringify(file.env), encryptionKey),
+      }))
+    : sortedFiles;
 
   const data: EnviStore = {
     __envi_version: 1,
@@ -164,7 +229,7 @@ export function saveToStorage(
       updated_from: repoPath,
       updated_at: new Date().toISOString(),
     },
-    files: sortedFiles,
+    files: filesToWrite,
   };
 
   /** Ensure subdirectory exists for scoped packages */

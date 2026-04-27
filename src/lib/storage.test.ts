@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { decrypt, encrypt } from "~/utils/encryption";
 import {
   getPackageName,
   getStorageDir,
@@ -227,6 +228,192 @@ describe("storage", () => {
           ],
         }),
       );
+    });
+
+    it("should encrypt each file's env when an encryption key is provided", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const repoPath = "/home/user/projects/myproject";
+      const envFiles: Array<{ path: string; env: Record<string, string> }> = [
+        { path: ".env", env: { KEY1: "value1" } },
+        { path: "packages/api/.env", env: { KEY2: "value2" } },
+      ];
+
+      const result = saveToStorage(repoPath, envFiles, "my-package", {
+        encryptionKey: "secret-key-123",
+      });
+
+      expect(result).toBe(true);
+
+      const stringifyCall = vi.mocked(stringify).mock.calls[0]?.[0] as {
+        files: Array<{ path: string; encrypted_env?: string; env?: unknown }>;
+      };
+      expect(stringifyCall.files).toHaveLength(2);
+      for (const entry of stringifyCall.files) {
+        expect(entry.env).toBeUndefined();
+        expect(typeof entry.encrypted_env).toBe("string");
+        expect(entry.encrypted_env!.length).toBeGreaterThan(0);
+      }
+
+      // Round-trip: decrypted blobs match the input env objects
+      const dotEnv = stringifyCall.files.find((f) => f.path === ".env")!;
+      const decrypted = decrypt(dotEnv.encrypted_env!, "secret-key-123");
+      expect(JSON.parse(decrypted)).toEqual({ KEY1: "value1" });
+    });
+
+    it("should treat encrypted store as identical when plaintext matches", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value1" } }];
+      const key = "secret-key-456";
+
+      // Build a realistic existing store containing freshly-encrypted entries
+      // whose plaintext matches `envFiles`
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z",
+        },
+        files: [
+          {
+            path: ".env",
+            encrypted_env: encrypt(JSON.stringify({ KEY1: "value1" }), key),
+          },
+        ],
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const result = saveToStorage(
+        "/home/user/projects/myproject",
+        envFiles,
+        "my-package",
+        { encryptionKey: key },
+      );
+
+      expect(result).toBe(false);
+      expect(writeFileSync).not.toHaveBeenCalled();
+    });
+
+    it("should detect plaintext changes through encryption", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value-NEW" } }];
+      const key = "secret-key-789";
+
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z",
+        },
+        files: [
+          {
+            path: ".env",
+            encrypted_env: encrypt(JSON.stringify({ KEY1: "value-OLD" }), key),
+          },
+        ],
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const result = saveToStorage(
+        "/home/user/projects/myproject",
+        envFiles,
+        "my-package",
+        { encryptionKey: key },
+      );
+
+      expect(result).toBe(true);
+      expect(writeFileSync).toHaveBeenCalled();
+    });
+
+    it("should force rewrite when transitioning plaintext store to encrypted", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value1" } }];
+
+      // Existing store is plaintext, new save uses an encryption key.
+      // Even though plaintext values match, we must rewrite so the on-disk
+      // format reflects the user's intent (otherwise `envi create-key`
+      // followed by `envi capture` could silently leave the store
+      // unencrypted when env values happen to be unchanged).
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z",
+        },
+        files: [{ path: ".env", env: { KEY1: "value1" } }],
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const result = saveToStorage(
+        "/home/user/projects/myproject",
+        envFiles,
+        "my-package",
+        { encryptionKey: "transition-key" },
+      );
+
+      expect(result).toBe(true);
+      expect(writeFileSync).toHaveBeenCalled();
+    });
+
+    it("should force rewrite when transitioning encrypted store to plaintext", () => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+      vi.mocked(stringify).mockReturnValue("maml content");
+
+      const envFiles = [{ path: ".env", env: { KEY1: "value1" } }];
+      const oldKey = "previously-used-key";
+
+      const existingData = {
+        __envi_version: 1,
+        metadata: {
+          updated_from: "/home/user/projects/myproject",
+          updated_at: "2023-01-01T00:00:00.000Z",
+        },
+        files: [
+          {
+            path: ".env",
+            encrypted_env: encrypt(JSON.stringify({ KEY1: "value1" }), oldKey),
+          },
+        ],
+      };
+
+      vi.mocked(existsSync).mockImplementation((path) => {
+        return path === join("/home/user", ".envi", "store", "my-package.maml");
+      });
+      vi.mocked(readFileSync).mockReturnValue("existing maml");
+      vi.mocked(parse).mockReturnValue(existingData);
+
+      const result = saveToStorage(
+        "/home/user/projects/myproject",
+        envFiles,
+        "my-package",
+        // No encryptionKey → write plaintext
+      );
+
+      expect(result).toBe(true);
+      expect(writeFileSync).toHaveBeenCalled();
     });
 
     it("should create subdirectory for scoped packages", () => {

@@ -16,6 +16,7 @@ import {
   generateKeyFromManifest,
 } from "~/utils/encryption";
 import { getManifestFiles, getRedactedVariables } from "~/lib/config";
+import { KEY_FILE_NAME, readEncryptionKey } from "~/lib";
 import { applyRedaction } from "~/utils/redact";
 
 /**
@@ -106,28 +107,42 @@ export async function packCommand(): Promise<void> {
 
     /** Generate or prompt for encryption key */
     let secret!: string;
+    let usingKeyFile = false;
     let usingManifest = false;
     let manifestFileName: string | null = null;
 
-    // Try to find any manifest file for encryption
+    /**
+     * Highest priority: per-repo envi.maml encryption_key. Stable across
+     * dependency updates, unlike manifest-based keys.
+     */
+    const keyFromConfig = readEncryptionKey(repoRoot);
+    if (keyFromConfig) {
+      secret = keyFromConfig;
+      usingKeyFile = true;
+      consola.info(`Using encryption_key from ${KEY_FILE_NAME}`);
+    }
+
+    // Fallback: derive a key from a manifest file
     const manifestFiles = getManifestFiles();
 
-    for (const filename of manifestFiles) {
-      const manifestPath = join(repoRoot, filename);
-      if (existsSync(manifestPath)) {
-        const manifestContent = readFileSync(manifestPath, "utf-8");
-        secret = generateKeyFromManifest(manifestContent);
-        usingManifest = true;
-        manifestFileName = filename;
-        consola.info(`Using ${filename} for encryption key`);
-        consola.warn(
-          `Note: Only colleagues with the same ${filename} can decrypt this blob`,
-        );
-        break;
+    if (!usingKeyFile) {
+      for (const filename of manifestFiles) {
+        const manifestPath = join(repoRoot, filename);
+        if (existsSync(manifestPath)) {
+          const manifestContent = readFileSync(manifestPath, "utf-8");
+          secret = generateKeyFromManifest(manifestContent);
+          usingManifest = true;
+          manifestFileName = filename;
+          consola.info(`Using ${filename} for encryption key`);
+          consola.warn(
+            `Note: Only colleagues with the same ${filename} can decrypt this blob`,
+          );
+          break;
+        }
       }
     }
 
-    if (!usingManifest) {
+    if (!usingKeyFile && !usingManifest) {
       // No manifest found - prompt for custom secret
       consola.warn("No manifest file found in repository root");
       consola.info(
@@ -175,7 +190,13 @@ export async function packCommand(): Promise<void> {
     }
 
     /** Output instructions */
-    if (usingManifest) {
+    if (usingKeyFile) {
+      consola.info("\nBlob is now on your clipboard!");
+      consola.info(
+        `Share it with colleagues who have the same ${KEY_FILE_NAME} committed in their checkout`,
+      );
+      consola.info("They can restore it using: envi unpack");
+    } else if (usingManifest) {
       consola.info("\nBlob is now on your clipboard!");
       consola.info(
         `Share it with colleagues who have the same ${manifestFileName}`,
