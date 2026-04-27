@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from "citty";
+import pkg from "../package.json" with { type: "json" };
 import { captureCommand } from "~/commands/capture";
 import { clearCommand } from "~/commands/clear";
 import { createKeyCommand } from "~/commands/create-key";
@@ -310,7 +311,7 @@ const global = defineCommand({
 const main = defineCommand({
   meta: {
     name: "envi",
-    version: "1.0.0",
+    version: pkg.version,
     description: "Environment file management tool",
   },
   subCommands: {

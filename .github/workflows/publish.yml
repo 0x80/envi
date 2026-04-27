@@ -51,11 +51,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # `registry-url` is intentionally omitted: when set, setup-node writes
+      # an `.npmrc` with `_authToken=${NODE_AUTH_TOKEN}` and may export a
+      # placeholder `NODE_AUTH_TOKEN`, which takes precedence over the OIDC
+      # token exchange used by trusted publishing and surfaces as a 404.
+      # See actions/setup-node#1440. npm defaults to registry.npmjs.org.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: "https://registry.npmjs.org"
 
       - name: Enable corepack
         run: corepack enable pnpm
@@ -81,14 +85,15 @@ jobs:
           LEFTHOOK: 0
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm build
-
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      # Bump must precede Build: `src/cli.ts` reads the version from
+      # `package.json` and tsdown inlines it, so the artifact needs to be
+      # built against the bumped manifest. `npm publish --ignore-scripts`
+      # below skips `prepublishOnly` to avoid a duplicate build.
       - name: Bump version
         id: version
         env:
@@ -125,6 +130,9 @@ jobs:
             echo "dist_tag=latest" >> $GITHUB_OUTPUT
             echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Build
+        run: pnpm build
 
       - name: Publish summary
         run: |
