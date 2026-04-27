@@ -143,8 +143,8 @@ function isContentIdentical(
     /**
      * Force a rewrite when the on-disk format doesn't match the format we'd
      * write now. Without this, running `envi create-key` followed by `envi
-     * capture` would silently leave the store as plaintext when values
-     * happen to be unchanged, which would be a serious foot-gun.
+     * capture` would silently leave the store as plaintext when values happen
+     * to be unchanged, which would be a serious foot-gun.
      */
     const willWriteEncrypted = encryptionKey !== null;
     const existingHasEncrypted = existingData.files.some(isEncryptedEntry);
@@ -211,7 +211,10 @@ export function saveToStorage(
   const filename = getStorageFilename(repoPath, packageName);
   const filePath = join(storageDir, filename);
 
-  /** Check if content is identical to existing file (compares in plaintext space) */
+  /**
+   * Check if content is identical to existing file (compares in plaintext
+   * space)
+   */
   if (isContentIdentical(filePath, sortedFiles, encryptionKey)) {
     return false;
   }

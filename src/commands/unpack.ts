@@ -129,9 +129,10 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     /**
      * Decryption key resolution order:
-     *   1. encryption_key from envi.maml (preferred — stable across dep updates)
-     *   2. Each configured manifest file (legacy / convenience)
-     *   3. Prompt for a custom secret
+     *
+     * 1. Encryption_key from envi.maml (preferred — stable across dep updates)
+     * 2. Each configured manifest file (legacy / convenience)
+     * 3. Prompt for a custom secret
      */
     let decrypted: string | null = null;
     let secret: string;
@@ -140,7 +141,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     const keyFromConfig = readEncryptionKey(repoRoot);
     if (keyFromConfig) {
-      consola.info(`Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`);
+      consola.info(
+        `Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`,
+      );
       try {
         consola.start("Decrypting configuration...");
         decrypted = decrypt(encryptedData, keyFromConfig);

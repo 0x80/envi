@@ -24,9 +24,7 @@ const COMMENT_BLOCK = [
   "# env values.",
 ];
 
-/**
- * Get the absolute path to envi.maml in a repository
- */
+/** Get the absolute path to envi.maml in a repository */
 export function getKeyFilePath(repoRoot: string): string {
   return join(repoRoot, KEY_FILE_NAME);
 }
@@ -75,13 +73,13 @@ export interface WriteEncryptionKeyOptions {
 /**
  * Write the encryption key to envi.maml.
  *
- * - If envi.maml does not exist, creates it with a header comment explaining
- *   what the file is for.
+ * - If envi.maml does not exist, creates it with a header comment explaining what
+ *   the file is for.
  * - If envi.maml exists and already has an `encryption_key`, refuses unless
  *   `force` is set, in which case the existing value is replaced in place
  *   (preserves surrounding content and comments).
- * - If envi.maml exists without an `encryption_key`, appends the field
- *   inside the top-level object, preserving the rest of the file.
+ * - If envi.maml exists without an `encryption_key`, appends the field inside the
+ *   top-level object, preserving the rest of the file.
  *
  * @throws Error when `force` is false and a key is already set.
  */
@@ -106,10 +104,7 @@ export function writeEncryptionKey(
   }
 
   const content = readFileSync(path, "utf-8");
-  const keyLine = new RegExp(
-    `^(\\s*)${ENCRYPTION_KEY_FIELD}:\\s*"[^"]*"`,
-    "m",
-  );
+  const keyLine = new RegExp(`^(\\s*)${ENCRYPTION_KEY_FIELD}:\\s*"[^"]*"`, "m");
 
   if (keyLine.test(content)) {
     if (!force) {
@@ -146,9 +141,9 @@ export function writeEncryptionKey(
 /**
  * Generate a new encryption key
  *
- * Returns 32 cryptographically random bytes encoded as base64url (~43 chars,
- * no padding). The key is opaque and used directly as the secret for
- * `encrypt()` / `decrypt()` in src/utils/encryption.ts.
+ * Returns 32 cryptographically random bytes encoded as base64url (~43 chars, no
+ * padding). The key is opaque and used directly as the secret for `encrypt()` /
+ * `decrypt()` in src/utils/encryption.ts.
  */
 export function generateKey(): string {
   return randomBytes(32).toString("base64url");
