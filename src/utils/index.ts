@@ -1,5 +1,6 @@
 /** Barrel file for utils */
 export { findEnvFiles } from "./find-env-files";
+export type { FindEnvFilesResult } from "./find-env-files";
 export { findRepoRoot } from "./find-repo-root";
 export { getErrorMessage } from "./get-error-message";
 export { parseEnvFile } from "./parse-env-file";

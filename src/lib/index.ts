@@ -16,6 +16,7 @@ export {
   addRemote,
   commitAndPush,
   createInitialCommit,
+  filterGitIgnoredFiles,
   initialCommitAndPush,
   initGitRepo,
   isGitRepo,

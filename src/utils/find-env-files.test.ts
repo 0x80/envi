@@ -1,116 +1,159 @@
+import { consola } from "consola";
 import fg from "fast-glob";
 import { existsSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
 import { findEnvFiles } from "./find-env-files.js";
 
 vi.mock("fast-glob");
 vi.mock("node:fs");
-vi.mock("ignore");
+vi.mock("~/lib/git");
 
 describe("findEnvFiles", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("should find .env file in root and subdirectories", async () => {
-    const repoRoot = "/project";
-    vi.mocked(existsSync).mockReturnValue(false); // No .gitignore
-    vi.mocked(fg).mockResolvedValue([".env"]);
-
-    const result = await findEnvFiles(repoRoot);
-
-    expect(result).toEqual([".env"]);
-    expect(fg).toHaveBeenCalledWith(
-      [".env", ".env.*", "**/.env", "**/.env.*"],
-      expect.objectContaining({
-        cwd: repoRoot,
-        dot: true,
-        absolute: false,
-        ignore: expect.arrayContaining([
-          "node_modules/**",
-          ".git/**",
-          "dist/**",
-          "build/**",
-        ]),
-      }),
-    );
-  });
-
-  it("should find .env.* files recursively", async () => {
-    const repoRoot = "/project";
+    /** Default: no gitignore on disk */
     vi.mocked(existsSync).mockReturnValue(false);
-    vi.mocked(fg).mockResolvedValue([
-      ".env.local",
-      ".env.production",
-      ".env.development",
-    ]);
-
-    const result = await findEnvFiles(repoRoot);
-
-    expect(result).toEqual([
-      ".env.local",
-      ".env.production",
-      ".env.development",
-    ]);
   });
 
-  it("should find nested env files in subdirectories", async () => {
-    const repoRoot = "/project";
-    vi.mocked(existsSync).mockReturnValue(false);
-    vi.mocked(fg).mockResolvedValue([
-      ".env",
-      "apps/web/.env.local",
-      "packages/api/.env",
-      "services/fns/.env.stafftraveler",
-    ]);
+  describe("in a git repository", () => {
+    beforeEach(() => {
+      vi.mocked(isGitRepo).mockReturnValue(true);
+    });
 
-    const result = await findEnvFiles(repoRoot);
+    it("returns only files git considers ignored", async () => {
+      vi.mocked(fg).mockResolvedValue([
+        ".env",
+        ".env.shared",
+        "apps/web/.env.local",
+      ]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([
+        ".env",
+        "apps/web/.env.local",
+      ]);
 
-    expect(result).toEqual([
-      ".env",
-      "apps/web/.env.local",
-      "packages/api/.env",
-      "services/fns/.env.stafftraveler",
-    ]);
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env", "apps/web/.env.local"]);
+      expect(result.excluded).toEqual([".env.shared"]);
+    });
+
+    it("reports no excluded files when every candidate is ignored", async () => {
+      vi.mocked(fg).mockResolvedValue([".env", ".env.local"]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([
+        ".env",
+        ".env.local",
+      ]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env", ".env.local"]);
+      expect(result.excluded).toEqual([]);
+    });
+
+    it("excludes force-added files (tracked, even if matching .gitignore)", async () => {
+      /**
+       * `git add -f .env` makes a file tracked, so `git check-ignore` does NOT
+       * report it as ignored — it should land in `excluded`.
+       */
+      vi.mocked(fg).mockResolvedValue([".env", "apps/api/.env"]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue(["apps/api/.env"]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual(["apps/api/.env"]);
+      expect(result.excluded).toEqual([".env"]);
+    });
+
+    it("excludes untracked files that are not covered by a gitignore rule", async () => {
+      /**
+       * A new `.env` in a fresh dir without a matching ignore rule is neither
+       * tracked nor ignored — git check-ignore returns nothing for it. It must
+       * NOT be captured (the user might be about to commit it) but should land
+       * in `excluded` so they know why it was skipped.
+       */
+      vi.mocked(fg).mockResolvedValue([".env", "new-dir/.env"]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([".env"]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env"]);
+      expect(result.excluded).toEqual(["new-dir/.env"]);
+    });
+
+    it("falls back to capturing all candidates when git check-ignore fails", async () => {
+      vi.mocked(fg).mockResolvedValue([".env", "apps/web/.env.local"]);
+      vi.mocked(filterGitIgnoredFiles).mockRejectedValue(
+        new Error("spawn git ENOENT"),
+      );
+      const warn = vi.spyOn(consola, "warn").mockImplementation(() => {});
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env", "apps/web/.env.local"]);
+      expect(result.excluded).toEqual([]);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("spawn git ENOENT"),
+      );
+      warn.mockRestore();
+    });
+
+    it("passes only the performance ignore patterns to fast-glob", async () => {
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const options = vi.mocked(fg).mock.calls[0]?.[1];
+      expect(options?.ignore).toContain("node_modules/**");
+      expect(options?.ignore).toContain(".git/**");
+      /** No .gitignore-derived patterns when in a git repo */
+      expect(existsSync).not.toHaveBeenCalled();
+    });
   });
 
-  it("should include default ignore patterns when no gitignore", async () => {
-    const repoRoot = "/project";
+  describe("outside a git repository", () => {
+    beforeEach(() => {
+      vi.mocked(isGitRepo).mockReturnValue(false);
+    });
 
-    vi.mocked(existsSync).mockReturnValue(false); // No .gitignore
-    vi.mocked(fg).mockResolvedValue([".env"]);
+    it("returns every matched file without invoking the git filter", async () => {
+      vi.mocked(fg).mockResolvedValue([".env", "apps/web/.env.local"]);
 
-    await findEnvFiles(repoRoot);
+      const result = await findEnvFiles("/project");
 
-    const call = vi.mocked(fg).mock.calls[0];
-    const options = call?.[1];
+      expect(result.files).toEqual([".env", "apps/web/.env.local"]);
+      expect(result.excluded).toEqual([]);
+      expect(filterGitIgnoredFiles).not.toHaveBeenCalled();
+    });
 
-    /** Should include all default patterns */
-    expect(options?.ignore).toContain("node_modules/**");
-    expect(options?.ignore).toContain(".git/**");
-    expect(options?.ignore).toContain("dist/**");
-    expect(options?.ignore).toContain("build/**");
-    expect(options?.ignore).toContain(".next/**");
-    expect(options?.ignore).toContain(".turbo/**");
-  });
+    it("treats plain entries in a top-level .gitignore as directory patterns", async () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      const { readFileSync } = await import("node:fs");
+      vi.mocked(readFileSync).mockReturnValue(
+        [
+          "node_modules",
+          "build_output",
+          ".cache",
+          "apps.dist/",
+          "*.log",
+          "!important",
+          "# comment",
+          "",
+        ].join("\n") as never,
+      );
+      vi.mocked(fg).mockResolvedValue([".env"]);
 
-  it("should handle missing .gitignore gracefully", async () => {
-    const repoRoot = "/project";
-    vi.mocked(existsSync).mockReturnValue(false);
-    vi.mocked(fg).mockResolvedValue([".env"]);
+      await findEnvFiles("/project");
 
-    await findEnvFiles(repoRoot);
-
-    expect(fg).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({
-        ignore: expect.arrayContaining([
-          "node_modules/**",
-          ".git/**",
-          "dist/**",
-          "build/**",
-        ]),
-      }),
-    );
+      const options = vi.mocked(fg).mock.calls[0]?.[1];
+      /** Plain entries (with or without a trailing slash) become dir patterns */
+      expect(options?.ignore).toContain("**/build_output/**");
+      expect(options?.ignore).toContain("**/.cache/**");
+      expect(options?.ignore).toContain("**/apps.dist/**");
+      /** Glob patterns and negations are skipped — full ignore engine needed */
+      expect(options?.ignore).not.toContain("**/*.log/**");
+      expect(options?.ignore).not.toContain("**/!important/**");
+    });
   });
 });
