@@ -35,11 +35,11 @@ concurrency:
 
 jobs:
   checks:
-    if: github.ref == 'refs/heads/main' || startsWith(inputs.bump, 'pre') || inputs.explicit_version != ''
+    if: github.ref_type == 'branch' && (github.ref == 'refs/heads/main' || startsWith(inputs.bump, 'pre') || inputs.explicit_version != '')
     uses: ./.github/workflows/checks.yml
 
   publish:
-    if: github.ref == 'refs/heads/main' || startsWith(inputs.bump, 'pre') || inputs.explicit_version != ''
+    if: github.ref_type == 'branch' && (github.ref == 'refs/heads/main' || startsWith(inputs.bump, 'pre') || inputs.explicit_version != '')
     needs: checks
     runs-on: ubuntu-latest
     # Authentication is handled via OIDC trusted publishing (id-token),
@@ -129,14 +129,18 @@ jobs:
       # Publish before push: npm publish is not retryable (same version
       # can't be published twice), while git push is idempotent. If push
       # fails after a successful publish, it can simply be retried manually.
+      #
+      # `--ignore-scripts` skips `prepublishOnly` (which would re-run
+      # `pnpm build`); the explicit Build step above already produced the
+      # artifact.
       - name: Publish to npm
         if: ${{ inputs.dry_run == false }}
         run: |
-          npm publish --provenance --tag ${{ steps.version.outputs.dist_tag }}
+          npm publish --provenance --ignore-scripts --tag ${{ steps.version.outputs.dist_tag }}
 
       - name: Push version commit
         if: ${{ inputs.dry_run == false }}
-        run: git push origin HEAD
+        run: git push origin HEAD:${{ github.ref_name }}
 
       - name: Push version tag
         if: ${{ inputs.dry_run == false }}
