@@ -75,7 +75,7 @@ export async function captureCommand(): Promise<void> {
     }
 
     if (envFilePaths.length === 0) {
-      consola.warn("No gitignored .env files found.");
+      consola.warn("No .env files found.");
       return;
     }
 

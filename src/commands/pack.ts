@@ -51,7 +51,7 @@ export async function packCommand(): Promise<void> {
     }
 
     if (envFilePaths.length === 0) {
-      consola.error("No gitignored .env files found in repository.");
+      consola.error("No .env files found in repository.");
       consola.info("Add some .env files first before packing.");
       process.exit(1);
     }
