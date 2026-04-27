@@ -5,12 +5,12 @@ import { join, dirname } from "node:path";
 import { parse } from "maml.js";
 import clipboard from "clipboardy";
 import {
-  ensureStorageDir,
   getPackageName,
   getStorageDir,
   getStorageFilename,
   KEY_FILE_NAME,
   readEncryptionKey,
+  saveToStorage,
   type EnviStore,
 } from "~/lib";
 import { isEncryptedEntry } from "~/lib/storage";
@@ -401,9 +401,14 @@ export async function unpackCommand(blob?: string): Promise<void> {
       const filename = getStorageFilename(repoRoot, packageName);
       const storagePath = join(storageDir, filename);
 
-      ensureStorageDir();
-
-      writeFileSync(storagePath, decrypted, "utf-8");
+      /**
+       * Route through saveToStorage so at-rest encryption is honored when
+       * envi.maml is present. Writing the decrypted blob directly would
+       * silently produce a plaintext store even for repos that opted into
+       * encryption.
+       */
+      const encryptionKey = readEncryptionKey(repoRoot);
+      saveToStorage(repoRoot, plaintextFiles, packageName, { encryptionKey });
 
       consola.success(`Saved configuration to: ${storagePath}`);
     }
