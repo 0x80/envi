@@ -22,8 +22,8 @@ The `pack` command finds all `.env` files in your repository, encrypts them, and
 2. **Manifest-derived key** - Fallback when no `envi.maml` is present. The key is an MD5 hash of a manifest file's contents. **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle). **Custom manifests:** add via `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files).
 3. **Custom secret prompt** - Used when neither of the above is available. Must be at least 8 characters; you'll need to share both the blob AND the secret with the recipient.
 
-::: tip Recommendation
-For team workflows, run [`envi create-key`](/commands/create-key) once and commit `envi.maml`. From then on, both `pack` and `unpack` automatically pick up the key without anyone having to remember a manifest filename or share a secret.
+::: tip When to use `envi.maml`
+The manifest fallback is fine for most ad-hoc sharing. Run [`envi create-key`](/commands/create-key) once and commit `envi.maml` if you find that blobs in chat or onboarding docs keep breaking after teammates run `pnpm install` (or equivalent) — it gives you a key that's stable across dependency updates, at the cost of binding decryption to the (private) source repo.
 :::
 
 **Why prefer `envi.maml` over manifest-derived keys?**
@@ -34,7 +34,7 @@ For team workflows, run [`envi create-key`](/commands/create-key) once and commi
 
 ## Examples
 
-### Projects with `envi.maml` (Recommended)
+### Projects with `envi.maml`
 
 After running [`envi create-key`](/commands/create-key) once and committing `envi.maml`:
 
@@ -220,7 +220,7 @@ When using manifest-based encryption (package.json, Cargo.toml, go.mod, etc.):
 ## Related Commands
 
 - [`envi unpack`](./unpack) - Decrypt and restore a blob
-- [`envi create-key`](./create-key) - Generate `envi.maml` to use as the preferred encryption source
+- [`envi create-key`](./create-key) - Generate `envi.maml` for a stable shared key that survives manifest changes
 - [`envi capture`](./capture) - Capture environment files to storage
 
 ## See Also
