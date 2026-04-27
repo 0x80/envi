@@ -40,6 +40,16 @@ import { clearCommand } from "@codecompose/envi";
 await clearCommand();
 ```
 
+### createKeyCommand()
+
+Generate `envi.maml` with a fresh `encryption_key` in the current repo.
+
+```typescript
+import { createKeyCommand } from "@codecompose/envi";
+
+await createKeyCommand({ force: false });
+```
+
 ### globalClearCommand()
 
 Delete entire envi directory and all stored configurations.
@@ -159,8 +169,67 @@ const hasChanges = saveToStorage(
     },
   ],
   "@org/package", // Optional package name
+  { encryptionKey: null }, // Optional encryption settings
 );
 // Returns: true if file was updated, false if no changes
+```
+
+The optional fourth argument is `SaveToStorageOptions`. When `encryptionKey` is set, each file's `env` block is encrypted with `encrypt(JSON.stringify(env), encryptionKey)` before being written, and the no-op comparison reads/decrypts the existing store with the same key.
+
+## Encryption Key (envi.maml)
+
+Helpers for the per-repo `envi.maml` file.
+
+### KEY_FILE_NAME
+
+```typescript
+import { KEY_FILE_NAME } from "@codecompose/envi";
+
+console.log(KEY_FILE_NAME); // "envi.maml"
+```
+
+### generateKey()
+
+Generate a new 32-byte random key as a base64url string.
+
+```typescript
+import { generateKey } from "@codecompose/envi";
+
+const key = generateKey();
+// Returns: ~43-character base64url string
+```
+
+### readEncryptionKey()
+
+Read the `encryption_key` from `envi.maml` if present.
+
+```typescript
+import { readEncryptionKey } from "@codecompose/envi";
+
+const key = readEncryptionKey("/path/to/repo");
+// Returns: string or null
+```
+
+### writeEncryptionKey()
+
+Write or update `envi.maml` with a key. Creates the file with a header comment if missing; inserts the key into an existing file while preserving other content. Refuses to overwrite an existing `encryption_key` unless `{ force: true }` is passed.
+
+```typescript
+import { writeEncryptionKey } from "@codecompose/envi";
+
+writeEncryptionKey("/path/to/repo", key, { force: false });
+// Throws Error when force is false and a key is already set.
+```
+
+### hasKeyFile()
+
+Check whether `envi.maml` exists in a repository (does not check whether `encryption_key` is set inside).
+
+```typescript
+import { hasKeyFile } from "@codecompose/envi";
+
+const exists = hasKeyFile("/path/to/repo");
+// Returns: boolean
 ```
 
 ## Configuration
@@ -383,7 +452,7 @@ const exists = await repoExists("envi-store");
 Structure of stored MAML files.
 
 ```typescript
-import type { EnviStore } from "@codecompose/envi";
+import type { EnviStore, EnviStoreFile } from "@codecompose/envi";
 
 const store: EnviStore = {
   __envi_version: 1,
@@ -399,6 +468,16 @@ const store: EnviStore = {
   ],
 };
 ```
+
+`EnviStore.files` is an array of `EnviStoreFile`, a discriminated union:
+
+```typescript
+type EnviStoreFile =
+  | { path: string; env: EnvObject } // plaintext
+  | { path: string; encrypted_env: string }; // ciphertext (base64)
+```
+
+The `encrypted_env` variant is produced when `saveToStorage` is called with `{ encryptionKey }`. The base64 string is `encrypt(JSON.stringify(env), key)` from `~/utils/encryption`.
 
 ### EnvObject
 

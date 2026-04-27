@@ -51,24 +51,41 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 
 ### Decryption Methods
 
-**For projects with a supported manifest file**:
+`unpack` tries decryption keys in this order:
 
-- Automatically attempts decryption using an MD5 hash of your project's manifest file contents
-- **Supported manifests:** `package.json` (JavaScript/TypeScript), `Cargo.toml` (Rust), `go.mod` (Go), `pyproject.toml` (Python), `composer.json` (PHP), `pubspec.yaml` (Dart/Flutter), `pom.xml` (Java/Maven), `settings.gradle.kts` (Kotlin), `settings.gradle` (Java/Gradle)
-- **Custom manifests:** You can add your own manifest files using `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files)
-- If decryption fails (blob was encrypted with a different manifest or custom secret), prompts for a custom secret
-- No manual secret entry needed if your manifest file is identical to the one used for encryption
+1. **`envi.maml` with `encryption_key`** (preferred) - If `envi.maml` is committed in the repo, this is the first thing tried.
+2. **Manifest-derived key** - For each configured manifest file (`package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `composer.json`, `pubspec.yaml`, `pom.xml`, `settings.gradle.kts`, `settings.gradle`), `unpack` derives an MD5-hash key and tries it. **Custom manifests** can be added via `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files).
+3. **Custom secret prompt** - If none of the above succeed, you'll be prompted to enter a secret. This is the path used for blobs encrypted with a custom secret on the sender's side.
 
-**For projects without a supported manifest file**:
-
-- Prompts you to enter the decryption secret
-- The secret must match the one used when creating the blob
+The recipient typically doesn't need to think about this — if the sender used `envi pack` from a checkout with `envi.maml`, every collaborator with the same checkout decrypts automatically. If they used a manifest-derived key, anyone in the same codebase decrypts automatically. If they used a custom secret, the sender shares it via a separate secure channel.
 
 ## Examples
 
+### Projects with `envi.maml` (Recommended)
+
+When the sender used [`envi create-key`](/commands/create-key) and committed `envi.maml`, decryption is automatic:
+
+```bash
+envi unpack
+```
+
+Output:
+
+```
+✔ Reading blob from clipboard...
+✔ Blob loaded from clipboard
+✔ Parsing blob...
+Blob format validated
+✔ Finding repository root...
+Repository root: /Users/you/projects/myapp
+ℹ Found encryption_key in envi.maml - attempting decryption
+✔ Decrypting configuration...
+✔ Decryption successful using envi.maml
+```
+
 ### Projects with Manifest Files (from clipboard)
 
-The easiest way - just copy the blob from your team member and run (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
+If the sender packed without `envi.maml`, manifest-derived decryption is the next fallback (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
 
 ```bash
 envi unpack
@@ -167,9 +184,10 @@ You can decline any of the interactive prompts:
 1. **Reads blob** - From clipboard if no argument provided, or from the argument
 2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
 3. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
-4. **Attempts decryption**:
-   - If a supported manifest file exists (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle): Creates MD5 hash of the file and tries decryption
-   - If decryption fails or no supported manifest found: Prompts for custom secret
+4. **Attempts decryption** in priority order:
+   - If `envi.maml` exists with `encryption_key`, try it first
+   - Otherwise (or if that fails) walk through configured manifest files (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle), deriving an MD5 key from each
+   - Otherwise prompt for a custom secret
 5. **Decrypts data** - Uses AES-256-GCM decryption with the derived key
 6. **Validates configuration** - Ensures decrypted data is valid envi format
 7. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
@@ -262,6 +280,7 @@ No supported manifest file found - this is expected for some project types
 ## Related Commands
 
 - [`envi pack`](./pack) - Create an encrypted blob for sharing
+- [`envi create-key`](./create-key) - Generate `envi.maml` so pack/unpack share a stable key
 - [`envi restore`](./restore) - Restore files from storage
 - [`envi capture`](./capture) - Capture files to storage
 

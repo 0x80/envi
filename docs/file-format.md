@@ -47,9 +47,9 @@ Every stored configuration follows this structure:
 - **`__envi_version`** - Format version (currently `1`)
 - **`metadata.updated_from`** - Absolute path where files were captured
 - **`metadata.updated_at`** - ISO timestamp of last capture
-- **`files`** - Array of environment files
-  - **`path`** - Relative path from repository root
-  - **`env`** - Key-value pairs including environment variables and comments
+- **`files`** - Array of environment files. Each entry has a `path` (relative to repository root) and either:
+  - **`env`** - Key-value pairs including environment variables and comments (plaintext, default), or
+  - **`encrypted_env`** - Base64 ciphertext of `JSON.stringify(env)` (when at-rest encryption is enabled — see [`envi create-key`](/commands/create-key))
 
 ## Comment Encoding
 
@@ -189,6 +189,28 @@ Notice:
 - Inline comments: `__i_00` through `__i_02`
 - Each type has its own incrementing counter
 - The restored file is identical to the original
+
+## Encrypted Storage
+
+When at-rest encryption is enabled (see [`envi create-key`](/commands/create-key)), each file's `env` block is replaced with `encrypted_env` containing AES-256-GCM ciphertext (base64-encoded) of the JSON-stringified env object. The same store can mix encrypted and plaintext entries during transitions:
+
+```maml
+{
+  __envi_version: 1
+  metadata: {
+    updated_from: "/Users/you/projects/myapp"
+    updated_at: "2025-11-02T15:30:00.000Z"
+  }
+  files: [
+    {
+      path: ".env"
+      encrypted_env: "we/nqv7ZdXSAqOam1OQTX4FoT6pK..."
+    }
+  ]
+}
+```
+
+Comments and key order are still preserved, but only become visible after decryption (because they're inside the encrypted JSON).
 
 ## Complete Storage Example
 

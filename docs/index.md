@@ -104,6 +104,7 @@ envi restore
 
 - **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
+- **At-Rest Encryption** - Generate a per-repo `envi.maml` with `envi create-key` to encrypt captured values in `~/.envi/store/` (and the optional GitHub backup) so only people with the source repo can decrypt
 - **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
 - **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to restore env files to each isolated worktree

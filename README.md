@@ -11,6 +11,7 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 - **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
 - **Easy Restoration** - Restore env files on new systems or git worktrees when working with parallel AI agents
 - **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs
+- **At-Rest Encryption** - Optional per-repo encryption key (`envi.maml`) encrypts captured values in storage and the GitHub backup
 - **GitHub Integration** - Optional automatic version control
 - **Comment Preservation** - Keeps full-line and inline comments
 - **Monorepo Support** - Works seamlessly with monorepos
@@ -49,6 +50,7 @@ Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete docu
 - `envi restore` - Restore env files from storage
 - `envi pack` - Create encrypted blob for sharing with team members
 - `envi unpack <blob>` - Decrypt and restore configuration from blob
+- `envi create-key` - Generate `envi.maml` to enable at-rest encryption
 - `envi clear` - Delete stored configuration for current project
 - `envi global github enable` - Enable GitHub version control
 - `envi global github disable` - Disable GitHub version control

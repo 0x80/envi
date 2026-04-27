@@ -152,11 +152,25 @@ The `envi-store` repository is created as **PRIVATE** by default.
 Never make this repository public as it contains environment variable configurations.
 :::
 
+### Defense in Depth: At-Rest Encryption
+
+By default the `envi-store` repository contains your env values **in plaintext** — it relies entirely on GitHub's access control.
+
+For an extra layer, you can run [`envi create-key`](/commands/create-key) in each source repository. After that, `envi capture` writes encrypted ciphertext to `~/.envi/store/` (and therefore to the GitHub backup), so anyone who somehow gains read access to `envi-store` still can't read env values without also having access to the source repo. This is especially useful when:
+
+- Multiple people might end up with read access to `envi-store` over time
+- You're worried about accidental visibility changes or token leaks
+- You want the same key to also drive `envi pack` / `envi unpack` for sharing
+
+The key has to be present in each source repo for restore to work, so it only makes sense for repos you control.
+
 ### Best Practices
 
 **Personal use only** - The `envi-store` repository is meant for your personal use only. It stores all your environment configurations across different projects in one place for your convenience.
 
 **Keep the repository private** - Never change the repository visibility to public as it contains your environment configurations.
+
+**Consider at-rest encryption** - Add `envi.maml` to your source repos via [`envi create-key`](/commands/create-key) so the GitHub backup contains ciphertext rather than plaintext.
 
 **For sharing with team members** - Don't add collaborators to your `envi-store` repository. Instead, use [encrypted blobs](/guides/sharing-configs) to securely share environment configurations with team members temporarily.
 

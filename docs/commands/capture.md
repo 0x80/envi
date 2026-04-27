@@ -67,6 +67,26 @@ When you run `capture` multiple times:
 
 Files are sorted by path before comparison to ensure consistent results.
 
+If [encryption-at-rest](#encryption-at-rest-optional) is enabled, the comparison happens in plaintext space — fresh ciphertexts on every capture do not trigger spurious rewrites. Switching from a plaintext store to an encrypted one (or vice versa) always rewrites, so running `envi create-key` followed by `envi capture` reliably converts the existing store.
+
+## Encryption at Rest (Optional)
+
+By default, captured env values are written to `~/.envi/store/` in plaintext.
+
+If you generate a key with [`envi create-key`](/commands/create-key), `envi.maml` is written to your repository root with an `encryption_key`. From then on, `envi capture` encrypts each file's `env` block before writing:
+
+```bash
+$ envi capture
+...
+ℹ Encrypting env values with key from envi.maml
+◐ Saving to storage...
+✔ Captured environment files for '@myorg/myapp'
+```
+
+The on-disk MAML then has `encrypted_env` (a base64 ciphertext) instead of `env` for each file. This protects the values in `~/.envi/store/` and in the GitHub backup if you've enabled it. Anyone with read access to the source repo (and therefore `envi.maml`) can decrypt; anyone without it cannot.
+
+See [`envi create-key`](/commands/create-key) for the full encryption workflow and security considerations.
+
 ## Examples
 
 ### Basic Capture
@@ -108,4 +128,5 @@ $ envi capture
 ## Related Commands
 
 - [restore](/commands/restore) - Restore env files from storage
+- [create-key](/commands/create-key) - Enable at-rest encryption for captured values
 - [global github enable](/commands/global#enable) - Enable GitHub integration
