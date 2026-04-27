@@ -149,20 +149,20 @@ jobs:
       # `pnpm build`); the explicit Build step above already produced the
       # artifact.
       - name: Publish to npm
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ !fromJSON(inputs.dry_run) }}
         run: |
           npm publish --provenance --ignore-scripts --tag ${{ steps.version.outputs.dist_tag }}
 
       - name: Push version commit
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ !fromJSON(inputs.dry_run) }}
         run: git push origin HEAD:${{ github.ref_name }}
 
       - name: Push version tag
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ !fromJSON(inputs.dry_run) }}
         run: git push origin ${{ steps.version.outputs.tag }}
 
       - name: Create GitHub Release
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ !fromJSON(inputs.dry_run) }}
         run: |
           PRERELEASE_FLAG=""
           if [[ "${{ steps.version.outputs.prerelease }}" == "true" ]]; then
