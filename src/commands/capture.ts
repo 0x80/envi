@@ -63,12 +63,14 @@ export async function captureCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for .env files...");
-    const { files: envFilePaths, skippedTracked } =
-      await findEnvFiles(repoRoot);
+    const { files: envFilePaths, excluded } = await findEnvFiles(repoRoot);
 
-    if (skippedTracked.length > 0) {
+    if (excluded.length > 0) {
+      const preview = excluded.slice(0, 5).join(", ");
+      const more =
+        excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
-        `Skipped ${skippedTracked.length} file(s) tracked by git: ${skippedTracked.join(", ")}`,
+        `Skipped ${excluded.length} .env file(s) not in .gitignore: ${preview}${more}`,
       );
     }
 
