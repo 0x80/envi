@@ -101,7 +101,7 @@ const createKey = defineCommand({
     },
   },
   async run({ args }) {
-    await createKeyCommand({ force: args.force as boolean });
+    await createKeyCommand({ force: args.force });
   },
 });
 
@@ -176,7 +176,7 @@ const configRedactAdd = defineCommand({
     },
   },
   async run({ args }) {
-    await configRedactAddCommand(args.variable as string);
+    await configRedactAddCommand(args.variable);
   },
 });
 
@@ -194,7 +194,7 @@ const configRedactRemove = defineCommand({
     },
   },
   async run({ args }) {
-    await configRedactRemoveCommand(args.variable as string);
+    await configRedactRemoveCommand(args.variable);
   },
 });
 
@@ -236,7 +236,7 @@ const configManifestFilesAdd = defineCommand({
     },
   },
   async run({ args }) {
-    await configManifestFilesAddCommand(args.filename as string);
+    await configManifestFilesAddCommand(args.filename);
   },
 });
 
@@ -254,7 +254,7 @@ const configManifestFilesRemove = defineCommand({
     },
   },
   async run({ args }) {
-    await configManifestFilesRemoveCommand(args.filename as string);
+    await configManifestFilesRemoveCommand(args.filename);
   },
 });
 
