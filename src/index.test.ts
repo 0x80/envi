@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   captureCommand,
+  createKeyCommand,
   findEnvFiles,
   findRepoRoot,
+  generateKey,
   getStorageDir,
   getStorageFilename,
+  hasKeyFile,
+  KEY_FILE_NAME,
   parseEnvFile,
+  readEncryptionKey,
   saveToStorage,
+  writeEncryptionKey,
 } from "./index";
 
 describe("envi exports", () => {
@@ -22,5 +28,14 @@ describe("envi exports", () => {
     expect(getStorageDir).toBeDefined();
     expect(getStorageFilename).toBeDefined();
     expect(saveToStorage).toBeDefined();
+  });
+
+  it("should export key-file helpers (envi.maml encryption)", () => {
+    expect(KEY_FILE_NAME).toBe("envi.maml");
+    expect(typeof generateKey).toBe("function");
+    expect(typeof hasKeyFile).toBe("function");
+    expect(typeof readEncryptionKey).toBe("function");
+    expect(typeof writeEncryptionKey).toBe("function");
+    expect(typeof createKeyCommand).toBe("function");
   });
 });
