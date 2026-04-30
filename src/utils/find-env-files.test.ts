@@ -163,6 +163,24 @@ describe("findEnvFiles", () => {
       expect(filterGitIgnoredFiles).not.toHaveBeenCalled();
     });
 
+    it("returns .dev.vars matches without invoking the git filter", async () => {
+      vi.mocked(fg).mockResolvedValue([
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+      expect(result.excluded).toEqual([]);
+      expect(filterGitIgnoredFiles).not.toHaveBeenCalled();
+    });
+
     it("treats plain entries in a top-level .gitignore as directory patterns", async () => {
       vi.mocked(existsSync).mockReturnValue(true);
       const { readFileSync } = await import("node:fs");
