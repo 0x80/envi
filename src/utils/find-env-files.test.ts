@@ -65,6 +65,42 @@ describe("findEnvFiles", () => {
       expect(result.excluded).toEqual([".env"]);
     });
 
+    it("captures Cloudflare .dev.vars files alongside .env files", async () => {
+      /**
+       * `.dev.vars` and `.dev.vars.<env>` use the same key=value format as
+       * `.env` and hold the same kind of local secrets, so they should flow
+       * through capture identically.
+       */
+      vi.mocked(fg).mockResolvedValue([
+        ".env",
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([
+        ".env",
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([
+        ".env",
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+      expect(result.excluded).toEqual([]);
+
+      const patterns = vi.mocked(fg).mock.calls[0]?.[0];
+      expect(patterns).toContain(".dev.vars");
+      expect(patterns).toContain(".dev.vars.*");
+      expect(patterns).toContain("**/.dev.vars");
+      expect(patterns).toContain("**/.dev.vars.*");
+    });
+
     it("excludes untracked files that are not covered by a gitignore rule", async () => {
       /**
        * A new `.env` in a fresh dir without a matching ignore rule is neither
@@ -123,6 +159,24 @@ describe("findEnvFiles", () => {
       const result = await findEnvFiles("/project");
 
       expect(result.files).toEqual([".env", "apps/web/.env.local"]);
+      expect(result.excluded).toEqual([]);
+      expect(filterGitIgnoredFiles).not.toHaveBeenCalled();
+    });
+
+    it("returns .dev.vars matches without invoking the git filter", async () => {
+      vi.mocked(fg).mockResolvedValue([
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([
+        ".dev.vars",
+        ".dev.vars.staging",
+        "apps/worker/.dev.vars",
+      ]);
       expect(result.excluded).toEqual([]);
       expect(filterGitIgnoredFiles).not.toHaveBeenCalled();
     });

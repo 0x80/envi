@@ -1,6 +1,6 @@
 # capture
 
-Capture all `.env` files from a repository and store them in the global envi store.
+Capture all `.env` and `.dev.vars` files from a repository and store them in the global envi store.
 
 ## Usage
 
@@ -10,12 +10,12 @@ envi capture
 
 ## Description
 
-The `capture` command traverses your repository to find all environment files (`.env`, `.env.local`, `.env.production`, etc.) and stores them in `~/.envi/store/`.
+The `capture` command traverses your repository to find all environment files (`.env`, `.env.local`, `.env.production`, Cloudflare Workers' `.dev.vars` and per-environment variants, etc.) and stores them in `~/.envi/store/`.
 
 ## What It Does
 
 1. **Finds project root** - Looks for version control markers (`.git`, `.jj`, `.hg`, `.svn`), or prompts you to confirm the current directory
-2. **Discovers env files** - Recursively searches for `.env` and `.env.*` files
+2. **Discovers env files** - Recursively searches for `.env`, `.env.*`, `.dev.vars`, and `.dev.vars.*` files
 3. **Respects .gitignore** - Only uses directories from .gitignore if present, not file patterns
 4. **Parses files** - Extracts key-value pairs and preserves comments
 5. **Stores configuration** - Saves to `~/.envi/store/{package-name}.maml`
@@ -27,6 +27,8 @@ Envi finds files that match:
 
 - `.env` (exact match)
 - `.env.*` (anything with a dot separator, like `.env.local`, `.env.production`)
+- `.dev.vars` (Cloudflare Workers local secrets)
+- `.dev.vars.*` (per-environment variants — the suffix matches whatever environment names you've defined in your Wrangler configuration, e.g. `wrangler.toml` or `wrangler.jsonc`)
 
 Files are discovered recursively in all subdirectories, except:
 
@@ -96,7 +98,7 @@ $ envi capture
 ◐ Finding repository root...
 ℹ Repository root: /Users/you/projects/myapp
 ℹ Package name: @myorg/myapp
-◐ Searching for .env files...
+◐ Searching for env files...
 ✔ Found 3 file(s):
   - .env.local
   - apps/web/.env.production
