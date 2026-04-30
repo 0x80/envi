@@ -61,7 +61,7 @@ The recipient typically doesn't need to think about this — if the sender used 
 
 ## Examples
 
-### Projects with `envi.maml` (Recommended)
+### Projects with `envi.maml`
 
 When the sender used [`envi create-key`](/commands/create-key) and committed `envi.maml`, decryption is automatic:
 

@@ -119,11 +119,11 @@ This will:
 - Restore all `.env` files to their original locations
 - Preserve all comments (full-line and inline)
 
-## Encrypting at Rest (Optional)
+## Per-Repo Shared Key (Optional)
 
-By default, captured env values are stored in plaintext in `~/.envi/store/`. If you've enabled the [GitHub integration](/guides/github-integration), they're also pushed to your private `envi-store` repository in plaintext.
+By default, captured env values are stored in plaintext in `~/.envi/store/`, and `envi pack` derives its encryption key from your manifest file (`package.json`, `Cargo.toml`, etc.).
 
-You can opt in to **per-repo encryption-at-rest** by generating a key and committing it to the source repository:
+You can opt in to a per-repo shared key by generating one and committing it to the source repository:
 
 ```bash
 cd /path/to/your/project
@@ -131,16 +131,13 @@ envi create-key
 git add envi.maml && git commit -m "Add envi encryption key"
 ```
 
-Once `envi.maml` is present in the repo root, `envi capture` encrypts each file's values before writing to storage. `envi restore` automatically decrypts using the same `envi.maml`.
+Two things change after `envi.maml` exists:
 
-This means:
-
-- The stored MAML files (and the GitHub backup) contain ciphertext, not your env values
-- Only people with read access to your source repo can decrypt
-- `envi pack` and `envi unpack` also use this key, surviving dependency-file changes that would invalidate the manifest-derived default
+- `envi pack` / `envi unpack` use this key instead of the manifest-derived one, so shared blobs don't break the next time someone runs `pnpm install` (or any other dependency change).
+- `envi capture` writes encrypted entries to `~/.envi/store/` instead of plaintext. This mostly only matters when you also use the [GitHub integration](/guides/github-integration) — a leak of the GitHub backup alone won't expose env values without also leaking the source repo.
 
 ::: warning
-`envi.maml` is a shared secret. Only commit it to **private** repositories. Anyone with read access to the repo can decrypt your env values. See [`envi create-key`](/commands/create-key) for details.
+`envi.maml` is a shared secret. Only commit it to **private** repositories — anyone with read access can decrypt. On a public repo, `envi.maml` (and the manifest fallback) give no confidentiality; use a custom secret with `envi pack` instead. See [`envi create-key`](/commands/create-key) for details.
 :::
 
 ## Protecting Personal Tokens
@@ -193,13 +190,13 @@ Envi stores your environment configurations in:
 
 Files are stored in human-readable [MAML](https://maml.dev) format. See the [File Format](/file-format) documentation for technical details.
 
-If you've opted into [at-rest encryption](#encrypting-at-rest-optional), each repo also has an `envi.maml` at its root holding the per-repo `encryption_key` (and any future per-repo Envi config). Unlike `~/.envi/config.maml`, `envi.maml` is meant to be committed alongside source.
+If you've opted into the [per-repo shared key](#per-repo-shared-key-optional), each repo also has an `envi.maml` at its root holding the `encryption_key` (and any future per-repo Envi config). Unlike `~/.envi/config.maml`, `envi.maml` is meant to be committed alongside source.
 
 ## Next Steps
 
 - Learn about all available [commands](/commands/capture)
 - Understand [variable redaction](/commands/config) and how to protect personal tokens
-- Generate an [encryption key](/commands/create-key) to encrypt your stored env values
+- Add a [per-repo shared key](/commands/create-key) so `envi pack` blobs survive dependency updates
 - Learn about [sharing configurations](/guides/sharing-configs) with your team
 - Understand the [file format](/file-format) and how comments are preserved
 - Set up [GitHub integration](/guides/github-integration) for automatic version control

@@ -85,9 +85,9 @@ $ envi capture
 ✔ Captured environment files for '@myorg/myapp'
 ```
 
-The on-disk MAML then has `encrypted_env` (a base64 ciphertext) instead of `env` for each file. This protects the values in `~/.envi/store/` and in the GitHub backup if you've enabled it. Anyone with read access to the source repo (and therefore `envi.maml`) can decrypt; anyone without it cannot.
+The on-disk MAML then has `encrypted_env` (a base64 ciphertext) instead of `env` for each file. Anyone with read access to the source repo (and therefore `envi.maml`) can decrypt; anyone without it cannot.
 
-See [`envi create-key`](/commands/create-key) for the full encryption workflow and security considerations.
+This mostly only matters when you also use the [GitHub integration](/guides/github-integration) — encryption-at-rest means a leak of the `envi-store` backup alone won't expose env values without also leaking the source repo. On a single laptop, an attacker with disk access has both. See [`envi create-key`](/commands/create-key) for the full workflow and trade-offs.
 
 ## Examples
 
