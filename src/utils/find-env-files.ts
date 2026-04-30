@@ -85,7 +85,8 @@ function parseGitignoreDirsFallback(repoRoot: string): string[] {
 }
 
 /**
- * Find `.env` and `.env.*` files Envi should capture.
+ * Find env files Envi should capture: `.env`, `.env.*`, and Cloudflare
+ * Workers' `.dev.vars` / `.dev.vars.*` (which use the same key=value format).
  *
  * In a git repository, only files that git considers ignored are returned.
  * Files that are tracked or otherwise not covered by an ignore rule are placed
@@ -98,7 +99,16 @@ function parseGitignoreDirsFallback(repoRoot: string): string[] {
 export async function findEnvFiles(
   repoRoot: string,
 ): Promise<FindEnvFilesResult> {
-  const patterns = [".env", ".env.*", "**/.env", "**/.env.*"];
+  const patterns = [
+    ".env",
+    ".env.*",
+    ".dev.vars",
+    ".dev.vars.*",
+    "**/.env",
+    "**/.env.*",
+    "**/.dev.vars",
+    "**/.dev.vars.*",
+  ];
 
   const inGitRepo = isGitRepo(repoRoot);
   const ignorePatterns = inGitRepo
@@ -121,7 +131,7 @@ export async function findEnvFiles(
     ignored = await filterGitIgnoredFiles(repoRoot, candidates);
   } catch (error) {
     consola.warn(
-      `Could not check gitignore status (${getErrorMessage(error)}). Capturing all matched .env files.`,
+      `Could not check gitignore status (${getErrorMessage(error)}). Capturing all matched env files.`,
     );
     return { files: candidates, excluded: [] };
   }

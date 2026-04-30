@@ -23,10 +23,15 @@ describe("findEnvFiles (integration)", () => {
     });
     await execa("git", ["config", "user.name", "Test"], { cwd: repoRoot });
 
-    /** Root: ignore `.env`, but allow `.env.shared` */
-    writeFileSync(join(repoRoot, ".gitignore"), ".env\n");
+    /** Root: ignore `.env` and `.dev.vars*`, but allow `.env.shared` */
+    writeFileSync(
+      join(repoRoot, ".gitignore"),
+      ".env\n.dev.vars\n.dev.vars.*\n",
+    );
     writeFileSync(join(repoRoot, ".env"), "ROOT_SECRET=1\n");
     writeFileSync(join(repoRoot, ".env.shared"), "ROOT_SHARED=1\n");
+    writeFileSync(join(repoRoot, ".dev.vars"), "CF_SECRET=1\n");
+    writeFileSync(join(repoRoot, ".dev.vars.staging"), "CF_STAGING=1\n");
 
     /** Apps/web: nested .gitignore adds `.env.local` */
     mkdirSync(join(repoRoot, "apps/web"), { recursive: true });
@@ -59,6 +64,8 @@ describe("findEnvFiles (integration)", () => {
     const result = await findEnvFiles(repoRoot);
 
     expect(result.files.sort()).toEqual([
+      ".dev.vars",
+      ".dev.vars.staging",
       ".env",
       "apps/web/.env",
       "apps/web/.env.local",

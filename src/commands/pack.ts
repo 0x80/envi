@@ -39,7 +39,7 @@ export async function packCommand(): Promise<void> {
     consola.info(`Repository root: ${repoRoot}`);
 
     /** Find all env files */
-    consola.start("Searching for .env files...");
+    consola.start("Searching for env files...");
     const { files: envFilePaths, excluded } = await findEnvFiles(repoRoot);
 
     if (excluded.length > 0) {
@@ -47,13 +47,13 @@ export async function packCommand(): Promise<void> {
       const more =
         excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
-        `Skipped ${excluded.length} .env file(s) not ignored by git: ${preview}${more}`,
+        `Skipped ${excluded.length} env file(s) not ignored by git: ${preview}${more}`,
       );
     }
 
     if (envFilePaths.length === 0) {
-      consola.error("No .env files found in repository.");
-      consola.info("Add some .env files first before packing.");
+      consola.error("No env files found in repository.");
+      consola.info("Add some .env or .dev.vars files first before packing.");
       process.exit(1);
     }
 

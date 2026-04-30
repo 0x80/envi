@@ -1,6 +1,6 @@
 # Envi
 
-Environment file management tool - Capture, store, and restore `.env` files across your projects.
+Environment file management tool - Capture, store, and restore `.env` and `.dev.vars` files across your projects.
 
 [![NPM Version](https://img.shields.io/npm/v/@codecompose/envi)](https://www.npmjs.com/package/@codecompose/envi)
 [![License](https://img.shields.io/npm/l/@codecompose/envi)](LICENSE)
@@ -8,7 +8,7 @@ Environment file management tool - Capture, store, and restore `.env` files acro
 
 ## Features
 
-- **Centralized Storage** - Capture all `.env` files into a central, version-controlled location
+- **Centralized Storage** - Capture all `.env` and Cloudflare Workers `.dev.vars` files into a central, version-controlled location
 - **Easy Restoration** - Restore env files on new systems or git worktrees when working with parallel AI agents
 - **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs
 - **At-Rest Encryption** - Optional per-repo encryption key (`envi.maml`) encrypts captured values in storage and the GitHub backup
@@ -46,7 +46,7 @@ Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete docu
 
 ## Commands
 
-- `envi capture` - Capture all .env files from repository
+- `envi capture` - Capture all .env and .dev.vars files from repository
 - `envi restore` - Restore env files from storage
 - `envi pack` - Create encrypted blob for sharing with team members
 - `envi unpack <blob>` - Decrypt and restore configuration from blob

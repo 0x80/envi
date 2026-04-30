@@ -27,7 +27,7 @@ import {
 const capture = defineCommand({
   meta: {
     name: "capture",
-    description: "Capture all .env files from repository",
+    description: "Capture all .env and .dev.vars files from repository",
   },
   async run() {
     await captureCommand();
