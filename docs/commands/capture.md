@@ -28,7 +28,7 @@ Envi finds files that match:
 - `.env` (exact match)
 - `.env.*` (anything with a dot separator, like `.env.local`, `.env.production`)
 - `.dev.vars` (Cloudflare Workers local secrets)
-- `.dev.vars.*` (per-environment variants — the suffix matches whatever environment names you've defined in `wrangler.jsonc`)
+- `.dev.vars.*` (per-environment variants — the suffix matches whatever environment names you've defined in your Wrangler configuration, e.g. `wrangler.toml` or `wrangler.jsonc`)
 
 Files are discovered recursively in all subdirectories, except:
 

@@ -23,7 +23,7 @@ describe("findEnvFiles (integration)", () => {
     });
     await execa("git", ["config", "user.name", "Test"], { cwd: repoRoot });
 
-    /** Root: ignore `.env` and `.dev.vars*`, but allow `.env.shared` */
+    /** Root: ignore `.env`, `.dev.vars`, and `.dev.vars.*`; allow `.env.shared` */
     writeFileSync(
       join(repoRoot, ".gitignore"),
       ".env\n.dev.vars\n.dev.vars.*\n",

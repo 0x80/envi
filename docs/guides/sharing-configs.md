@@ -16,7 +16,7 @@ Envi allows you to securely share environment configurations with team members t
 **Sender (creating the blob):**
 
 ```bash
-# Pack reads .env files directly from your repository
+# Pack reads env files directly from your repository
 # No need to capture first!
 envi pack
 # Blob is automatically copied to clipboard

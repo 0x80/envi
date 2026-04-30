@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Envi
   text: Environment File Management
-  tagline: Capture, store, and restore .env files across your projects with ease
+  tagline: Capture, store, and restore .env and .dev.vars files across your projects with ease
   actions:
     - theme: brand
       text: Get Started
@@ -30,7 +30,7 @@ features:
         <line x1="12" x2="12" y1="22" y2="12"/>
       </svg>
     title: Centralized Storage
-    details: Capture all .env files from all your codebases into a central location that can be version controlled
+    details: Capture all .env and .dev.vars files from all your codebases into a central location that can be version controlled
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -72,7 +72,7 @@ features:
         <path d="M16 17H8"/>
       </svg>
     title: Content Preservation
-    details: Preserves both comments (full-line and inline) and key order from your .env files
+    details: Preserves both comments (full-line and inline) and key order from your env files
 ---
 
 ## Quick Start
@@ -102,16 +102,16 @@ envi restore
 
 ## Notable Features
 
-- **Centralized Storage** - Capture all `.env` files into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
+- **Centralized Storage** - Capture all `.env` and Cloudflare Workers `.dev.vars` files into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
 - **At-Rest Encryption** - Generate a per-repo `envi.maml` with `envi create-key` to encrypt captured values in `~/.envi/store/` (and the optional GitHub backup) so only people with the source repo can decrypt
-- **Monorepo Support** - Automatically discovers and captures all `.env` files across your entire monorepo structure, preserving relative paths
+- **Monorepo Support** - Automatically discovers and captures all `.env` and `.dev.vars` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
 - **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to restore env files to each isolated worktree
 - **Content Preservation** - Preserves both comments (full-line and inline) and key order from your original files
 - **Variable Redaction** - Protect personal tokens and developer-specific credentials from being shared. Configure variables like `GITHUB_PAT` to be automatically redacted when capturing or packing
 - **100% Test Coverage** - Core business logic (encryption, compression, parsing, storage) is fully tested for reliability
-- **Language Agnostic** - Install globally to manage `.env` files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JS/TS
+- **Language Agnostic** - Install globally to manage env files for projects in any language - Rust, Go, Python, PHP, Java, Ruby, Dart, and more. Not limited to JS/TS
 - **Human-Readable Format** - Stores configurations in [MAML](https://maml.dev) format, which guarantees key order preservation
 
 ## Learn More
