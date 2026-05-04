@@ -65,7 +65,11 @@ export async function captureCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for env files...");
-    const { files: envFilePaths, excluded } = await findEnvFiles(repoRoot);
+    const {
+      files: envFilePaths,
+      excluded,
+      skippedNestedVcsRoots,
+    } = await findEnvFiles(repoRoot);
 
     if (excluded.length > 0) {
       const preview = excluded.slice(0, 5).join(", ");
@@ -73,6 +77,17 @@ export async function captureCommand(): Promise<void> {
         excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
         `Skipped ${excluded.length} env file(s) not ignored by git: ${preview}${more}`,
+      );
+    }
+
+    if (skippedNestedVcsRoots.length > 0) {
+      const preview = skippedNestedVcsRoots.slice(0, 5).join(", ");
+      const more =
+        skippedNestedVcsRoots.length > 5
+          ? ` (...and ${skippedNestedVcsRoots.length - 5} more)`
+          : "";
+      consola.info(
+        `Skipped ${skippedNestedVcsRoots.length} env file(s) inside nested repos/worktrees: ${preview}${more}`,
       );
     }
 

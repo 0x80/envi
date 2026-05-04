@@ -111,10 +111,19 @@ describe("findEnvFiles (integration)", () => {
       const result = await findEnvFiles(repoRoot);
       const all = [...result.files, ...result.excluded];
 
+      /** Nested-VCS files must not leak into files or excluded */
       expect(all).not.toContain(".worktrees/feature/.env");
       expect(all).not.toContain(".worktrees/feature/services/api/.dev.vars");
       expect(all).not.toContain("vendor/nested-clone/.env");
       expect(all).not.toContain("tools/jj-thing/.env");
+
+      /** They must, however, surface in skippedNestedVcsRoots */
+      expect(result.skippedNestedVcsRoots.sort()).toEqual([
+        ".worktrees/feature/.env",
+        ".worktrees/feature/services/api/.dev.vars",
+        "tools/jj-thing/.env",
+        "vendor/nested-clone/.env",
+      ]);
 
       /** Sanity: legitimate root-level files still get captured */
       expect(result.files).toContain(".env");

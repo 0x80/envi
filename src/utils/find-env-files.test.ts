@@ -146,6 +146,52 @@ describe("findEnvFiles", () => {
       /** No .gitignore-derived patterns when in a git repo */
       expect(existsSync).not.toHaveBeenCalled();
     });
+
+    it("disables symlink following so pnpm links don't produce phantom paths", async () => {
+      /**
+       * Without this option fast-glob descends into pnpm's
+       * `node_modules/.pnpm/...@repo/*` symlinks, surfacing duplicate paths
+       * and triggering `git check-ignore: ... is beyond a symbolic link`.
+       */
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const options = vi.mocked(fg).mock.calls[0]?.[1];
+      expect(options?.followSymbolicLinks).toBe(false);
+    });
+
+    it("partitions candidates inside a nested VCS root into skippedNestedVcsRoots", async () => {
+      /**
+       * `.worktrees/feature/.env` is inside a directory that contains a `.git`
+       * marker — it must not flow to `files` or `excluded` and must surface in
+       * `skippedNestedVcsRoots` so the CLI can tell the user why.
+       */
+      vi.mocked(fg).mockResolvedValue([
+        ".env",
+        ".worktrees/feature/.env",
+        ".worktrees/feature/services/api/.dev.vars",
+      ]);
+      vi.mocked(existsSync).mockImplementation((path) => {
+        const p = String(path);
+        return p === "/project/.worktrees/feature/.git";
+      });
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([".env"]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env"]);
+      expect(result.excluded).toEqual([]);
+      expect(result.skippedNestedVcsRoots.sort()).toEqual([
+        ".worktrees/feature/.env",
+        ".worktrees/feature/services/api/.dev.vars",
+      ]);
+      /** The nested paths must not be passed to git check-ignore either */
+      const passedToCheckIgnore = vi.mocked(filterGitIgnoredFiles).mock
+        .calls[0]?.[1];
+      expect(passedToCheckIgnore).toEqual([".env"]);
+    });
   });
 
   describe("outside a git repository", () => {
