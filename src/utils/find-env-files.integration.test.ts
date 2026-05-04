@@ -151,7 +151,12 @@ describe("findEnvFiles (integration)", () => {
 
     const linkerDir = join(repoRoot, "linker");
     mkdirSync(linkerDir, { recursive: true });
-    symlinkSync(realPkgDir, join(linkerDir, "linked-pkg"), "dir");
+    /**
+     * Use `junction` so the test runs on Windows without admin/Developer
+     * Mode. On non-Windows the type argument is ignored and Node creates a
+     * regular directory symlink — which is what we need fast-glob to skip.
+     */
+    symlinkSync(realPkgDir, join(linkerDir, "linked-pkg"), "junction");
 
     try {
       const result = await findEnvFiles(repoRoot);
