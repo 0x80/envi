@@ -1,8 +1,9 @@
 import { consola } from "consola";
 import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
+import { VCS_MARKERS } from "./find-repo-root";
 import { getErrorMessage } from "./get-error-message";
 
 /**
@@ -85,6 +86,42 @@ function parseGitignoreDirsFallback(repoRoot: string): string[] {
 }
 
 /**
+ * Filter out candidate paths that live inside a nested VCS root.
+ *
+ * For each candidate, walks upward from its parent directory toward (but not
+ * including) the repo root. If any intermediate directory contains a VCS marker
+ * (`.git`, `.jj`, `.hg`, `.svn`), the candidate is rejected. The repo root
+ * itself always has a marker; that's the whole point of being the root, so it
+ * is never considered.
+ *
+ * Per-directory check results are memoized so a deeply nested worktree only
+ * pays the existsSync cost once per ancestor.
+ */
+function filterNestedVcsRoots(
+  repoRoot: string,
+  candidates: string[],
+): string[] {
+  const cache = new Map<string, boolean>();
+
+  function isNestedVcsRoot(dir: string): boolean {
+    const cached = cache.get(dir);
+    if (cached !== undefined) return cached;
+    const result = VCS_MARKERS.some((marker) => existsSync(join(dir, marker)));
+    cache.set(dir, result);
+    return result;
+  }
+
+  return candidates.filter((relPath) => {
+    let dir = dirname(join(repoRoot, relPath));
+    while (dir !== repoRoot && dir !== dirname(dir)) {
+      if (isNestedVcsRoot(dir)) return false;
+      dir = dirname(dir);
+    }
+    return true;
+  });
+}
+
+/**
  * Find env files Envi should capture: `.env`, `.env.*`, and Cloudflare
  * Workers' `.dev.vars` / `.dev.vars.*` (which use the same key=value format).
  *
@@ -115,12 +152,25 @@ export async function findEnvFiles(
     ? DEFAULT_IGNORE_PATTERNS
     : [...DEFAULT_IGNORE_PATTERNS, ...parseGitignoreDirsFallback(repoRoot)];
 
-  const candidates = await fg(patterns, {
+  const rawCandidates = await fg(patterns, {
     cwd: repoRoot,
     dot: true,
     absolute: false,
     ignore: ignorePatterns,
+    /**
+     * Don't follow symlinks. pnpm's workspace links would otherwise produce
+     * phantom paths under `node_modules/.pnpm/...` and break `git check-ignore`
+     * with "beyond a symbolic link".
+     */
+    followSymbolicLinks: false,
   });
+
+  /**
+   * Drop any candidate that lives inside a nested VCS root (git worktree,
+   * submodule, nested clone, jj/hg/svn checkout). These are independent working
+   * trees with their own state and must be captured from their own directory.
+   */
+  const candidates = filterNestedVcsRoots(repoRoot, rawCandidates);
 
   if (!inGitRepo) {
     return { files: candidates, excluded: [] };
