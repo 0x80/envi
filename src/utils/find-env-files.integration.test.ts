@@ -172,6 +172,43 @@ describe("findEnvFiles (integration)", () => {
     }
   });
 
+  it("captures user-provided additional patterns at root and nested depths", async () => {
+    /**
+     * When the per-repo config declares `capture_patterns: [".flaskenv"]`,
+     * findEnvFiles should pick up `.flaskenv` at any depth. The `.flaskenv`
+     * line in `.gitignore` (no leading slash) applies at every depth, so
+     * both the root and nested file are git-ignored and therefore captured.
+     *
+     * Fixture content uses plain `KEY=value` because this test exercises
+     * file discovery only — we deliberately avoid shell-style content (e.g.
+     * direnv's `export FOO=bar`) since Envi's parser doesn't strip `export`.
+     */
+    writeFileSync(
+      join(repoRoot, ".gitignore"),
+      ".env\n.dev.vars\n.dev.vars.*\n.flaskenv\n",
+    );
+    writeFileSync(join(repoRoot, ".flaskenv"), "ROOT_FLASK=1\n");
+
+    const nestedDir = join(repoRoot, "packages/api");
+    writeFileSync(join(nestedDir, ".flaskenv"), "API_FLASK=1\n");
+
+    try {
+      const result = await findEnvFiles(repoRoot, {
+        additionalPatterns: [".flaskenv"],
+      });
+
+      expect(result.files).toContain(".flaskenv");
+      expect(result.files).toContain("packages/api/.flaskenv");
+    } finally {
+      writeFileSync(
+        join(repoRoot, ".gitignore"),
+        ".env\n.dev.vars\n.dev.vars.*\n",
+      );
+      rmSync(join(repoRoot, ".flaskenv"), { force: true });
+      rmSync(join(nestedDir, ".flaskenv"), { force: true });
+    }
+  });
+
   it("excludes a file that has been force-added", async () => {
     /**
      * Force-add the root `.env` despite the ignore rule. It is now tracked, so

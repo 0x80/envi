@@ -128,16 +128,16 @@ You can opt in to a per-repo shared key by generating one and committing it to t
 ```bash
 cd /path/to/your/project
 envi create-key
-git add envi.maml && git commit -m "Add envi encryption key"
+git add envi.config.maml && git commit -m "Add envi encryption key"
 ```
 
-Two things change after `envi.maml` exists:
+Two things change after `envi.config.maml` exists:
 
 - `envi pack` / `envi unpack` use this key instead of the manifest-derived one, so shared blobs don't break the next time someone runs `pnpm install` (or any other dependency change).
 - `envi capture` writes encrypted entries to `~/.envi/store/` instead of plaintext. This mostly only matters when you also use the [GitHub integration](/guides/github-integration) — a leak of the GitHub backup alone won't expose env values without also leaking the source repo.
 
 ::: warning
-`envi.maml` is a shared secret. Only commit it to **private** repositories — anyone with read access can decrypt. On a public repo, `envi.maml` (and the manifest fallback) give no confidentiality; use a custom secret with `envi pack` instead. See [`envi create-key`](/commands/create-key) for details.
+`envi.config.maml` is a shared secret. Only commit it to **private** repositories — anyone with read access can decrypt. On a public repo, `envi.config.maml` (and the manifest fallback) give no confidentiality; use a custom secret with `envi pack` instead. See [`envi create-key`](/commands/create-key) for details.
 :::
 
 ## Protecting Personal Tokens
@@ -190,7 +190,7 @@ Envi stores your environment configurations in:
 
 Files are stored in human-readable [MAML](https://maml.dev) format. See the [File Format](/file-format) documentation for technical details.
 
-If you've opted into the [per-repo shared key](#per-repo-shared-key-optional), each repo also has an `envi.maml` at its root holding the `encryption_key` (and any future per-repo Envi config). Unlike `~/.envi/config.maml`, `envi.maml` is meant to be committed alongside source.
+If you've opted into the [per-repo shared key](#per-repo-shared-key-optional), each repo also has an `envi.config.maml` at its root holding the `encryption_key` (and any future per-repo Envi config). Unlike `~/.envi/config.maml`, `envi.config.maml` is meant to be committed alongside source.
 
 ## Next Steps
 

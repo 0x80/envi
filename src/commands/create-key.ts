@@ -1,6 +1,7 @@
 import { consola } from "consola";
 import {
   KEY_FILE_NAME,
+  findKeyFile,
   generateKey,
   hasKeyFile,
   readEncryptionKey,
@@ -9,12 +10,13 @@ import {
 import { findRepoRoot, getErrorMessage } from "~/utils";
 
 export interface CreateKeyOptions {
-  /** Overwrite an existing encryption_key in envi.maml */
+  /** Overwrite an existing encryption_key in envi.config.maml */
   force?: boolean;
 }
 
 /**
- * Generate a per-repo encryption key and write it to envi.maml.
+ * Generate a per-repo encryption key and write it to envi.config.maml (or to
+ * the legacy envi.maml if that's the file already on disk).
  *
  * Used to enable encryption-at-rest for `envi capture` / `envi restore`, and
  * preferred over manifest-derived keys by `envi pack` / `envi unpack`.
@@ -33,8 +35,9 @@ export async function createKeyCommand(
     consola.info(`Repository root: ${repoRoot}`);
 
     if (hasKeyFile(repoRoot) && readEncryptionKey(repoRoot) && !force) {
+      const existing = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
       consola.error(
-        `${KEY_FILE_NAME} already contains an encryption_key. Re-run with --force to replace it.`,
+        `${existing} already contains an encryption_key. Re-run with --force to replace it.`,
       );
       consola.warn(
         "Replacing the key will make any previously captured stores unreadable until re-captured.",
@@ -43,14 +46,14 @@ export async function createKeyCommand(
     }
 
     const key = generateKey();
-    writeEncryptionKey(repoRoot, key, { force });
+    const written = writeEncryptionKey(repoRoot, key, { force });
 
-    consola.success(`Wrote encryption_key to ${KEY_FILE_NAME}`);
+    consola.success(`Wrote encryption_key to ${written}`);
     consola.info("");
     consola.info("Next steps:");
-    consola.info(`  1. Commit ${KEY_FILE_NAME} so collaborators can decrypt.`);
+    consola.info(`  1. Commit ${written} so collaborators can decrypt.`);
     consola.info(
-      `     Do NOT add ${KEY_FILE_NAME} to .gitignore — it must be tracked.`,
+      `     Do NOT add ${written} to .gitignore — it must be tracked.`,
     );
     consola.info(
       "  2. Make sure this repository is private. Anyone with read access",

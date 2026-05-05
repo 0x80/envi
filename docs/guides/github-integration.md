@@ -170,7 +170,7 @@ The key has to be present in each source repo for restore to work, so it only ma
 
 **Keep the repository private** - Never change the repository visibility to public as it contains your environment configurations.
 
-**Consider at-rest encryption** - Add `envi.maml` to your source repos via [`envi create-key`](/commands/create-key) so the GitHub backup contains ciphertext rather than plaintext.
+**Consider at-rest encryption** - Add `envi.config.maml` to your source repos via [`envi create-key`](/commands/create-key) so the GitHub backup contains ciphertext rather than plaintext.
 
 **For sharing with team members** - Don't add collaborators to your `envi-store` repository. Instead, use [encrypted blobs](/guides/sharing-configs) to securely share environment configurations with team members temporarily.
 

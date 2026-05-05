@@ -3,13 +3,16 @@ import {
   captureCommand,
   createKeyCommand,
   findEnvFiles,
+  findKeyFile,
   findRepoRoot,
   generateKey,
   getStorageDir,
   getStorageFilename,
   hasKeyFile,
   KEY_FILE_NAME,
+  LEGACY_KEY_FILE_NAME,
   parseEnvFile,
+  readCapturePatterns,
   readEncryptionKey,
   saveToStorage,
   writeEncryptionKey,
@@ -30,11 +33,14 @@ describe("envi exports", () => {
     expect(saveToStorage).toBeDefined();
   });
 
-  it("should export key-file helpers (envi.maml encryption)", () => {
-    expect(KEY_FILE_NAME).toBe("envi.maml");
+  it("should export key-file helpers (envi.config.maml encryption)", () => {
+    expect(KEY_FILE_NAME).toBe("envi.config.maml");
+    expect(LEGACY_KEY_FILE_NAME).toBe("envi.maml");
     expect(typeof generateKey).toBe("function");
     expect(typeof hasKeyFile).toBe("function");
+    expect(typeof findKeyFile).toBe("function");
     expect(typeof readEncryptionKey).toBe("function");
+    expect(typeof readCapturePatterns).toBe("function");
     expect(typeof writeEncryptionKey).toBe("function");
     expect(typeof createKeyCommand).toBe("function");
   });

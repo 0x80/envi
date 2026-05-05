@@ -27,7 +27,8 @@ import {
 const capture = defineCommand({
   meta: {
     name: "capture",
-    description: "Capture all .env and .dev.vars files from repository",
+    description:
+      "Capture files outside of version control (.env, .dev.vars, plus any capture_patterns) from repository",
   },
   async run() {
     await captureCommand();
@@ -92,7 +93,7 @@ const createKey = defineCommand({
   meta: {
     name: "create-key",
     description:
-      "Generate an encryption_key in envi.maml for at-rest encryption",
+      "Generate an encryption_key in envi.config.maml for at-rest encryption",
   },
   args: {
     force: {

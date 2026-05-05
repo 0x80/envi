@@ -11,33 +11,33 @@ envi create-key --force
 
 ## Description
 
-`create-key` generates a cryptographically random key and writes it to `envi.maml` at the repository root. `envi.maml` is meant to be **committed to the repository** so every collaborator inherits the key automatically.
+`create-key` generates a cryptographically random key and writes it to `envi.config.maml` at the repository root. `envi.config.maml` is meant to be **committed to the repository** so every collaborator inherits the key automatically.
 
 This is a convenience feature, not a security one. It exists to solve two specific annoyances:
 
 - `envi pack` / `envi unpack` get a key that doesn't change when your manifest does, so blobs don't break the next time someone runs `pnpm install`.
 - `envi capture` writes encrypted entries to `~/.envi/store/` instead of plaintext — mainly useful when you back that store up to GitHub via [`envi global github enable`](/commands/global), so a leak of the backup doesn't expose env values without also leaking the source repo.
 
-If neither of those bothers you, you don't need `envi.maml` — `envi pack` / `envi unpack` work fine using a manifest-derived key, and `envi capture` is fine writing plaintext locally.
+If neither of those bothers you, you don't need `envi.config.maml` — `envi pack` / `envi unpack` work fine using a manifest-derived key, and `envi capture` is fine writing plaintext locally.
 
 ## Why a Key File?
 
 The two situations where running `create-key` is worth it:
 
-- **Shared blobs that outlive dependency updates.** The default for `envi pack` derives the key from `package.json` / `Cargo.toml` / etc., so the key changes on every dependency bump. A committed `envi.maml` is stable across those changes.
-- **Encrypted GitHub backup.** When `~/.envi/store/` is pushed to GitHub via [`envi global github enable`](/commands/global), `envi.maml` makes the backup encrypted instead of plaintext. The source repo holds the key, so a backup-only leak isn't enough to decrypt.
+- **Shared blobs that outlive dependency updates.** The default for `envi pack` derives the key from `package.json` / `Cargo.toml` / etc., so the key changes on every dependency bump. A committed `envi.config.maml` is stable across those changes.
+- **Encrypted GitHub backup.** When `~/.envi/store/` is pushed to GitHub via [`envi global github enable`](/commands/global), `envi.config.maml` makes the backup encrypted instead of plaintext. The source repo holds the key, so a backup-only leak isn't enough to decrypt.
 - **No secret to share.** Every collaborator who clones the repo automatically has the key — no out-of-band exchange.
 
 ## What It Does
 
 1. **Finds repository root** - Same logic as `capture`/`restore`
-2. **Refuses if already set** - If `envi.maml` already contains an `encryption_key`, the command exits unless `--force` is passed
+2. **Refuses if already set** - If `envi.config.maml` already contains an `encryption_key`, the command exits unless `--force` is passed
 3. **Generates 32 bytes of random data** as a base64url string
-4. **Writes `envi.maml`** - Creates a new file with a header comment, or inserts the key into an existing `envi.maml` while preserving other content
+4. **Writes `envi.config.maml`** - Creates a new file with a header comment, or inserts the key into an existing `envi.config.maml` while preserving other content
 
 ## File Format
 
-A freshly created `envi.maml` looks like:
+A freshly created `envi.config.maml` looks like:
 
 ```maml
 {
@@ -56,7 +56,13 @@ A freshly created `envi.maml` looks like:
 }
 ```
 
-`envi.maml` is also where any future per-repo Envi configuration would live — `encryption_key` is just the first field.
+`envi.config.maml` is also where per-repo Envi configuration lives — for example, the optional [`capture_patterns`](/commands/capture#custom-capture-patterns) array that extends which files `envi capture` picks up.
+
+::: tip Legacy filename
+
+Earlier versions of Envi called this file `envi.maml` (no `config` segment). The legacy filename is still read so already-committed files keep working — Envi prints a one-line hint suggesting you rename to `envi.config.maml` the first time it sees the legacy file in a session. New files written by `envi create-key` always use the canonical name; if you have a legacy file checked in, edit it in place or rename and commit `envi.config.maml` whenever it's convenient.
+
+:::
 
 ## Examples
 
@@ -66,11 +72,11 @@ A freshly created `envi.maml` looks like:
 $ envi create-key
 ◐ Finding repository root...
 ℹ Repository root: /Users/you/projects/myapp
-✔ Wrote encryption_key to envi.maml
+✔ Wrote encryption_key to envi.config.maml
 ℹ
 ℹ Next steps:
-ℹ   1. Commit envi.maml so collaborators can decrypt.
-ℹ      Do NOT add envi.maml to .gitignore — it must be tracked.
+ℹ   1. Commit envi.config.maml so collaborators can decrypt.
+ℹ      Do NOT add envi.config.maml to .gitignore — it must be tracked.
 ℹ   2. Make sure this repository is private. Anyone with read access
 ℹ      can decrypt env values captured with this key.
 ℹ   3. Run `envi capture` to write encrypted env values.
@@ -82,7 +88,7 @@ $ envi create-key
 $ envi create-key
 ℹ Repository root: /Users/you/projects/myapp
 
- ERROR  envi.maml already contains an encryption_key. Re-run with --force to replace it.
+ ERROR  envi.config.maml already contains an encryption_key. Re-run with --force to replace it.
 
  WARN   Replacing the key will make any previously captured stores unreadable until re-captured.
 ```
@@ -92,7 +98,7 @@ $ envi create-key
 ```bash
 $ envi create-key --force
 ℹ Repository root: /Users/you/projects/myapp
-✔ Wrote encryption_key to envi.maml
+✔ Wrote encryption_key to envi.config.maml
 ```
 
 After rotating the key, run `envi capture` to re-encrypt the store with the new key. Any previously stored data encrypted with the old key cannot be restored.
@@ -113,12 +119,12 @@ The key is 32 bytes of cryptographically random data. There's no built-in increm
 
 ## Related Commands
 
-- [`envi capture`](/commands/capture) - Encrypts when `envi.maml` is present
-- [`envi restore`](/commands/restore) - Decrypts using `envi.maml`
-- [`envi pack`](/commands/pack) - Prefers `envi.maml` over manifest-derived keys
-- [`envi unpack`](/commands/unpack) - Tries `envi.maml` first when decrypting
+- [`envi capture`](/commands/capture) - Encrypts when `envi.config.maml` is present
+- [`envi restore`](/commands/restore) - Decrypts using `envi.config.maml`
+- [`envi pack`](/commands/pack) - Prefers `envi.config.maml` over manifest-derived keys
+- [`envi unpack`](/commands/unpack) - Tries `envi.config.maml` first when decrypting
 
 ## See Also
 
-- [Sharing Environment Configurations](/guides/sharing-configs) - Full sharing guide including `envi.maml` workflow
+- [Sharing Environment Configurations](/guides/sharing-configs) - Full sharing guide including `envi.config.maml` workflow
 - [GitHub Integration](/guides/github-integration) - Why encrypting at rest matters for the GitHub backup

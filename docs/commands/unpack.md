@@ -53,17 +53,17 @@ This makes sharing incredibly seamless - your team member runs `envi pack`, you 
 
 `unpack` tries decryption keys in this order:
 
-1. **`envi.maml` with `encryption_key`** (preferred) - If `envi.maml` is committed in the repo, this is the first thing tried.
+1. **`envi.config.maml` with `encryption_key`** (preferred) - If `envi.config.maml` is committed in the repo, this is the first thing tried.
 2. **Manifest-derived key** - For each configured manifest file (`package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `composer.json`, `pubspec.yaml`, `pom.xml`, `settings.gradle.kts`, `settings.gradle`), `unpack` derives an MD5-hash key and tries it. **Custom manifests** can be added via `envi config manifest_files add <filename>` - see [Multi-Language Support](/guides/multi-language-support#managing-manifest-files).
 3. **Custom secret prompt** - If none of the above succeed, you'll be prompted to enter a secret. This is the path used for blobs encrypted with a custom secret on the sender's side.
 
-The recipient typically doesn't need to think about this — if the sender used `envi pack` from a checkout with `envi.maml`, every collaborator with the same checkout decrypts automatically. If they used a manifest-derived key, anyone in the same codebase decrypts automatically. If they used a custom secret, the sender shares it via a separate secure channel.
+The recipient typically doesn't need to think about this — if the sender used `envi pack` from a checkout with `envi.config.maml`, every collaborator with the same checkout decrypts automatically. If they used a manifest-derived key, anyone in the same codebase decrypts automatically. If they used a custom secret, the sender shares it via a separate secure channel.
 
 ## Examples
 
-### Projects with `envi.maml`
+### Projects with `envi.config.maml`
 
-When the sender used [`envi create-key`](/commands/create-key) and committed `envi.maml`, decryption is automatic:
+When the sender used [`envi create-key`](/commands/create-key) and committed `envi.config.maml`, decryption is automatic:
 
 ```bash
 envi unpack
@@ -78,14 +78,14 @@ Output:
 Blob format validated
 ✔ Finding repository root...
 Repository root: /Users/you/projects/myapp
-ℹ Found encryption_key in envi.maml - attempting decryption
+ℹ Found encryption_key in envi.config.maml - attempting decryption
 ✔ Decrypting configuration...
-✔ Decryption successful using envi.maml
+✔ Decryption successful using envi.config.maml
 ```
 
 ### Projects with Manifest Files (from clipboard)
 
-If the sender packed without `envi.maml`, manifest-derived decryption is the next fallback (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
+If the sender packed without `envi.config.maml`, manifest-derived decryption is the next fallback (works with JavaScript/TypeScript, Rust, Go, Python, PHP, etc.):
 
 ```bash
 envi unpack
@@ -185,7 +185,7 @@ You can decline any of the interactive prompts:
 2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
 3. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
 4. **Attempts decryption** in priority order:
-   - If `envi.maml` exists with `encryption_key`, try it first
+   - If `envi.config.maml` exists with `encryption_key`, try it first
    - Otherwise (or if that fails) walk through configured manifest files (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle), deriving an MD5 key from each
    - Otherwise prompt for a custom secret
 5. **Decrypts data** - Uses AES-256-GCM decryption with the derived key
@@ -280,7 +280,7 @@ No supported manifest file found - this is expected for some project types
 ## Related Commands
 
 - [`envi pack`](./pack) - Create an encrypted blob for sharing
-- [`envi create-key`](./create-key) - Generate `envi.maml` so pack/unpack share a stable key
+- [`envi create-key`](./create-key) - Generate `envi.config.maml` so pack/unpack share a stable key
 - [`envi restore`](./restore) - Restore files from storage
 - [`envi capture`](./capture) - Capture files to storage
 

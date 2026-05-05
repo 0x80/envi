@@ -147,6 +147,44 @@ describe("findEnvFiles", () => {
       expect(existsSync).not.toHaveBeenCalled();
     });
 
+    it("auto-expands a bare additionalPattern into root and **/ variants", async () => {
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project", { additionalPatterns: [".envrc"] });
+
+      const patterns = vi.mocked(fg).mock.calls[0]?.[0];
+      expect(patterns).toContain(".envrc");
+      expect(patterns).toContain("**/.envrc");
+      /** Built-in defaults still present */
+      expect(patterns).toContain(".env");
+      expect(patterns).toContain("**/.env");
+    });
+
+    it("passes additionalPatterns containing / through verbatim", async () => {
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project", {
+        additionalPatterns: ["config/*.local"],
+      });
+
+      const patterns = vi.mocked(fg).mock.calls[0]?.[0];
+      expect(patterns).toContain("config/*.local");
+      expect(patterns).not.toContain("**/config/*.local");
+    });
+
+    it("deduplicates additionalPatterns that overlap with defaults", async () => {
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project", { additionalPatterns: [".env"] });
+
+      const patterns = vi.mocked(fg).mock.calls[0]?.[0] as string[];
+      const envCount = patterns.filter((p) => p === ".env").length;
+      expect(envCount).toBe(1);
+    });
+
     it("disables symlink following so pnpm links don't produce phantom paths", async () => {
       /**
        * Without this option fast-glob descends into pnpm's

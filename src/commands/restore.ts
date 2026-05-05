@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { parse } from "maml.js";
 import {
+  findKeyFile,
   getPackageName,
   getStorageDir,
   getStorageFilename,
@@ -129,18 +130,20 @@ export async function restoreCommand(): Promise<void> {
     const hasEncryptedEntries = data.files.some(isEncryptedEntry);
     let encryptionKey: string | null = null;
 
+    const keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
+
     if (hasEncryptedEntries) {
       encryptionKey = readEncryptionKey(repoRoot);
       if (!encryptionKey) {
         consola.error(
-          `Stored data is encrypted but no encryption_key was found in '${KEY_FILE_NAME}'.`,
+          `Stored data is encrypted but no encryption_key was found in '${keyFilename}'.`,
         );
         consola.info(
-          `Make sure ${KEY_FILE_NAME} is present at the repository root and contains the original key (it should be committed to the source repo).`,
+          `Make sure ${keyFilename} is present at the repository root and contains the original key (it should be committed to the source repo).`,
         );
         process.exit(1);
       }
-      consola.info(`Decrypting env values with key from ${KEY_FILE_NAME}`);
+      consola.info(`Decrypting env values with key from ${keyFilename}`);
     }
 
     const plaintextFiles: Array<{ path: string; env: EnvObject }> = [];
@@ -157,7 +160,7 @@ export async function restoreCommand(): Promise<void> {
             `Failed to decrypt ${entry.path}: ${getErrorMessage(error)}`,
           );
           consola.info(
-            `The encryption_key in '${KEY_FILE_NAME}' may not match the key used to capture this data.`,
+            `The encryption_key in '${keyFilename}' may not match the key used to capture this data.`,
           );
           process.exit(1);
         }

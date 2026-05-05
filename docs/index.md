@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Envi
   text: Environment File Management
-  tagline: Capture, store, and restore .env and .dev.vars files across your projects with ease
+  tagline: Capture, store, and restore files that live outside of version control — .env, .dev.vars, and any other filename you declare per repo — across your projects
   actions:
     - theme: brand
       text: Get Started
@@ -30,7 +30,7 @@ features:
         <line x1="12" x2="12" y1="22" y2="12"/>
       </svg>
     title: Centralized Storage
-    details: Capture all .env and .dev.vars files from all your codebases into a central location that can be version controlled
+    details: Capture .env, .dev.vars, and any other patterns you declare per repo — all from your codebases into a central location that can be version controlled
   - icon: |
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -102,9 +102,10 @@ envi restore
 
 ## Notable Features
 
-- **Centralized Storage** - Capture all `.env` and Cloudflare Workers `.dev.vars` files into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
+- **Centralized Storage** - Capture `.env` files, Cloudflare Workers `.dev.vars`, and any extra filenames you list under `capture_patterns` in `envi.config.maml` into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
+- **Extensible Per Repo** - Declare your own filename patterns (`.flaskenv`, custom secret files — anything in `KEY=value` format) per repo without waiting on a new Envi release
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
-- **Stable Shared Key (Optional)** - Generate a per-repo `envi.maml` with `envi create-key` to give `envi pack` / `envi unpack` a key that survives manifest changes, and encrypt the GitHub backup of `~/.envi/store/` so only people with the source repo can decrypt it
+- **Stable Shared Key (Optional)** - Generate a per-repo `envi.config.maml` with `envi create-key` to give `envi pack` / `envi unpack` a key that survives manifest changes, and encrypt the GitHub backup of `~/.envi/store/` so only people with the source repo can decrypt it
 - **Monorepo Support** - Automatically discovers and captures all `.env` and `.dev.vars` files across your entire monorepo structure, preserving relative paths
 - **GitHub Integration** - Optional automatic version control for your environment configurations
 - **Git Worktree Initialization** - For JS/TS projects, simply add `envi restore` to your setup script to restore env files to each isolated worktree
