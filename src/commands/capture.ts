@@ -3,6 +3,7 @@ import * as p from "@clack/prompts";
 import { join } from "node:path";
 import {
   commitAndPush,
+  findKeyFile,
   getEnviDir,
   getPackageName,
   getRedactedVariables,
@@ -68,8 +69,9 @@ export async function captureCommand(): Promise<void> {
     consola.start("Searching for env files...");
     const additionalPatterns = readCapturePatterns(repoRoot);
     if (additionalPatterns.length > 0) {
+      const keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
       consola.info(
-        `Using extra capture_patterns from ${KEY_FILE_NAME}: ${additionalPatterns.join(", ")}`,
+        `Using extra capture_patterns from ${keyFilename}: ${additionalPatterns.join(", ")}`,
       );
     }
     const {
@@ -143,7 +145,8 @@ export async function captureCommand(): Promise<void> {
     /** Encrypt at rest when the per-repo config supplies an encryption_key */
     const encryptionKey = readEncryptionKey(repoRoot);
     if (encryptionKey) {
-      consola.info(`Encrypting env values with key from ${KEY_FILE_NAME}`);
+      const keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
+      consola.info(`Encrypting env values with key from ${keyFilename}`);
     }
 
     consola.start("Saving to storage...");

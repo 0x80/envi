@@ -5,6 +5,7 @@ import { join, dirname } from "node:path";
 import { parse } from "maml.js";
 import clipboard from "clipboardy";
 import {
+  findKeyFile,
   getPackageName,
   getStorageDir,
   getStorageFilename,
@@ -141,16 +142,17 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     const keyFromConfig = readEncryptionKey(repoRoot);
     if (keyFromConfig) {
+      const keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
       consola.info(
-        `Found encryption_key in ${KEY_FILE_NAME} - attempting decryption`,
+        `Found encryption_key in ${keyFilename} - attempting decryption`,
       );
       try {
         consola.start("Decrypting configuration...");
         decrypted = decrypt(encryptedData, keyFromConfig);
-        consola.success(`Decryption successful using ${KEY_FILE_NAME}`);
+        consola.success(`Decryption successful using ${keyFilename}`);
       } catch {
         consola.warn(
-          `Failed to decrypt with key from ${KEY_FILE_NAME} - falling back to other methods`,
+          `Failed to decrypt with key from ${keyFilename} - falling back to other methods`,
         );
       }
     }

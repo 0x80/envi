@@ -6,6 +6,7 @@ import {
   KEY_FILE_NAME,
   LEGACY_KEY_FILE_NAME,
   __resetLegacyHintCache,
+  findKeyFile,
   generateKey,
   getKeyFilePath,
   hasKeyFile,
@@ -61,6 +62,32 @@ describe("key-file", () => {
     it("is false when neither file exists", () => {
       vi.mocked(existsSync).mockReturnValue(false);
       expect(hasKeyFile("/repo")).toBe(false);
+    });
+  });
+
+  describe("findKeyFile", () => {
+    it("returns canonical filename when canonical exists", () => {
+      vi.mocked(existsSync).mockImplementation(
+        (path) => String(path) === "/repo/envi.config.maml",
+      );
+      expect(findKeyFile("/repo")).toBe("envi.config.maml");
+    });
+
+    it("returns legacy filename when only legacy exists", () => {
+      vi.mocked(existsSync).mockImplementation(
+        (path) => String(path) === "/repo/envi.maml",
+      );
+      expect(findKeyFile("/repo")).toBe("envi.maml");
+    });
+
+    it("prefers canonical when both exist", () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      expect(findKeyFile("/repo")).toBe("envi.config.maml");
+    });
+
+    it("returns null when neither exists", () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      expect(findKeyFile("/repo")).toBeNull();
     });
   });
 
@@ -210,7 +237,8 @@ describe("key-file", () => {
   describe("writeEncryptionKey", () => {
     it("creates a new envi.config.maml with a header comment when missing", () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      writeEncryptionKey("/repo", "newkey");
+      const written = writeEncryptionKey("/repo", "newkey");
+      expect(written).toBe("envi.config.maml");
 
       expect(writeFileSync).toHaveBeenCalledOnce();
       const [path, content] = vi.mocked(writeFileSync).mock.calls[0]!;
@@ -234,7 +262,8 @@ describe("key-file", () => {
       );
       vi.mocked(readFileSync).mockReturnValue('{\n  some: "x"\n}\n');
 
-      writeEncryptionKey("/repo", "newkey");
+      const written = writeEncryptionKey("/repo", "newkey");
+      expect(written).toBe("envi.maml");
 
       expect(writeFileSync).toHaveBeenCalledOnce();
       const [path, content] = vi.mocked(writeFileSync).mock.calls[0]!;
@@ -265,7 +294,8 @@ describe("key-file", () => {
         '{\n  # user comment\n  encryption_key: "oldkey"\n  other: "preserved"\n}\n',
       );
 
-      writeEncryptionKey("/repo", "newkey", { force: true });
+      const written = writeEncryptionKey("/repo", "newkey", { force: true });
+      expect(written).toBe("envi.config.maml");
 
       const [, content] = vi.mocked(writeFileSync).mock.calls[0]!;
       expect(content as string).toContain('encryption_key: "newkey"');
@@ -282,7 +312,8 @@ describe("key-file", () => {
         '{\n  some_other_field: "x"\n}\n',
       );
 
-      writeEncryptionKey("/repo", "newkey");
+      const written = writeEncryptionKey("/repo", "newkey");
+      expect(written).toBe("envi.config.maml");
 
       const [, content] = vi.mocked(writeFileSync).mock.calls[0]!;
       expect(content as string).toContain('encryption_key: "newkey"');

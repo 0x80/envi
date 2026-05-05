@@ -99,6 +99,20 @@ export function hasKeyFile(repoRoot: string): boolean {
 }
 
 /**
+ * Return the basename of the per-repo config file present on disk —
+ * `envi.config.maml` when the canonical file exists, `envi.maml` when only the
+ * legacy file does, null when neither does.
+ *
+ * Use this in user-facing messages so log lines name the file the user
+ * actually has on disk instead of always the canonical constant.
+ */
+export function findKeyFile(repoRoot: string): string | null {
+  const found = findExistingKeyFile(repoRoot);
+  if (!found) return null;
+  return found.isLegacy ? LEGACY_KEY_FILE_NAME : KEY_FILE_NAME;
+}
+
+/**
  * Parse the per-repo config file, preferring the canonical name and falling
  * back to the legacy name. Emits a one-time hint per repo when the legacy file
  * is the one that was read. Returns null on missing or malformed files.
@@ -175,13 +189,16 @@ export interface WriteEncryptionKeyOptions {
  * - If a config file exists without an `encryption_key`, appends the field
  *   inside the top-level object, preserving the rest of the file.
  *
+ * Returns the basename of the file that was written, so callers can surface
+ * the actual filename in success messages instead of guessing.
+ *
  * @throws Error when `force` is false and a key is already set.
  */
 export function writeEncryptionKey(
   repoRoot: string,
   key: string,
   options: WriteEncryptionKeyOptions = {},
-): void {
+): string {
   const existing = findExistingKeyFile(repoRoot);
   const force = options.force ?? false;
 
@@ -195,7 +212,7 @@ export function writeEncryptionKey(
       "",
     ];
     writeFileSync(path, lines.join("\n"), "utf-8");
-    return;
+    return KEY_FILE_NAME;
   }
 
   const path = existing.path;
@@ -214,7 +231,7 @@ export function writeEncryptionKey(
       `$1${ENCRYPTION_KEY_FIELD}: "${key}"`,
     );
     writeFileSync(path, updated, "utf-8");
-    return;
+    return filename;
   }
 
   /** Insert the key (with comment block) before the last closing brace */
@@ -233,6 +250,7 @@ export function writeEncryptionKey(
     "",
   ].join("\n");
   writeFileSync(path, `${before}\n${insertion}${after}`, "utf-8");
+  return filename;
 }
 
 /**

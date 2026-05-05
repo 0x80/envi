@@ -37,6 +37,7 @@ export type { PackageExtractor } from "./package-name-extractors";
 export {
   KEY_FILE_NAME,
   LEGACY_KEY_FILE_NAME,
+  findKeyFile,
   generateKey,
   getKeyFilePath,
   hasKeyFile,

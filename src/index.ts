@@ -14,6 +14,7 @@ export {
   createInitialCommit,
   createPrivateRepo,
   DEFAULT_MANIFEST_FILES,
+  findKeyFile,
   generateKey,
   getConfigPath,
   getEnviDir,

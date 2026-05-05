@@ -3,6 +3,7 @@ import {
   captureCommand,
   createKeyCommand,
   findEnvFiles,
+  findKeyFile,
   findRepoRoot,
   generateKey,
   getStorageDir,
@@ -37,6 +38,7 @@ describe("envi exports", () => {
     expect(LEGACY_KEY_FILE_NAME).toBe("envi.maml");
     expect(typeof generateKey).toBe("function");
     expect(typeof hasKeyFile).toBe("function");
+    expect(typeof findKeyFile).toBe("function");
     expect(typeof readEncryptionKey).toBe("function");
     expect(typeof readCapturePatterns).toBe("function");
     expect(typeof writeEncryptionKey).toBe("function");
