@@ -1,8 +1,9 @@
 import { consola } from "consola";
 import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
+import { VCS_MARKERS } from "./vcs-markers";
 import { getErrorMessage } from "./get-error-message";
 
 /**
@@ -32,6 +33,14 @@ export interface FindEnvFilesResult {
    * version-controlled copy or capture a file the user is about to add.
    */
   excluded: string[];
+  /**
+   * Paths that matched the glob but live inside a nested VCS root (git
+   * worktree, submodule, nested clone, jj/hg/svn checkout). These are skipped
+   * because nested working trees have their own independent state and must be
+   * captured from their own directory. Surfaced separately from `excluded` so
+   * the caller can give the user a distinct, accurate reason.
+   */
+  skippedNestedVcsRoots: string[];
 }
 
 /**
@@ -85,14 +94,71 @@ function parseGitignoreDirsFallback(repoRoot: string): string[] {
 }
 
 /**
+ * Partition candidate paths into those that live inside a nested VCS root and
+ * those that do not.
+ *
+ * For each candidate, walks upward from its parent directory toward (but not
+ * including) the repo root. If any intermediate directory contains a VCS marker
+ * (`.git`, `.jj`, `.hg`, `.svn`), the candidate is classified as nested. The
+ * repo root itself is never tested — `findRepoRoot` may legitimately return a
+ * directory without a marker (when the user confirms the "no VCS found" prompt)
+ * and even when a marker is present, the loop terminates before reaching it.
+ *
+ * `repoRoot` is normalized via `resolve()` so a trailing slash on the caller's
+ * input does not break the `dir !== repoRoot` loop guard.
+ *
+ * Per-directory check results are memoized so a deeply nested worktree only
+ * pays the existsSync cost once per ancestor.
+ */
+function partitionNestedVcsRoots(
+  repoRoot: string,
+  candidates: string[],
+): { kept: string[]; skipped: string[] } {
+  const normalizedRoot = resolve(repoRoot);
+  const cache = new Map<string, boolean>();
+
+  function isNestedVcsRoot(dir: string): boolean {
+    const cached = cache.get(dir);
+    if (cached !== undefined) return cached;
+    const result = VCS_MARKERS.some((marker) => existsSync(join(dir, marker)));
+    cache.set(dir, result);
+    return result;
+  }
+
+  const kept: string[] = [];
+  const skipped: string[] = [];
+
+  for (const relPath of candidates) {
+    let dir = dirname(join(normalizedRoot, relPath));
+    let nested = false;
+    while (dir !== normalizedRoot && dir !== dirname(dir)) {
+      if (isNestedVcsRoot(dir)) {
+        nested = true;
+        break;
+      }
+      dir = dirname(dir);
+    }
+    if (nested) {
+      skipped.push(relPath);
+    } else {
+      kept.push(relPath);
+    }
+  }
+
+  return { kept, skipped };
+}
+
+/**
  * Find env files Envi should capture: `.env`, `.env.*`, and Cloudflare
  * Workers' `.dev.vars` / `.dev.vars.*` (which use the same key=value format).
  *
- * In a git repository, only files that git considers ignored are returned.
- * Files that are tracked or otherwise not covered by an ignore rule are placed
- * in `excluded` so the caller can surface them. Outside a git repository — or
- * if `git check-ignore` fails (e.g. git binary missing) — all matched files are
- * returned and `excluded` is empty.
+ * In a git repository, only files that git considers ignored are returned in
+ * `files`. Files that are tracked or otherwise not covered by an ignore rule
+ * are placed in `excluded`. Files inside a nested VCS root (worktree,
+ * submodule, nested clone) are placed in `skippedNestedVcsRoots` regardless of
+ * gitignore status — they belong to an independent working tree. Outside a git
+ * repository — or if `git check-ignore` fails (e.g. git binary missing) — all
+ * matched files are returned and `excluded` is empty.
  *
  * @param repoRoot - Absolute path to repository root
  */
@@ -115,15 +181,30 @@ export async function findEnvFiles(
     ? DEFAULT_IGNORE_PATTERNS
     : [...DEFAULT_IGNORE_PATTERNS, ...parseGitignoreDirsFallback(repoRoot)];
 
-  const candidates = await fg(patterns, {
+  const rawCandidates = await fg(patterns, {
     cwd: repoRoot,
     dot: true,
     absolute: false,
     ignore: ignorePatterns,
+    /**
+     * Don't follow symlinks. pnpm's workspace links would otherwise produce
+     * phantom paths under `node_modules/.pnpm/...` and break `git check-ignore`
+     * with "beyond a symbolic link".
+     */
+    followSymbolicLinks: false,
   });
 
+  /**
+   * Partition candidates that live inside a nested VCS root (git worktree,
+   * submodule, nested clone, jj/hg/svn checkout). These are surfaced separately
+   * so the caller can tell the user why they were skipped, instead of silently
+   * disappearing.
+   */
+  const { kept: candidates, skipped: skippedNestedVcsRoots } =
+    partitionNestedVcsRoots(repoRoot, rawCandidates);
+
   if (!inGitRepo) {
-    return { files: candidates, excluded: [] };
+    return { files: candidates, excluded: [], skippedNestedVcsRoots };
   }
 
   let ignored: string[];
@@ -133,11 +214,11 @@ export async function findEnvFiles(
     consola.warn(
       `Could not check gitignore status (${getErrorMessage(error)}). Capturing all matched env files.`,
     );
-    return { files: candidates, excluded: [] };
+    return { files: candidates, excluded: [], skippedNestedVcsRoots };
   }
 
   const ignoredSet = new Set(ignored);
   const excluded = candidates.filter((path) => !ignoredSet.has(path));
 
-  return { files: ignored, excluded };
+  return { files: ignored, excluded, skippedNestedVcsRoots };
 }

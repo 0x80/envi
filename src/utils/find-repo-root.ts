@@ -1,9 +1,7 @@
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import * as p from "@clack/prompts";
-
-/** VCS markers that indicate a repository root */
-const VCS_MARKERS = [".git", ".jj", ".hg", ".svn"];
+import { VCS_MARKERS } from "./vcs-markers";
 
 /** Check if a directory contains any VCS markers */
 function hasVcsMarker(dir: string): boolean {
