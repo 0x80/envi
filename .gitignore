@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 # VitePress
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# Local runtime state from Claude Code's session cron
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks.json
