@@ -3,7 +3,7 @@ import fg from "fast-glob";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
-import { VCS_MARKERS } from "./find-repo-root";
+import { VCS_MARKERS } from "./vcs-markers";
 import { getErrorMessage } from "./get-error-message";
 
 /**
