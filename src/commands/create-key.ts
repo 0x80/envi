@@ -9,12 +9,13 @@ import {
 import { findRepoRoot, getErrorMessage } from "~/utils";
 
 export interface CreateKeyOptions {
-  /** Overwrite an existing encryption_key in envi.maml */
+  /** Overwrite an existing encryption_key in envi.config.maml */
   force?: boolean;
 }
 
 /**
- * Generate a per-repo encryption key and write it to envi.maml.
+ * Generate a per-repo encryption key and write it to envi.config.maml (or to
+ * the legacy envi.maml if that's the file already on disk).
  *
  * Used to enable encryption-at-rest for `envi capture` / `envi restore`, and
  * preferred over manifest-derived keys by `envi pack` / `envi unpack`.

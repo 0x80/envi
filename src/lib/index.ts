@@ -36,9 +36,11 @@ export {
 export type { PackageExtractor } from "./package-name-extractors";
 export {
   KEY_FILE_NAME,
+  LEGACY_KEY_FILE_NAME,
   generateKey,
   getKeyFilePath,
   hasKeyFile,
+  readCapturePatterns,
   readEncryptionKey,
   writeEncryptionKey,
 } from "./key-file";

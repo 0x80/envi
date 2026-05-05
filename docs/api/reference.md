@@ -42,7 +42,7 @@ await clearCommand();
 
 ### createKeyCommand()
 
-Generate `envi.maml` with a fresh `encryption_key` in the current repo.
+Generate `envi.config.maml` with a fresh `encryption_key` in the current repo.
 
 ```typescript
 import { createKeyCommand } from "@codecompose/envi";
@@ -176,16 +176,16 @@ const hasChanges = saveToStorage(
 
 The optional fourth argument is `SaveToStorageOptions`. When `encryptionKey` is set, each file's `env` block is encrypted with `encrypt(JSON.stringify(env), encryptionKey)` before being written, and the no-op comparison reads/decrypts the existing store with the same key.
 
-## Encryption Key (envi.maml)
+## Encryption Key (envi.config.maml)
 
-Helpers for the per-repo `envi.maml` file.
+Helpers for the per-repo `envi.config.maml` file.
 
 ### KEY_FILE_NAME
 
 ```typescript
 import { KEY_FILE_NAME } from "@codecompose/envi";
 
-console.log(KEY_FILE_NAME); // "envi.maml"
+console.log(KEY_FILE_NAME); // "envi.config.maml"
 ```
 
 ### generateKey()
@@ -201,7 +201,7 @@ const key = generateKey();
 
 ### readEncryptionKey()
 
-Read the `encryption_key` from `envi.maml` if present.
+Read the `encryption_key` from `envi.config.maml` if present.
 
 ```typescript
 import { readEncryptionKey } from "@codecompose/envi";
@@ -212,7 +212,7 @@ const key = readEncryptionKey("/path/to/repo");
 
 ### writeEncryptionKey()
 
-Write or update `envi.maml` with a key. Creates the file with a header comment if missing; inserts the key into an existing file while preserving other content. Refuses to overwrite an existing `encryption_key` unless `{ force: true }` is passed.
+Write or update `envi.config.maml` with a key. Creates the file with a header comment if missing; inserts the key into an existing file while preserving other content. Refuses to overwrite an existing `encryption_key` unless `{ force: true }` is passed.
 
 ```typescript
 import { writeEncryptionKey } from "@codecompose/envi";
@@ -223,7 +223,7 @@ writeEncryptionKey("/path/to/repo", key, { force: false });
 
 ### hasKeyFile()
 
-Check whether `envi.maml` exists in a repository (does not check whether `encryption_key` is set inside).
+Check whether `envi.config.maml` exists in a repository (does not check whether `encryption_key` is set inside).
 
 ```typescript
 import { hasKeyFile } from "@codecompose/envi";

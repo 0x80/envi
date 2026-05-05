@@ -9,6 +9,7 @@ import {
   getStorageDir,
   getStorageFilename,
   KEY_FILE_NAME,
+  readCapturePatterns,
   readConfig,
   readEncryptionKey,
   saveToStorage,
@@ -65,11 +66,17 @@ export async function captureCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for env files...");
+    const additionalPatterns = readCapturePatterns(repoRoot);
+    if (additionalPatterns.length > 0) {
+      consola.info(
+        `Using extra capture_patterns from ${KEY_FILE_NAME}: ${additionalPatterns.join(", ")}`,
+      );
+    }
     const {
       files: envFilePaths,
       excluded,
       skippedNestedVcsRoots,
-    } = await findEnvFiles(repoRoot);
+    } = await findEnvFiles(repoRoot, { additionalPatterns });
 
     if (excluded.length > 0) {
       const preview = excluded.slice(0, 5).join(", ");
@@ -133,7 +140,7 @@ export async function captureCommand(): Promise<void> {
       consola.info("These values will be stored as __envi_redacted__");
     }
 
-    /** Encrypt at rest when envi.maml in repo root supplies an encryption_key */
+    /** Encrypt at rest when the per-repo config supplies an encryption_key */
     const encryptionKey = readEncryptionKey(repoRoot);
     if (encryptionKey) {
       consola.info(`Encrypting env values with key from ${KEY_FILE_NAME}`);

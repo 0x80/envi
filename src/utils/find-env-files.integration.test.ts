@@ -172,6 +172,38 @@ describe("findEnvFiles (integration)", () => {
     }
   });
 
+  it("captures user-provided additional patterns at root and nested depths", async () => {
+    /**
+     * When the per-repo config declares `capture_patterns: [".envrc"]`,
+     * findEnvFiles should pick up `.envrc` at any depth, ignoring it at root
+     * (gitignored) and not at root (untracked goes to excluded).
+     */
+    writeFileSync(
+      join(repoRoot, ".gitignore"),
+      ".env\n.dev.vars\n.dev.vars.*\n.envrc\n",
+    );
+    writeFileSync(join(repoRoot, ".envrc"), "export ROOT_RC=1\n");
+
+    const nestedDir = join(repoRoot, "packages/api");
+    writeFileSync(join(nestedDir, ".envrc"), "export API_RC=1\n");
+
+    try {
+      const result = await findEnvFiles(repoRoot, {
+        additionalPatterns: [".envrc"],
+      });
+
+      expect(result.files).toContain(".envrc");
+      expect(result.files).toContain("packages/api/.envrc");
+    } finally {
+      writeFileSync(
+        join(repoRoot, ".gitignore"),
+        ".env\n.dev.vars\n.dev.vars.*\n",
+      );
+      rmSync(join(repoRoot, ".envrc"), { force: true });
+      rmSync(join(nestedDir, ".envrc"), { force: true });
+    }
+  });
+
   it("excludes a file that has been force-added", async () => {
     /**
      * Force-add the root `.env` despite the ignore rule. It is now tracked, so

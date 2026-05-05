@@ -1,6 +1,6 @@
 # Envi
 
-Environment file management tool - Capture, store, and restore `.env` and `.dev.vars` files across your projects.
+Capture, store, and restore files that live outside of version control — `.env`, Cloudflare Workers `.dev.vars`, and any other filename you declare per repo — across your projects.
 
 [![NPM Version](https://img.shields.io/npm/v/@codecompose/envi)](https://www.npmjs.com/package/@codecompose/envi)
 [![License](https://img.shields.io/npm/l/@codecompose/envi)](LICENSE)
@@ -8,10 +8,11 @@ Environment file management tool - Capture, store, and restore `.env` and `.dev.
 
 ## Features
 
-- **Centralized Storage** - Capture all `.env` and Cloudflare Workers `.dev.vars` files into a central, version-controlled location
-- **Easy Restoration** - Restore env files on new systems or git worktrees when working with parallel AI agents
+- **Centralized Storage** - Capture `.env`, Cloudflare Workers `.dev.vars`, and any extra filenames you list under `capture_patterns` in `envi.config.maml` — all into a central, version-controlled location
+- **Extensible per repo** - Declare your own filename patterns (`.envrc`, framework-specific dotfiles, anything in `KEY=value` format) without waiting on a release
+- **Easy Restoration** - Restore captured files on new systems or git worktrees when working with parallel AI agents
 - **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs
-- **At-Rest Encryption** - Optional per-repo encryption key (`envi.maml`) encrypts captured values in storage and the GitHub backup
+- **At-Rest Encryption** - Optional per-repo encryption key (`envi.config.maml`) encrypts captured values in storage and the GitHub backup
 - **GitHub Integration** - Optional automatic version control
 - **Comment Preservation** - Keeps full-line and inline comments
 - **Monorepo Support** - Works seamlessly with monorepos
@@ -46,11 +47,11 @@ Visit **[envi.codecompose.dev](https://envi.codecompose.dev)** for complete docu
 
 ## Commands
 
-- `envi capture` - Capture all .env and .dev.vars files from repository
-- `envi restore` - Restore env files from storage
+- `envi capture` - Capture files outside of version control (`.env`, `.dev.vars`, plus any `capture_patterns` you declare) from a repository
+- `envi restore` - Restore captured files from storage
 - `envi pack` - Create encrypted blob for sharing with team members
 - `envi unpack <blob>` - Decrypt and restore configuration from blob
-- `envi create-key` - Generate `envi.maml` to enable at-rest encryption
+- `envi create-key` - Generate `envi.config.maml` to enable at-rest encryption
 - `envi clear` - Delete stored configuration for current project
 - `envi global github enable` - Enable GitHub version control
 - `envi global github disable` - Disable GitHub version control

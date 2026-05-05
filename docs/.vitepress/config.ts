@@ -4,7 +4,7 @@ import mamlGrammar from "./maml.json";
 export default defineConfig({
   title: "Envi",
   description:
-    "Environment file management tool - Capture, store, and restore .env files across your projects",
+    "Capture, store, and restore files outside of version control — .env, .dev.vars, and any extra filenames you declare per repo — across your projects",
   markdown: {
     // oxlint-disable-next-line typescript/no-explicit-any
     languages: [mamlGrammar as any],

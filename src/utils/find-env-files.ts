@@ -23,6 +23,35 @@ const DEFAULT_IGNORE_PATTERNS = [
   ".turbo/**",
 ];
 
+/**
+ * Built-in capture patterns. Each filename appears as a root-level pattern AND
+ * a `**\/` variant so files at any depth match. Users can extend this list via
+ * `capture_patterns` in `envi.config.maml`.
+ */
+const DEFAULT_PATTERNS = [
+  ".env",
+  ".env.*",
+  ".dev.vars",
+  ".dev.vars.*",
+  "**/.env",
+  "**/.env.*",
+  "**/.dev.vars",
+  "**/.dev.vars.*",
+];
+
+/**
+ * Expand a user-provided capture pattern.
+ *
+ * Bare filenames (no `/` and no `**`) are duplicated into a root-level entry
+ * and a `**\/<pattern>` entry so a naive `.envrc` catches both `./envrc` and
+ * `packages/foo/.envrc`. Patterns that already contain a slash are passed
+ * through verbatim — the user is being explicit and we shouldn't second-guess.
+ */
+function expandPattern(pattern: string): string[] {
+  if (pattern.includes("/")) return [pattern];
+  return [pattern, `**/${pattern}`];
+}
+
 export interface FindEnvFilesResult {
   /** Paths (relative to repo root) Envi should capture */
   files: string[];
@@ -148,9 +177,19 @@ function partitionNestedVcsRoots(
   return { kept, skipped };
 }
 
+export interface FindEnvFilesOptions {
+  /**
+   * Extra capture patterns from `envi.config.maml#capture_patterns`. Bare
+   * filenames are auto-expanded to also match nested directories; patterns
+   * containing `/` are used verbatim. Merged with the built-in defaults.
+   */
+  additionalPatterns?: string[];
+}
+
 /**
- * Find env files Envi should capture: `.env`, `.env.*`, and Cloudflare
- * Workers' `.dev.vars` / `.dev.vars.*` (which use the same key=value format).
+ * Find env files Envi should capture: `.env`, `.env.*`, Cloudflare Workers'
+ * `.dev.vars` / `.dev.vars.*` (which use the same key=value format), plus any
+ * extra patterns the user has declared in `envi.config.maml`.
  *
  * In a git repository, only files that git considers ignored are returned in
  * `files`. Files that are tracked or otherwise not covered by an ignore rule
@@ -161,20 +200,14 @@ function partitionNestedVcsRoots(
  * matched files are returned and `excluded` is empty.
  *
  * @param repoRoot - Absolute path to repository root
+ * @param options - Optional extra capture patterns
  */
 export async function findEnvFiles(
   repoRoot: string,
+  options: FindEnvFilesOptions = {},
 ): Promise<FindEnvFilesResult> {
-  const patterns = [
-    ".env",
-    ".env.*",
-    ".dev.vars",
-    ".dev.vars.*",
-    "**/.env",
-    "**/.env.*",
-    "**/.dev.vars",
-    "**/.dev.vars.*",
-  ];
+  const additional = (options.additionalPatterns ?? []).flatMap(expandPattern);
+  const patterns = Array.from(new Set([...DEFAULT_PATTERNS, ...additional]));
 
   const inGitRepo = isGitRepo(repoRoot);
   const ignorePatterns = inGitRepo

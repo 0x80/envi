@@ -129,7 +129,8 @@ export async function unpackCommand(blob?: string): Promise<void> {
 
     /**
      * Decryption key resolution order:
-     *   1. encryption_key from envi.maml (preferred — stable across dep updates)
+     *   1. encryption_key from envi.config.maml (preferred — stable across
+     *      dep updates; legacy envi.maml is still read for backwards compat)
      *   2. Each configured manifest file (legacy / convenience)
      *   3. Prompt for a custom secret
      */
@@ -179,7 +180,9 @@ export async function unpackCommand(blob?: string): Promise<void> {
     // If decryption failed with all manifests, prompt for custom secret
     if (!decrypted) {
       if (!foundManifest && !keyFromConfig) {
-        consola.info("No envi.maml or manifest files found in repository");
+        consola.info(
+          `No ${KEY_FILE_NAME} or manifest files found in repository`,
+        );
         consola.info(
           "Checked for: " + manifestFiles.slice(0, 5).join(", ") + ", ...",
         );
@@ -404,10 +407,10 @@ export async function unpackCommand(blob?: string): Promise<void> {
       const storagePath = join(storageDir, filename);
 
       /**
-       * Route through saveToStorage so at-rest encryption is honored when
-       * envi.maml is present. Writing the decrypted blob directly would
-       * silently produce a plaintext store even for repos that opted into
-       * encryption.
+       * Route through saveToStorage so at-rest encryption is honored when a
+       * per-repo config file (envi.config.maml or legacy envi.maml) is
+       * present. Writing the decrypted blob directly would silently produce a
+       * plaintext store even for repos that opted into encryption.
        */
       const encryptionKey = readEncryptionKey(repoRoot);
       saveToStorage(repoRoot, plaintextFiles, packageName, { encryptionKey });
