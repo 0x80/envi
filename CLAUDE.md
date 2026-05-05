@@ -9,7 +9,7 @@ Envi captures, stores, and restores files that live outside of version control â
 Key features:
 
 - Captures `.env`, `.env.*`, `.dev.vars`, `.dev.vars.*` from repositories by default
-- Per-repo `capture_patterns` in `envi.config.maml` extends the matcher with arbitrary filename globs (`.envrc`, framework-specific dotfiles, etc.)
+- Per-repo `capture_patterns` in `envi.config.maml` extends the matcher with arbitrary filename globs (`.flaskenv`, custom secret files in `KEY=value` format, etc.)
 - Stores configurations in MAML format at `~/.envi/store/`
 - Preserves both full-line and inline comments
 - Optional GitHub integration for version control
@@ -118,7 +118,7 @@ pnpm docs:preview       # Preview built docs
 **File Discovery (`src/utils/find-env-files.ts`)**
 
 - Uses `fast-glob` with the built-in `DEFAULT_PATTERNS` (`.env`, `.env.*`, `.dev.vars`, `.dev.vars.*`, plus `**/` variants) merged with any `additionalPatterns` supplied via the options arg (sourced from `capture_patterns` in `envi.config.maml`)
-- `expandPattern()` auto-expands a bare user pattern like `.envrc` into `.envrc` and `**/.envrc`; patterns containing `/` are passed through verbatim
+- `expandPattern()` auto-expands a bare user pattern like `.flaskenv` into `.flaskenv` and `**/.flaskenv`; patterns containing `/` are passed through verbatim
 - Combines default ignore patterns (node_modules, dist, build, etc.) with `.gitignore` directory patterns
 - Only respects directory patterns from `.gitignore`, not file patterns (so `.env` files are found even if gitignored)
 

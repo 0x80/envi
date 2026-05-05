@@ -156,8 +156,8 @@ export function readEncryptionKey(repoRoot: string): string | null {
  * Read additional capture patterns the user has declared for this repo.
  *
  * Patterns are merged with the built-in defaults inside `findEnvFiles` —
- * unknown filenames (e.g. `.envrc`, framework-specific secret files) become
- * captureable without code changes. Returns an empty array when the field is
+ * unknown filenames (e.g. `.flaskenv`, framework-specific or team-specific
+ * dotenv-style secret files) become captureable without code changes. Returns an empty array when the field is
  * missing, malformed, or not an array. Non-string entries are filtered out so
  * a partly-malformed list does not poison the whole capture.
  */

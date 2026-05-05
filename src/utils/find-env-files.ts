@@ -45,7 +45,7 @@ const DEFAULT_PATTERNS = [
  * Patterns containing a `/` (including `**\/`) are passed through verbatim —
  * the user is being explicit and we shouldn't second-guess. Patterns without
  * any `/` are duplicated into a root-level entry plus a `**\/<pattern>` entry
- * so a naive `.envrc` catches both `./.envrc` and `packages/foo/.envrc`.
+ * so a naive `.flaskenv` catches both `./.flaskenv` and `packages/foo/.flaskenv`.
  */
 function expandPattern(pattern: string): string[] {
   if (pattern.includes("/")) return [pattern];

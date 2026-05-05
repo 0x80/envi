@@ -38,13 +38,13 @@ Files are discovered recursively in all subdirectories, except:
 
 ### Custom Capture Patterns
 
-Many tools and frameworks store local secrets in their own files (`.envrc` for direnv, framework-specific dotfiles, etc.). Rather than asking Envi to ship a baked-in list for every one of them, you can extend the matcher per repo by adding `capture_patterns` to `envi.config.maml`:
+Many tools and frameworks store local secrets in their own files (`.flaskenv` for Flask, custom team-specific dotfiles, etc.). Rather than asking Envi to ship a baked-in list for every one of them, you can extend the matcher per repo by adding `capture_patterns` to `envi.config.maml`:
 
 ```maml
 {
   capture_patterns: [
-    ".envrc",
-    ".flaskenv"
+    ".flaskenv",
+    "secrets.env"
   ]
 }
 ```
@@ -52,9 +52,9 @@ Many tools and frameworks store local secrets in their own files (`.envrc` for d
 Behavior:
 
 - **Additive.** Built-in patterns (`.env`, `.dev.vars`, etc.) are always matched.
-- **Auto-expansion for bare filenames.** A pattern without a `/` (like `.envrc`) is matched both at the repo root and in any subdirectory — the same way `.env` already works.
+- **Auto-expansion for bare filenames.** A pattern without a `/` (like `.flaskenv`) is matched both at the repo root and in any subdirectory — the same way `.env` already works.
 - **Globs are passed through verbatim.** A pattern containing `/` (like `config/*.local`) is handed to fast-glob as-is, so you can be as specific as you need.
-- **Same parser, same shape.** Matched files must be in `KEY=value` format — that's how Envi parses, stores, and restores them. Free-form config files won't round-trip cleanly.
+- **Same parser, same shape.** Matched files must be in `KEY=value` format — that's how Envi parses, stores, and restores them. Free-form config files (TOML, YAML, JSON) won't round-trip cleanly. Shell-style files like direnv's `.envrc` (which use `export FOO=bar`) are also not supported — Envi's parser treats `export FOO` as the key.
 
 If you don't have an `envi.config.maml` yet, run [`envi create-key`](/commands/create-key) to create one (it'll add an `encryption_key` too — you can drop that line if you don't want at-rest encryption), or create the file by hand with just the `capture_patterns` field.
 

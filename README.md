@@ -9,7 +9,7 @@ Capture, store, and restore files that live outside of version control — `.env
 ## Features
 
 - **Centralized Storage** - Capture `.env`, Cloudflare Workers `.dev.vars`, and any extra filenames you list under `capture_patterns` in `envi.config.maml` — all into a central, version-controlled location
-- **Extensible per repo** - Declare your own filename patterns (`.envrc`, framework-specific dotfiles, anything in `KEY=value` format) without waiting on a release
+- **Extensible per repo** - Declare your own filename patterns (`.flaskenv`, custom secret files — anything in `KEY=value` format) without waiting on a release
 - **Easy Restoration** - Restore captured files on new systems or git worktrees when working with parallel AI agents
 - **Secure Sharing** - Share configurations safely with team members using encrypted, compressed blobs
 - **At-Rest Encryption** - Optional per-repo encryption key (`envi.config.maml`) encrypts captured values in storage and the GitHub backup

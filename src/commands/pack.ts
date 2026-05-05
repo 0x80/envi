@@ -16,7 +16,12 @@ import {
   generateKeyFromManifest,
 } from "~/utils/encryption";
 import { getManifestFiles, getRedactedVariables } from "~/lib/config";
-import { KEY_FILE_NAME, readEncryptionKey } from "~/lib";
+import {
+  findKeyFile,
+  KEY_FILE_NAME,
+  readCapturePatterns,
+  readEncryptionKey,
+} from "~/lib";
 import { applyRedaction } from "~/utils/redact";
 
 /**
@@ -40,11 +45,18 @@ export async function packCommand(): Promise<void> {
 
     /** Find all env files */
     consola.start("Searching for env files...");
+    const additionalPatterns = readCapturePatterns(repoRoot);
+    if (additionalPatterns.length > 0) {
+      const keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
+      consola.info(
+        `Using extra capture_patterns from ${keyFilename}: ${additionalPatterns.join(", ")}`,
+      );
+    }
     const {
       files: envFilePaths,
       excluded,
       skippedNestedVcsRoots,
-    } = await findEnvFiles(repoRoot);
+    } = await findEnvFiles(repoRoot, { additionalPatterns });
 
     if (excluded.length > 0) {
       const preview = excluded.slice(0, 5).join(", ");
@@ -127,14 +139,17 @@ export async function packCommand(): Promise<void> {
     let manifestFileName: string | null = null;
 
     /**
-     * Highest priority: per-repo envi.maml encryption_key. Stable across
-     * dependency updates, unlike manifest-based keys.
+     * Highest priority: per-repo encryption_key (in envi.config.maml or the
+     * legacy envi.maml). Stable across dependency updates, unlike
+     * manifest-based keys.
      */
     const keyFromConfig = readEncryptionKey(repoRoot);
+    let keyFilename: string | null = null;
     if (keyFromConfig) {
       secret = keyFromConfig;
       usingKeyFile = true;
-      consola.info(`Using encryption_key from ${KEY_FILE_NAME}`);
+      keyFilename = findKeyFile(repoRoot) ?? KEY_FILE_NAME;
+      consola.info(`Using encryption_key from ${keyFilename}`);
     }
 
     // Fallback: derive a key from a manifest file
@@ -208,7 +223,7 @@ export async function packCommand(): Promise<void> {
     if (usingKeyFile) {
       consola.info("\nBlob is now on your clipboard!");
       consola.info(
-        `Share it with colleagues who have the same ${KEY_FILE_NAME} committed in their checkout`,
+        `Share it with colleagues who have the same ${keyFilename} committed in their checkout`,
       );
       consola.info("They can restore it using: envi unpack");
     } else if (usingManifest) {

@@ -103,7 +103,7 @@ envi restore
 ## Notable Features
 
 - **Centralized Storage** - Capture `.env` files, Cloudflare Workers `.dev.vars`, and any extra filenames you list under `capture_patterns` in `envi.config.maml` into a centralized, version-controlled store organized by project name (extracted from `package.json`, `Cargo.toml`, `go.mod`, and other manifest files)
-- **Extensible Per Repo** - Declare your own filename patterns (`.envrc`, framework-specific dotfiles, anything in `KEY=value` format) per repo without waiting on a new Envi release
+- **Extensible Per Repo** - Declare your own filename patterns (`.flaskenv`, custom secret files — anything in `KEY=value` format) per repo without waiting on a new Envi release
 - **Encrypted Blob Sharing** - Share environment configs with team members via encrypted, compressed blobs - works independently of global storage
 - **Stable Shared Key (Optional)** - Generate a per-repo `envi.config.maml` with `envi create-key` to give `envi pack` / `envi unpack` a key that survives manifest changes, and encrypt the GitHub backup of `~/.envi/store/` so only people with the source repo can decrypt it
 - **Monorepo Support** - Automatically discovers and captures all `.env` and `.dev.vars` files across your entire monorepo structure, preserving relative paths
