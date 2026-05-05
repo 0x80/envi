@@ -44,7 +44,7 @@ Many tools and frameworks store local secrets in their own files (`.envrc` for d
 {
   capture_patterns: [
     ".envrc",
-    "wrangler.dev.toml"
+    ".flaskenv"
   ]
 }
 ```

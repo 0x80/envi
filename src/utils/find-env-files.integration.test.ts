@@ -175,8 +175,9 @@ describe("findEnvFiles (integration)", () => {
   it("captures user-provided additional patterns at root and nested depths", async () => {
     /**
      * When the per-repo config declares `capture_patterns: [".envrc"]`,
-     * findEnvFiles should pick up `.envrc` at any depth, ignoring it at root
-     * (gitignored) and not at root (untracked goes to excluded).
+     * findEnvFiles should pick up `.envrc` at any depth. The `.envrc` line in
+     * `.gitignore` (no leading slash) applies at every depth, so both the
+     * root and nested `.envrc` are git-ignored and therefore captured.
      */
     writeFileSync(
       join(repoRoot, ".gitignore"),

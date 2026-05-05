@@ -176,9 +176,9 @@ const hasChanges = saveToStorage(
 
 The optional fourth argument is `SaveToStorageOptions`. When `encryptionKey` is set, each file's `env` block is encrypted with `encrypt(JSON.stringify(env), encryptionKey)` before being written, and the no-op comparison reads/decrypts the existing store with the same key.
 
-## Encryption Key (envi.config.maml)
+## Per-repo Config (envi.config.maml)
 
-Helpers for the per-repo `envi.config.maml` file.
+Helpers for the per-repo `envi.config.maml` file. The legacy filename `envi.maml` is still read so already-committed files keep working — reads prefer the canonical name and fall back to legacy; writes target whichever file is on disk (and create the canonical name when neither exists).
 
 ### KEY_FILE_NAME
 
@@ -186,6 +186,14 @@ Helpers for the per-repo `envi.config.maml` file.
 import { KEY_FILE_NAME } from "@codecompose/envi";
 
 console.log(KEY_FILE_NAME); // "envi.config.maml"
+```
+
+### LEGACY_KEY_FILE_NAME
+
+```typescript
+import { LEGACY_KEY_FILE_NAME } from "@codecompose/envi";
+
+console.log(LEGACY_KEY_FILE_NAME); // "envi.maml"
 ```
 
 ### generateKey()
@@ -201,7 +209,7 @@ const key = generateKey();
 
 ### readEncryptionKey()
 
-Read the `encryption_key` from `envi.config.maml` if present.
+Read the `encryption_key` from `envi.config.maml` (preferred) or the legacy `envi.maml` (fallback). Emits a one-time info hint when the legacy file is read.
 
 ```typescript
 import { readEncryptionKey } from "@codecompose/envi";
@@ -210,26 +218,48 @@ const key = readEncryptionKey("/path/to/repo");
 // Returns: string or null
 ```
 
+### readCapturePatterns()
+
+Read additional capture patterns from the per-repo config. Reads from whichever filename is on disk (canonical preferred). Returns `[]` when the file or `capture_patterns` field is missing.
+
+```typescript
+import { readCapturePatterns } from "@codecompose/envi";
+
+const patterns = readCapturePatterns("/path/to/repo");
+// Returns: string[]
+```
+
 ### writeEncryptionKey()
 
-Write or update `envi.config.maml` with a key. Creates the file with a header comment if missing; inserts the key into an existing file while preserving other content. Refuses to overwrite an existing `encryption_key` unless `{ force: true }` is passed.
+Write or update the per-repo config with a key. If only the legacy `envi.maml` is on disk, it is edited in place — migration to the canonical name is left to the user so they can commit the rename. Creates a new `envi.config.maml` with a header comment when neither file exists. Refuses to overwrite an existing `encryption_key` unless `{ force: true }` is passed. Returns the basename of the file that was written (`envi.config.maml` or `envi.maml`).
 
 ```typescript
 import { writeEncryptionKey } from "@codecompose/envi";
 
-writeEncryptionKey("/path/to/repo", key, { force: false });
+const filename = writeEncryptionKey("/path/to/repo", key, { force: false });
 // Throws Error when force is false and a key is already set.
 ```
 
 ### hasKeyFile()
 
-Check whether `envi.config.maml` exists in a repository (does not check whether `encryption_key` is set inside).
+Check whether either `envi.config.maml` or the legacy `envi.maml` exists in a repository (does not check whether `encryption_key` is set inside).
 
 ```typescript
 import { hasKeyFile } from "@codecompose/envi";
 
 const exists = hasKeyFile("/path/to/repo");
 // Returns: boolean
+```
+
+### findKeyFile()
+
+Return the basename of the per-repo config file present on disk — `envi.config.maml` if the canonical file exists, `envi.maml` if only the legacy file does, or `null` when neither exists. Use this to surface the actual filename in user-facing messages instead of always naming the canonical constant.
+
+```typescript
+import { findKeyFile } from "@codecompose/envi";
+
+const filename = findKeyFile("/path/to/repo");
+// Returns: "envi.config.maml" | "envi.maml" | null
 ```
 
 ## Configuration
