@@ -1,6 +1,6 @@
 {
   "name": "@codecompose/envi",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Envi makes it easy to capture files that live outside of version control (like .env and .dev.vars) from a codebase in a central location that can be version controlled, and restored for new checkouts and spawning git worktree instances.",
   "keywords": [
     "ai-development",
