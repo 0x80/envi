@@ -1,10 +1,43 @@
 import { existsSync } from "node:fs";
 import { execa } from "execa";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { filterGitIgnoredFiles, isGitRepo } from "./git";
+import { commitAndPush, filterGitIgnoredFiles, isGitRepo } from "./git";
 
 vi.mock("node:fs");
 vi.mock("execa");
+
+/**
+ * Build a mock `execa` that resolves based on the git subcommand, so tests can
+ * drive each step (status, fetch, rebase, push) independently regardless of
+ * call order. Any subcommand without an override resolves to a clean success.
+ *
+ * @param overrides - Map of git subcommand (first arg) to its mocked result
+ */
+function mockGit(
+  overrides: Record<string, { exitCode?: number; stdout?: string }> = {},
+): void {
+  vi.mocked(execa).mockImplementation((_cmd, args) => {
+    const subcommand = Array.isArray(args) ? String(args[0]) : "";
+    const override = overrides[subcommand] ?? {};
+    return Promise.resolve({
+      exitCode: override.exitCode ?? 0,
+      stdout: override.stdout ?? "",
+      stderr: "",
+    }) as never;
+  });
+}
+
+/**
+ * Collect the git subcommands execa was called with, in order.
+ *
+ * @returns The first argument of each `git` invocation (e.g. "fetch", "push")
+ */
+function calledGitSubcommands(): string[] {
+  return vi.mocked(execa).mock.calls.map((call) => {
+    const args = call[1];
+    return Array.isArray(args) ? String(args[0]) : "";
+  });
+}
 
 describe("git", () => {
   beforeEach(() => {
@@ -84,6 +117,78 @@ describe("git", () => {
       await expect(filterGitIgnoredFiles("/project", [".env"])).rejects.toThrow(
         /not a git repository/,
       );
+    });
+  });
+
+  describe("commitAndPush", () => {
+    it("returns early without committing when there are no changes", async () => {
+      mockGit({ status: { stdout: "" } });
+
+      await commitAndPush("/envi", "Update env files");
+
+      const subcommands = calledGitSubcommands();
+      expect(subcommands).toContain("add");
+      expect(subcommands).toContain("status");
+      expect(subcommands).not.toContain("commit");
+      expect(subcommands).not.toContain("push");
+    });
+
+    it("fetches and rebases onto the remote before pushing", async () => {
+      mockGit({ status: { stdout: " M store/app.maml" } });
+
+      await commitAndPush("/envi", "Update env files");
+
+      const subcommands = calledGitSubcommands();
+      expect(subcommands).toEqual([
+        "add",
+        "status",
+        "commit",
+        "fetch",
+        "rebase",
+        "push",
+      ]);
+      expect(execa).toHaveBeenCalledWith(
+        "git",
+        ["fetch", "origin", "main"],
+        expect.objectContaining({ cwd: "/envi", reject: false }),
+      );
+      expect(execa).toHaveBeenCalledWith(
+        "git",
+        ["rebase", "FETCH_HEAD"],
+        expect.objectContaining({ cwd: "/envi", reject: false }),
+      );
+    });
+
+    it("skips the rebase and still pushes when the remote branch does not exist yet", async () => {
+      mockGit({
+        status: { stdout: " M store/app.maml" },
+        fetch: { exitCode: 128 },
+      });
+
+      await commitAndPush("/envi", "Update env files");
+
+      const subcommands = calledGitSubcommands();
+      expect(subcommands).toContain("fetch");
+      expect(subcommands).not.toContain("rebase");
+      expect(subcommands).toContain("push");
+    });
+
+    it("aborts the rebase and throws an actionable error on conflicts", async () => {
+      mockGit({
+        status: { stdout: " M store/app.maml" },
+        rebase: { exitCode: 1 },
+      });
+
+      await expect(commitAndPush("/envi", "Update env files")).rejects.toThrow(
+        /conflicting changes/i,
+      );
+
+      expect(execa).toHaveBeenCalledWith(
+        "git",
+        ["rebase", "--abort"],
+        expect.objectContaining({ cwd: "/envi", reject: false }),
+      );
+      expect(calledGitSubcommands()).not.toContain("push");
     });
   });
 });
