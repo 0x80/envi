@@ -88,6 +88,51 @@ export async function addRemote(dir: string, remoteUrl: string): Promise<void> {
 }
 
 /**
+ * Integrate changes the remote has that we don't, so a push isn't rejected
+ * when another machine has pushed to the same store since we last synced.
+ *
+ * Fetches `origin/main` and rebases our local commits on top of it. A failed
+ * fetch means the remote branch doesn't exist yet (a fresh repo's first push),
+ * in which case there is nothing to integrate and the push will create it. A
+ * failed rebase usually means the remote changed the same store file we did;
+ * we abort to leave the working tree clean and surface the rebase output so the
+ * user can resolve it, rather than leaving a half-finished rebase behind.
+ *
+ * The local commit already exists at this point, so the recovery is to push it
+ * after rebasing manually — not to capture again (an unchanged working tree
+ * would short-circuit the next capture before it ever reaches a push).
+ *
+ * @param dir - Repository directory
+ */
+async function integrateRemoteChanges(dir: string): Promise<void> {
+  const fetchResult = await execa("git", ["fetch", "origin", "main"], {
+    cwd: dir,
+    reject: false,
+  });
+
+  /** No remote `main` yet (or unreachable) — nothing to integrate; let push handle it */
+  if (fetchResult.exitCode !== 0) {
+    return;
+  }
+
+  const rebaseResult = await execa("git", ["rebase", "FETCH_HEAD"], {
+    cwd: dir,
+    reject: false,
+  });
+
+  if (rebaseResult.exitCode !== 0) {
+    /** Restore the working tree before surfacing the failure */
+    await execa("git", ["rebase", "--abort"], { cwd: dir, reject: false });
+    const details = rebaseResult.stderr?.trim();
+    throw new Error(
+      `Could not rebase the local envi-store onto the latest origin/main` +
+        (details ? `: ${details}` : "") +
+        `. Resolve it manually in ${dir} (git pull --rebase, fix any conflicts, then git push).`,
+    );
+  }
+}
+
+/**
  * Commit all changes and push to remote
  *
  * @param dir - Repository directory
@@ -115,6 +160,12 @@ export async function commitAndPush(
 
   /** Commit */
   await execa("git", ["commit", "-m", message], { cwd: dir });
+
+  /**
+   * Integrate remote changes before pushing so a remote that is ahead (e.g.
+   * pushed from another machine) doesn't reject our push with "fetch first".
+   */
+  await integrateRemoteChanges(dir);
 
   /** Push to remote */
   await execa("git", ["push", "-u", "origin", "main"], { cwd: dir });
