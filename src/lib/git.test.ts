@@ -173,14 +173,14 @@ describe("git", () => {
       expect(subcommands).toContain("push");
     });
 
-    it("aborts the rebase and throws an actionable error on conflicts", async () => {
+    it("aborts the rebase and throws an actionable error when the rebase fails", async () => {
       mockGit({
         status: { stdout: " M store/app.maml" },
         rebase: { exitCode: 1 },
       });
 
       await expect(commitAndPush("/envi", "Update env files")).rejects.toThrow(
-        /conflicting changes/i,
+        /could not rebase[\s\S]*git pull --rebase[\s\S]*git push/i,
       );
 
       expect(execa).toHaveBeenCalledWith(
@@ -189,6 +189,35 @@ describe("git", () => {
         expect.objectContaining({ cwd: "/envi", reject: false }),
       );
       expect(calledGitSubcommands()).not.toContain("push");
+    });
+
+    it("includes the rebase stderr in the error for diagnostics", async () => {
+      vi.mocked(execa).mockImplementation((_cmd, args) => {
+        const argv = Array.isArray(args) ? args.map(String) : [];
+        if (argv[0] === "status") {
+          return Promise.resolve({
+            exitCode: 0,
+            stdout: " M store/app.maml",
+            stderr: "",
+          }) as never;
+        }
+        if (argv[0] === "rebase" && argv[1] === "FETCH_HEAD") {
+          return Promise.resolve({
+            exitCode: 1,
+            stdout: "",
+            stderr: "CONFLICT (content): Merge conflict in store/app.maml",
+          }) as never;
+        }
+        return Promise.resolve({
+          exitCode: 0,
+          stdout: "",
+          stderr: "",
+        }) as never;
+      });
+
+      await expect(commitAndPush("/envi", "Update env files")).rejects.toThrow(
+        /Merge conflict in store\/app\.maml/,
+      );
     });
   });
 });

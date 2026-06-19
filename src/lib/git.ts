@@ -94,9 +94,13 @@ export async function addRemote(dir: string, remoteUrl: string): Promise<void> {
  * Fetches `origin/main` and rebases our local commits on top of it. A failed
  * fetch means the remote branch doesn't exist yet (a fresh repo's first push),
  * in which case there is nothing to integrate and the push will create it. A
- * failed rebase means the remote changed the same store file we did; we abort
- * to leave the working tree clean and surface an actionable error rather than
- * leaving a half-finished rebase behind.
+ * failed rebase usually means the remote changed the same store file we did;
+ * we abort to leave the working tree clean and surface the rebase output so the
+ * user can resolve it, rather than leaving a half-finished rebase behind.
+ *
+ * The local commit already exists at this point, so the recovery is to push it
+ * after rebasing manually — not to capture again (an unchanged working tree
+ * would short-circuit the next capture before it ever reaches a push).
  *
  * @param dir - Repository directory
  */
@@ -117,11 +121,13 @@ async function integrateRemoteChanges(dir: string): Promise<void> {
   });
 
   if (rebaseResult.exitCode !== 0) {
-    /** Restore the working tree before surfacing the conflict */
+    /** Restore the working tree before surfacing the failure */
     await execa("git", ["rebase", "--abort"], { cwd: dir, reject: false });
+    const details = rebaseResult.stderr?.trim();
     throw new Error(
-      `The remote envi-store has conflicting changes that can't be merged automatically. ` +
-        `Resolve them manually in ${dir} (git pull --rebase, fix the conflicts), then capture again.`,
+      `Could not rebase the local envi-store onto the latest origin/main` +
+        (details ? `: ${details}` : "") +
+        `. Resolve it manually in ${dir} (git pull --rebase, fix any conflicts, then git push).`,
     );
   }
 }
