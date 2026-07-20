@@ -18,8 +18,9 @@ import {
 import {
   findEnvFiles,
   findRepoRoot,
+  formatSkippedPreview,
   getErrorMessage,
-  parseEnvFile,
+  readEnvFiles,
 } from "~/utils";
 import { applyRedaction } from "~/utils/redact";
 
@@ -81,22 +82,14 @@ export async function captureCommand(): Promise<void> {
     } = await findEnvFiles(repoRoot, { additionalPatterns });
 
     if (excluded.length > 0) {
-      const preview = excluded.slice(0, 5).join(", ");
-      const more =
-        excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
-        `Skipped ${excluded.length} env file(s) not ignored by git: ${preview}${more}`,
+        `Skipped ${excluded.length} env file(s) not ignored by git: ${formatSkippedPreview(excluded)}`,
       );
     }
 
     if (skippedNestedVcsRoots.length > 0) {
-      const preview = skippedNestedVcsRoots.slice(0, 5).join(", ");
-      const more =
-        skippedNestedVcsRoots.length > 5
-          ? ` (...and ${skippedNestedVcsRoots.length - 5} more)`
-          : "";
       consola.info(
-        `Skipped ${skippedNestedVcsRoots.length} env file(s) inside nested repos/worktrees: ${preview}${more}`,
+        `Skipped ${skippedNestedVcsRoots.length} env file(s) inside nested repos/worktrees: ${formatSkippedPreview(skippedNestedVcsRoots)}`,
       );
     }
 
@@ -108,16 +101,23 @@ export async function captureCommand(): Promise<void> {
     consola.success(`Found ${envFilePaths.length} file(s):`);
     envFilePaths.forEach((path) => consola.info(`  - ${path}`));
 
-    /** Parse each env file */
+    /** Parse each env file, skipping any that became unreadable since discovery */
     consola.start("Parsing files...");
-    const envFiles = envFilePaths.map((relativePath) => {
-      const absolutePath = join(repoRoot, relativePath);
-      const env = parseEnvFile(absolutePath);
-      return {
-        path: relativePath,
-        env,
-      };
-    });
+    const { parsed: envFiles, unreadable } = readEnvFiles(
+      repoRoot,
+      envFilePaths,
+    );
+
+    if (unreadable.length > 0) {
+      consola.warn(
+        `Skipped ${unreadable.length} unreadable env file(s): ${formatSkippedPreview(unreadable)}`,
+      );
+    }
+
+    if (envFiles.length === 0) {
+      consola.warn("No readable env files found.");
+      return;
+    }
 
     /** Apply redaction to env files */
     const redactedVariables = getRedactedVariables();
