@@ -174,6 +174,39 @@ function isContentIdentical(
   }
 }
 
+/**
+ * The set of file paths currently recorded in this repo's store, or an empty
+ * set when no store exists yet.
+ *
+ * Paths are plaintext in both entry variants — only the *values* are ever
+ * encrypted — so this needs no key. `capture` uses it to detect when writing a
+ * fresh snapshot would drop a file that is already backed up but couldn't be
+ * read this run: `saveToStorage` writes a full snapshot, so an unreadable file
+ * absent from its input would otherwise be silently removed from the store.
+ *
+ * @param repoPath - Absolute path to repository root
+ * @param packageName - Optional package name (resolves the store filename)
+ */
+export function loadStoredPaths(
+  repoPath: string,
+  packageName?: string | null,
+): Set<string> {
+  const filePath = join(
+    getStorageDir(),
+    getStorageFilename(repoPath, packageName),
+  );
+  if (!existsSync(filePath)) {
+    return new Set();
+  }
+
+  try {
+    const data = parse(readFileSync(filePath, "utf-8")) as EnviStore;
+    return new Set(data.files.map((entry) => entry.path));
+  } catch {
+    return new Set();
+  }
+}
+
 export interface SaveToStorageOptions {
   /**
    * If provided, encrypt each file's `env` block before writing. The same key

@@ -1,8 +1,8 @@
 import { consola } from "consola";
 import fg from "fast-glob";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { dirname, join, resolve, sep } from "node:path";
+import { filterGitIgnoredFiles, isGitRepo, listWorktreePaths } from "~/lib/git";
 import { VCS_MARKERS } from "./vcs-markers";
 import { getErrorMessage } from "./get-error-message";
 
@@ -123,28 +123,71 @@ function parseGitignoreDirsFallback(repoRoot: string): string[] {
 }
 
 /**
+ * Resolve a path through symlinks so it can be compared to the realpaths `git
+ * worktree list` emits. Falls back to `resolve()` when the path doesn't exist
+ * on disk (a worktree git still lists but whose directory was already removed,
+ * or the synthetic roots in unit tests) — `resolve()` at least normalizes `.` /
+ * `..` and a trailing slash so the comparison stays well-defined.
+ */
+function toRealPath(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return resolve(path);
+  }
+}
+
+/**
  * Partition candidate paths into those that live inside a nested VCS root and
  * those that do not.
  *
- * For each candidate, walks upward from its parent directory toward (but not
- * including) the repo root. If any intermediate directory contains a VCS marker
- * (`.git`, `.jj`, `.hg`, `.svn`), the candidate is classified as nested. The
- * repo root itself is never tested — `findRepoRoot` may legitimately return a
- * directory without a marker (when the user confirms the "no VCS found" prompt)
- * and even when a marker is present, the loop terminates before reaching it.
+ * Two signals classify a candidate as nested, and either is sufficient:
  *
- * `repoRoot` is normalized via `resolve()` so a trailing slash on the caller's
- * input does not break the `dir !== repoRoot` loop guard.
+ *  1. **Registered linked worktrees** (`worktreePaths`, from `git worktree
+ *     list`, main tree excluded). Authoritative: a candidate under one of these
+ *     is skipped even when its `.git` pointer file is momentarily absent, which
+ *     is the marker probe's blind spot while git is adding or removing a
+ *     worktree.
+ *  2. **On-disk VCS markers.** Walks upward from the candidate's parent toward
+ *     (but not including) the repo root; if any intermediate directory contains
+ *     a marker (`.git`, `.jj`, `.hg`, `.svn`), the candidate is nested. This is
+ *     the only signal for the nested working trees `git worktree list` doesn't
+ *     know about — submodules, nested clones, and jj/hg/svn checkouts — and the
+ *     fallback when git is unavailable.
  *
- * Per-directory check results are memoized so a deeply nested worktree only
- * pays the existsSync cost once per ancestor.
+ * The repo root itself is never classified nested by either signal:
+ * `findRepoRoot` may legitimately return a directory without a marker (when the
+ * user confirms the "no VCS found" prompt), the main tree is filtered out of
+ * `worktreePaths`, and the marker walk terminates before reaching the root.
+ *
+ * All paths are normalized through `realpathSync` (falling back to `resolve()`
+ * when a path can't be resolved), because `git worktree list` reports fully
+ * symlink-resolved realpaths. Comparing those against a merely `resolve()`d
+ * root would silently fail to match whenever the repo is reached through a
+ * symlink — `/tmp` → `/private/tmp` on macOS, or any symlinked checkout — so
+ * both sides must be resolved the same way. Normalizing also absorbs a trailing
+ * slash on the caller's input, keeping the `dir !== repoRoot` loop guard sound.
+ *
+ * Per-directory marker check results are memoized so a deeply nested worktree
+ * only pays the existsSync cost once per ancestor.
  */
 function partitionNestedVcsRoots(
   repoRoot: string,
   candidates: string[],
+  worktreePaths: string[] = [],
 ): { kept: string[]; skipped: string[] } {
-  const normalizedRoot = resolve(repoRoot);
+  const normalizedRoot = toRealPath(repoRoot);
   const cache = new Map<string, boolean>();
+
+  /**
+   * Linked worktrees as absolute, trailing-separator prefixes (the main tree
+   * dropped), so `absPath.startsWith(prefix)` matches a candidate inside the
+   * worktree without also matching a sibling whose name merely shares a prefix.
+   */
+  const linkedWorktreePrefixes = worktreePaths
+    .map((path) => toRealPath(path))
+    .filter((path) => path !== normalizedRoot)
+    .map((path) => path + sep);
 
   function isNestedVcsRoot(dir: string): boolean {
     const cached = cache.get(dir);
@@ -158,15 +201,23 @@ function partitionNestedVcsRoots(
   const skipped: string[] = [];
 
   for (const relPath of candidates) {
-    let dir = dirname(join(normalizedRoot, relPath));
-    let nested = false;
-    while (dir !== normalizedRoot && dir !== dirname(dir)) {
-      if (isNestedVcsRoot(dir)) {
-        nested = true;
-        break;
+    const absPath = join(normalizedRoot, relPath);
+
+    let nested = linkedWorktreePrefixes.some((prefix) =>
+      absPath.startsWith(prefix),
+    );
+
+    if (!nested) {
+      let dir = dirname(absPath);
+      while (dir !== normalizedRoot && dir !== dirname(dir)) {
+        if (isNestedVcsRoot(dir)) {
+          nested = true;
+          break;
+        }
+        dir = dirname(dir);
       }
-      dir = dirname(dir);
     }
+
     if (nested) {
       skipped.push(relPath);
     } else {
@@ -228,13 +279,21 @@ export async function findEnvFiles(
   });
 
   /**
+   * Ask git for its registered worktrees so a linked worktree is skipped even
+   * when its `.git` pointer is transiently missing (the marker probe's blind
+   * spot). Best-effort and only meaningful inside a git repo; empty otherwise,
+   * leaving marker-only detection in place.
+   */
+  const worktreePaths = inGitRepo ? await listWorktreePaths(repoRoot) : [];
+
+  /**
    * Partition candidates that live inside a nested VCS root (git worktree,
    * submodule, nested clone, jj/hg/svn checkout). These are surfaced separately
    * so the caller can tell the user why they were skipped, instead of silently
    * disappearing.
    */
   const { kept: candidates, skipped: skippedNestedVcsRoots } =
-    partitionNestedVcsRoots(repoRoot, rawCandidates);
+    partitionNestedVcsRoots(repoRoot, rawCandidates, worktreePaths);
 
   if (!inGitRepo) {
     return { files: candidates, excluded: [], skippedNestedVcsRoots };

@@ -20,6 +20,7 @@ export {
   initialCommitAndPush,
   initGitRepo,
   isGitRepo,
+  listWorktreePaths,
 } from "./git";
 export {
   cloneRepo,
@@ -52,6 +53,7 @@ export {
   getPackageName,
   getStorageDir,
   getStorageFilename,
+  loadStoredPaths,
   saveToStorage,
 } from "./storage";
 export type { EnviStore, EnviStoreFile } from "./storage";

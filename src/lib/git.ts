@@ -59,6 +59,57 @@ export async function filterGitIgnoredFiles(
 }
 
 /**
+ * List the absolute paths of every working tree git knows about for this repo —
+ * the main working tree plus every linked worktree created with `git worktree
+ * add`.
+ *
+ * Used as an authoritative complement to the on-disk `.git`-marker probe in
+ * `findEnvFiles`. That probe classifies a directory as a nested working tree by
+ * the presence of a `.git` entry, but a linked worktree momentarily lacks its
+ * `.git` pointer file while git is adding or removing it — and the marker probe
+ * alone would then fail to skip it, capturing another working tree's env files.
+ * `git worktree list` reports the worktree regardless of that transient
+ * on-disk state.
+ *
+ * Best-effort: returns `[]` when git is unavailable, the directory is not a
+ * repository, or the installed git predates `worktree list --porcelain -z`, so
+ * the caller cleanly falls back to marker-only detection. It does not report a
+ * fully orphaned directory whose worktree registration has already been pruned
+ * (git no longer considers that a worktree) — that residual case is covered by
+ * capture/pack tolerating an unreadable file rather than by detection here.
+ *
+ * @param repoRoot - Absolute path to the git repository root
+ * @returns Absolute worktree paths, including the main working tree
+ */
+export async function listWorktreePaths(repoRoot: string): Promise<string[]> {
+  try {
+    const result = await execa(
+      "git",
+      ["worktree", "list", "--porcelain", "-z"],
+      { cwd: repoRoot, reject: false },
+    );
+
+    if (result.exitCode !== 0) {
+      return [];
+    }
+
+    /**
+     * `--porcelain -z` emits NUL-separated `label value` records, one stanza
+     * per worktree. Only the `worktree <path>` record carries the path; the
+     * `HEAD` / `branch` / `bare` records and the empty stanza separators are
+     * ignored.
+     */
+    const prefix = "worktree ";
+    return result.stdout
+      .split("\0")
+      .filter((record) => record.startsWith(prefix))
+      .map((record) => record.slice(prefix.length));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Initialize a git repository
  *
  * @param dir - Directory to initialize

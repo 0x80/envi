@@ -10,6 +10,7 @@ import {
   getStorageDir,
   getStorageFilename,
   KEY_FILE_NAME,
+  loadStoredPaths,
   readCapturePatterns,
   readConfig,
   readEncryptionKey,
@@ -18,8 +19,9 @@ import {
 import {
   findEnvFiles,
   findRepoRoot,
+  formatSkippedPreview,
   getErrorMessage,
-  parseEnvFile,
+  readEnvFiles,
 } from "~/utils";
 import { applyRedaction } from "~/utils/redact";
 
@@ -81,22 +83,14 @@ export async function captureCommand(): Promise<void> {
     } = await findEnvFiles(repoRoot, { additionalPatterns });
 
     if (excluded.length > 0) {
-      const preview = excluded.slice(0, 5).join(", ");
-      const more =
-        excluded.length > 5 ? ` (...and ${excluded.length - 5} more)` : "";
       consola.info(
-        `Skipped ${excluded.length} env file(s) not ignored by git: ${preview}${more}`,
+        `Skipped ${excluded.length} env file(s) not ignored by git: ${formatSkippedPreview(excluded)}`,
       );
     }
 
     if (skippedNestedVcsRoots.length > 0) {
-      const preview = skippedNestedVcsRoots.slice(0, 5).join(", ");
-      const more =
-        skippedNestedVcsRoots.length > 5
-          ? ` (...and ${skippedNestedVcsRoots.length - 5} more)`
-          : "";
       consola.info(
-        `Skipped ${skippedNestedVcsRoots.length} env file(s) inside nested repos/worktrees: ${preview}${more}`,
+        `Skipped ${skippedNestedVcsRoots.length} env file(s) inside nested repos/worktrees: ${formatSkippedPreview(skippedNestedVcsRoots)}`,
       );
     }
 
@@ -108,16 +102,43 @@ export async function captureCommand(): Promise<void> {
     consola.success(`Found ${envFilePaths.length} file(s):`);
     envFilePaths.forEach((path) => consola.info(`  - ${path}`));
 
-    /** Parse each env file */
+    /** Parse each env file, skipping any that became unreadable since discovery */
     consola.start("Parsing files...");
-    const envFiles = envFilePaths.map((relativePath) => {
-      const absolutePath = join(repoRoot, relativePath);
-      const env = parseEnvFile(absolutePath);
-      return {
-        path: relativePath,
-        env,
-      };
-    });
+    const { parsed: envFiles, unreadable } = readEnvFiles(
+      repoRoot,
+      envFilePaths,
+    );
+
+    if (unreadable.length > 0) {
+      consola.warn(
+        `Skipped ${unreadable.length} unreadable env file(s): ${formatSkippedPreview(unreadable)}`,
+      );
+
+      /**
+       * `saveToStorage` writes a full snapshot, so a file dropped from this
+       * capture is removed from the store. If any unreadable file is already
+       * backed up, overwriting would let a transient read failure (a file
+       * mid-rewrite, a briefly-dangling symlink) shrink the store — refuse
+       * rather than silently lose a previously captured file. Files that were
+       * never stored are safe to skip; nothing is lost.
+       */
+      const storedPaths = loadStoredPaths(repoRoot, packageName);
+      const wouldDrop = unreadable.filter((path) => storedPaths.has(path));
+      if (wouldDrop.length > 0) {
+        consola.error(
+          `Refusing to update the store: ${wouldDrop.length} already-stored file(s) could not be read this run (${formatSkippedPreview(wouldDrop)}).`,
+        );
+        consola.info(
+          "Resolve them and re-run so the store is not overwritten without them.",
+        );
+        return;
+      }
+    }
+
+    if (envFiles.length === 0) {
+      consola.warn("No readable env files found.");
+      return;
+    }
 
     /** Apply redaction to env files */
     const redactedVariables = getRedactedVariables();
