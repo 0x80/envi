@@ -1,8 +1,8 @@
 import { consola } from "consola";
 import fg from "fast-glob";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { filterGitIgnoredFiles, isGitRepo } from "~/lib/git";
+import { filterGitIgnoredFiles, isGitRepo, listWorktreePaths } from "~/lib/git";
 import { findEnvFiles } from "./find-env-files.js";
 
 vi.mock("fast-glob");
@@ -14,11 +14,21 @@ describe("findEnvFiles", () => {
     vi.clearAllMocks();
     /** Default: no gitignore on disk */
     vi.mocked(existsSync).mockReturnValue(false);
+    /**
+     * The synthetic `/project` paths don't exist on disk, so realpath resolves
+     * to the input unchanged — the same normalization the real code applies to
+     * paths that have no symlinks to resolve.
+     */
+    vi.mocked(realpathSync).mockImplementation(
+      ((path: string) => path) as typeof realpathSync,
+    );
   });
 
   describe("in a git repository", () => {
     beforeEach(() => {
       vi.mocked(isGitRepo).mockReturnValue(true);
+      /** Default: git reports no linked worktrees; individual tests override */
+      vi.mocked(listWorktreePaths).mockResolvedValue([]);
     });
 
     it("returns only files git considers ignored", async () => {
@@ -229,6 +239,61 @@ describe("findEnvFiles", () => {
       const passedToCheckIgnore = vi.mocked(filterGitIgnoredFiles).mock
         .calls[0]?.[1];
       expect(passedToCheckIgnore).toEqual([".env"]);
+    });
+
+    it("skips a registered worktree even when its .git marker is absent", async () => {
+      /**
+       * The regression case: a linked worktree whose `.git` pointer is
+       * momentarily gone (mid add/remove). No marker exists on disk, so the
+       * `existsSync` probe reports nothing nested — but `git worktree list`
+       * still names the worktree, and that alone must skip its files.
+       */
+      vi.mocked(fg).mockResolvedValue([
+        ".env",
+        ".worktrees/feature/.env",
+        ".worktrees/feature/services/api/.dev.vars",
+      ]);
+      /** No `.git` (or any) marker anywhere on disk */
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/project/.worktrees/feature",
+      ]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([".env"]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".env"]);
+      expect(result.skippedNestedVcsRoots.sort()).toEqual([
+        ".worktrees/feature/.env",
+        ".worktrees/feature/services/api/.dev.vars",
+      ]);
+      /** The main tree entry in the worktree list must not skip its own files */
+      const passedToCheckIgnore = vi.mocked(filterGitIgnoredFiles).mock
+        .calls[0]?.[1];
+      expect(passedToCheckIgnore).toEqual([".env"]);
+    });
+
+    it("does not skip a sibling whose path merely prefixes a worktree path", async () => {
+      /**
+       * `startsWith` on a raw path would match `.worktrees/feature-extra` for a
+       * worktree at `.worktrees/feature`; the trailing-separator prefix guards
+       * against that.
+       */
+      vi.mocked(fg).mockResolvedValue([".worktrees/feature-extra/.env"]);
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/project/.worktrees/feature",
+      ]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([
+        ".worktrees/feature-extra/.env",
+      ]);
+
+      const result = await findEnvFiles("/project");
+
+      expect(result.files).toEqual([".worktrees/feature-extra/.env"]);
+      expect(result.skippedNestedVcsRoots).toEqual([]);
     });
   });
 

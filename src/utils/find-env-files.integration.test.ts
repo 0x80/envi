@@ -134,6 +134,48 @@ describe("findEnvFiles (integration)", () => {
     }
   });
 
+  it("skips a real registered worktree even when its .git pointer is missing", async () => {
+    /**
+     * The regression this guards against, exercised against the real git
+     * binary rather than a mocked `git worktree list`. Create a genuine linked
+     * worktree, then delete its `.git` pointer file to reproduce the transient
+     * window during `git worktree add`/`remove` where the marker is gone. The
+     * worktree is still registered in the main repo's `.git/worktrees/`, so
+     * `git worktree list` still reports it and its env file must still be
+     * skipped — the marker probe alone would miss it here.
+     */
+    const worktreePath = join(repoRoot, ".worktrees/live");
+    await execa(
+      "git",
+      ["worktree", "add", "-q", "-b", "live-branch", worktreePath],
+      { cwd: repoRoot },
+    );
+    writeFileSync(join(worktreePath, ".env"), "LIVE_WT=1\n");
+    rmSync(join(worktreePath, ".git"), { force: true });
+
+    try {
+      const result = await findEnvFiles(repoRoot);
+      const all = [...result.files, ...result.excluded];
+
+      expect(all).not.toContain(".worktrees/live/.env");
+      expect(result.skippedNestedVcsRoots).toContain(".worktrees/live/.env");
+    } finally {
+      await execa("git", ["worktree", "remove", "--force", worktreePath], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      await execa("git", ["worktree", "prune"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      rmSync(join(repoRoot, ".worktrees"), { recursive: true, force: true });
+      await execa("git", ["branch", "-D", "live-branch"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+    }
+  });
+
   it("does not follow symlinks into linked workspace packages", async () => {
     /**
      * pnpm creates symlinks under `node_modules/.pnpm/...` that point back into

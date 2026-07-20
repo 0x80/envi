@@ -1,7 +1,12 @@
 import { existsSync } from "node:fs";
 import { execa } from "execa";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { commitAndPush, filterGitIgnoredFiles, isGitRepo } from "./git";
+import {
+  commitAndPush,
+  filterGitIgnoredFiles,
+  isGitRepo,
+  listWorktreePaths,
+} from "./git";
 
 vi.mock("node:fs");
 vi.mock("execa");
@@ -218,6 +223,43 @@ describe("git", () => {
       await expect(commitAndPush("/envi", "Update env files")).rejects.toThrow(
         /Merge conflict in store\/app\.maml/,
       );
+    });
+  });
+
+  describe("listWorktreePaths", () => {
+    it("parses the worktree paths from porcelain -z output", async () => {
+      /**
+       * `--porcelain -z` output: NUL-separated `label value` records, one
+       * stanza per worktree (main tree first), stanzas ending in an empty
+       * record. Only the `worktree <path>` records carry a path.
+       */
+      const stdout = [
+        "worktree /project",
+        "HEAD abc123",
+        "branch refs/heads/main",
+        "",
+        "worktree /project/.worktrees/feature",
+        "HEAD def456",
+        "branch refs/heads/feature",
+        "",
+      ].join("\0");
+      mockGit({ worktree: { stdout } });
+
+      const result = await listWorktreePaths("/project");
+
+      expect(result).toEqual(["/project", "/project/.worktrees/feature"]);
+    });
+
+    it("returns an empty array when git exits non-zero", async () => {
+      mockGit({ worktree: { exitCode: 128 } });
+
+      expect(await listWorktreePaths("/project")).toEqual([]);
+    });
+
+    it("returns an empty array when git is unavailable", async () => {
+      vi.mocked(execa).mockRejectedValue(new Error("spawn git ENOENT"));
+
+      expect(await listWorktreePaths("/project")).toEqual([]);
     });
   });
 });

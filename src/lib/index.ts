@@ -20,6 +20,7 @@ export {
   initialCommitAndPush,
   initGitRepo,
   isGitRepo,
+  listWorktreePaths,
 } from "./git";
 export {
   cloneRepo,
