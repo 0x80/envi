@@ -8,6 +8,7 @@ import {
   getPackageName,
   getStorageDir,
   getStorageFilename,
+  loadStoredPaths,
   saveToStorage,
 } from "./storage";
 
@@ -444,6 +445,45 @@ describe("storage", () => {
         "maml content",
         "utf-8",
       );
+    });
+  });
+
+  describe("loadStoredPaths", () => {
+    beforeEach(() => {
+      vi.mocked(homedir).mockReturnValue("/home/user");
+    });
+
+    it("returns an empty set when no store file exists", () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      expect(loadStoredPaths("/repo", "my-package").size).toBe(0);
+    });
+
+    it("returns every stored path, across plaintext and encrypted entries", () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("maml content");
+      vi.mocked(parse).mockReturnValue({
+        __envi_version: 1,
+        metadata: { updated_from: "/repo", updated_at: "now" },
+        files: [
+          { path: ".env", env: { A: "1" } },
+          { path: "apps/web/.env.local", encrypted_env: "base64ciphertext" },
+        ],
+      });
+
+      const result = loadStoredPaths("/repo", "my-package");
+
+      expect(result).toEqual(new Set([".env", "apps/web/.env.local"]));
+    });
+
+    it("returns an empty set when the store cannot be parsed", () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue("corrupt");
+      vi.mocked(parse).mockImplementation(() => {
+        throw new Error("bad maml");
+      });
+
+      expect(loadStoredPaths("/repo", "my-package").size).toBe(0);
     });
   });
 });

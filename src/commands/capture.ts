@@ -10,6 +10,7 @@ import {
   getStorageDir,
   getStorageFilename,
   KEY_FILE_NAME,
+  loadStoredPaths,
   readCapturePatterns,
   readConfig,
   readEncryptionKey,
@@ -112,6 +113,26 @@ export async function captureCommand(): Promise<void> {
       consola.warn(
         `Skipped ${unreadable.length} unreadable env file(s): ${formatSkippedPreview(unreadable)}`,
       );
+
+      /**
+       * `saveToStorage` writes a full snapshot, so a file dropped from this
+       * capture is removed from the store. If any unreadable file is already
+       * backed up, overwriting would let a transient read failure (a file
+       * mid-rewrite, a briefly-dangling symlink) shrink the store — refuse
+       * rather than silently lose a previously captured file. Files that were
+       * never stored are safe to skip; nothing is lost.
+       */
+      const storedPaths = loadStoredPaths(repoRoot, packageName);
+      const wouldDrop = unreadable.filter((path) => storedPaths.has(path));
+      if (wouldDrop.length > 0) {
+        consola.error(
+          `Refusing to update the store: ${wouldDrop.length} already-stored file(s) could not be read this run (${formatSkippedPreview(wouldDrop)}).`,
+        );
+        consola.info(
+          "Resolve them and re-run so the store is not overwritten without them.",
+        );
+        return;
+      }
     }
 
     if (envFiles.length === 0) {

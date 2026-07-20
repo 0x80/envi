@@ -53,6 +53,7 @@ export {
   getPackageName,
   getStorageDir,
   getStorageFilename,
+  loadStoredPaths,
   saveToStorage,
 } from "./storage";
 export type { EnviStore, EnviStoreFile } from "./storage";
