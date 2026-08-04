@@ -83,6 +83,112 @@ describe("findEnvFiles (integration)", () => {
     ]);
   });
 
+  it("excludes dependency and build directories at any depth", async () => {
+    /**
+     * The unit tests assert the shape of the ignore patterns; this asserts the
+     * behavior they are supposed to produce. fast-glob anchors patterns at
+     * `cwd`, so a root-only `node_modules/**` leaves every per-package
+     * `node_modules` and every `apps/*\/dist` of a workspace being walked —
+     * which is the regression that made a real monorepo take over a minute.
+     */
+    const buried = [
+      "node_modules/pkg",
+      "apps/web/node_modules/pkg",
+      "apps/web/dist/server",
+      "packages/api/build",
+      "packages/api/.turbo",
+      "apps/web/coverage",
+    ];
+
+    try {
+      for (const dir of buried) {
+        mkdirSync(join(repoRoot, dir), { recursive: true });
+        writeFileSync(join(repoRoot, dir, ".env"), "BURIED=1\n");
+      }
+
+      const result = await findEnvFiles(repoRoot);
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
+
+      for (const dir of buried) {
+        expect(all).not.toContain(`${dir}/.env`);
+      }
+
+      /** Sanity: ordinary files are still captured while these are pruned */
+      expect(result.files).toContain(".env");
+      expect(result.files).toContain("apps/web/.env.local");
+    } finally {
+      for (const dir of [
+        "node_modules",
+        "apps/web/node_modules",
+        "apps/web/dist",
+        "packages/api/build",
+        "packages/api/.turbo",
+        "apps/web/coverage",
+      ]) {
+        rmSync(join(repoRoot, dir), { recursive: true, force: true });
+      }
+    }
+  });
+
+  it("does not let a worktree path's glob metacharacters swallow a sibling", async () => {
+    /**
+     * A registered worktree whose name contains glob metacharacters must be
+     * pruned as a literal path. Spliced into a pattern unescaped,
+     * `.worktrees/feat[abc]/**` also matches the ordinary sibling
+     * `.worktrees/feata`, whose `.env` then vanishes from every result bucket —
+     * a silently dropped secret rather than a slower scan.
+     *
+     * A character class rather than the more obvious `feat*`: `*` is not a
+     * legal filename character on Windows, and this file deliberately stays
+     * runnable there (see the junction-based symlink test below). `[` and `]`
+     * are legal on win32 and reproduce the same over-match — the raw pattern
+     * prunes the worktree *and* swallows `feata`.
+     */
+    const worktreePath = join(repoRoot, ".worktrees/feat[abc]");
+    const siblingDir = join(repoRoot, ".worktrees/feata");
+
+    await execa(
+      "git",
+      ["worktree", "add", "-q", "-b", "class-branch", worktreePath],
+      { cwd: repoRoot },
+    );
+    writeFileSync(join(worktreePath, ".env"), "CLASS_WT=1\n");
+    mkdirSync(siblingDir, { recursive: true });
+    writeFileSync(join(siblingDir, ".env"), "SIBLING=1\n");
+
+    try {
+      const result = await findEnvFiles(repoRoot);
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
+
+      /** The real worktree is pruned ... */
+      expect(all).not.toContain(".worktrees/feat[abc]/.env");
+      /** ... and the innocent sibling survives */
+      expect(result.files).toContain(".worktrees/feata/.env");
+    } finally {
+      await execa("git", ["worktree", "remove", "--force", worktreePath], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      await execa("git", ["worktree", "prune"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      await execa("git", ["branch", "-D", "class-branch"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      rmSync(join(repoRoot, ".worktrees"), { recursive: true, force: true });
+    }
+  });
+
   it("does not descend into nested VCS roots (worktrees, submodules, nested clones)", async () => {
     /**
      * Build three flavors of nested VCS root and confirm none of their env
@@ -143,6 +249,12 @@ describe("findEnvFiles (integration)", () => {
      * worktree is still registered in the main repo's `.git/worktrees/`, so
      * `git worktree list` still reports it and its env file must still be
      * skipped — the marker probe alone would miss it here.
+     *
+     * A registered worktree is pruned from the glob up front rather than
+     * walked and discarded, so its files never enter any result bucket —
+     * including `skippedNestedVcsRoots`. Nested working trees git does *not*
+     * know about (submodules, nested clones, jj/hg checkouts) are still
+     * reported there; the test above covers that path.
      */
     const worktreePath = join(repoRoot, ".worktrees/live");
     await execa(
@@ -155,10 +267,15 @@ describe("findEnvFiles (integration)", () => {
 
     try {
       const result = await findEnvFiles(repoRoot);
-      const all = [...result.files, ...result.excluded];
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
 
       expect(all).not.toContain(".worktrees/live/.env");
-      expect(result.skippedNestedVcsRoots).toContain(".worktrees/live/.env");
+      /** Sanity: the main tree's own files are unaffected by the pruning */
+      expect(result.files).toContain(".env");
     } finally {
       await execa("git", ["worktree", "remove", "--force", worktreePath], {
         cwd: repoRoot,
