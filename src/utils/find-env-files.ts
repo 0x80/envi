@@ -87,8 +87,11 @@ export interface FindEnvFilesResult {
    *
    * Registered git worktrees normally do **not** appear here — they are pruned
    * before the glob, so they never become candidates. What lands here is the
-   * working trees git can't enumerate, which is where a "why did my file
-   * vanish?" explanation is actually worth showing.
+   * working trees git can't enumerate: submodules and nested clones, and also
+   * registered worktrees on a machine where `git worktree list` failed, since
+   * `listWorktreePaths` degrades to an empty list and the marker probe becomes
+   * the only signal. Either way this is where a "why did my file vanish?"
+   * explanation is worth showing.
    */
   skippedNestedVcsRoots: string[];
 }
@@ -318,10 +321,15 @@ export interface FindEnvFilesOptions {
  * are placed in `excluded`. Files inside a nested VCS root (submodule, nested
  * clone, jj/hg/svn checkout) are placed in `skippedNestedVcsRoots` regardless
  * of gitignore status — they belong to an independent working tree. Files
- * inside a *registered* git worktree appear in no bucket at all: those trees
- * are pruned from the glob up front, so their files are never candidates.
- * Outside a git repository — or if `git check-ignore` fails (e.g. git binary
- * missing) — all matched files are returned and `excluded` is empty.
+ * inside a *registered* git worktree normally appear in no bucket at all:
+ * those trees are pruned from the glob up front, so their files never become
+ * candidates. That holds only while `git worktree list` can enumerate them —
+ * when it can't (git missing, or the command fails) `listWorktreePaths` yields
+ * nothing, the pruning is skipped, and those files are caught after the glob by
+ * the marker probe and reported in `skippedNestedVcsRoots` like any other
+ * nested working tree. Outside a git repository — or if `git check-ignore`
+ * fails (e.g. git binary missing) — all matched files are returned and
+ * `excluded` is empty.
  *
  * @param repoRoot - Absolute path to repository root
  * @param options - Optional extra capture patterns
