@@ -257,6 +257,11 @@ describe("findEnvFiles", () => {
        * `.worktrees/feat*\/**`, which also matches the unrelated sibling
        * `.worktrees/feat-real` and drops its env file from the results — a
        * silent capture loss, not a missed optimization.
+       *
+       * `*` is safe to use here even though it is an illegal Windows filename
+       * character: this assertion is pure string construction against a mocked
+       * glob and never creates a directory. The integration-suite counterpart,
+       * which does touch the filesystem, uses a Windows-legal character class.
        */
       vi.mocked(listWorktreePaths).mockResolvedValue([
         "/project",

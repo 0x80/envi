@@ -136,20 +136,27 @@ describe("findEnvFiles (integration)", () => {
 
   it("does not let a worktree path's glob metacharacters swallow a sibling", async () => {
     /**
-     * A registered worktree named `feat*` must be pruned as a literal path. If
-     * its path is spliced into a pattern unescaped, `.worktrees/feat*\/**` also
-     * matches `.worktrees/feat-real`, whose `.env` then vanishes from every
-     * result bucket — a silently dropped secret rather than a slower scan.
+     * A registered worktree whose name contains glob metacharacters must be
+     * pruned as a literal path. Spliced into a pattern unescaped,
+     * `.worktrees/feat[abc]/**` also matches the ordinary sibling
+     * `.worktrees/feata`, whose `.env` then vanishes from every result bucket —
+     * a silently dropped secret rather than a slower scan.
+     *
+     * A character class rather than the more obvious `feat*`: `*` is not a
+     * legal filename character on Windows, and this file deliberately stays
+     * runnable there (see the junction-based symlink test below). `[` and `]`
+     * are legal on win32 and reproduce the same over-match — the raw pattern
+     * prunes the worktree *and* swallows `feata`.
      */
-    const worktreePath = join(repoRoot, ".worktrees/feat*");
-    const siblingDir = join(repoRoot, ".worktrees/feat-real");
+    const worktreePath = join(repoRoot, ".worktrees/feat[abc]");
+    const siblingDir = join(repoRoot, ".worktrees/feata");
 
     await execa(
       "git",
-      ["worktree", "add", "-q", "-b", "star-branch", worktreePath],
+      ["worktree", "add", "-q", "-b", "class-branch", worktreePath],
       { cwd: repoRoot },
     );
-    writeFileSync(join(worktreePath, ".env"), "STAR_WT=1\n");
+    writeFileSync(join(worktreePath, ".env"), "CLASS_WT=1\n");
     mkdirSync(siblingDir, { recursive: true });
     writeFileSync(join(siblingDir, ".env"), "SIBLING=1\n");
 
@@ -162,9 +169,9 @@ describe("findEnvFiles (integration)", () => {
       ];
 
       /** The real worktree is pruned ... */
-      expect(all).not.toContain(".worktrees/feat*/.env");
+      expect(all).not.toContain(".worktrees/feat[abc]/.env");
       /** ... and the innocent sibling survives */
-      expect(result.files).toContain(".worktrees/feat-real/.env");
+      expect(result.files).toContain(".worktrees/feata/.env");
     } finally {
       await execa("git", ["worktree", "remove", "--force", worktreePath], {
         cwd: repoRoot,
@@ -174,7 +181,7 @@ describe("findEnvFiles (integration)", () => {
         cwd: repoRoot,
         reject: false,
       });
-      await execa("git", ["branch", "-D", "star-branch"], {
+      await execa("git", ["branch", "-D", "class-branch"], {
         cwd: repoRoot,
         reject: false,
       });
