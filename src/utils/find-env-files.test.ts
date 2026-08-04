@@ -12,7 +12,14 @@ import { findEnvFiles } from "./find-env-files.js";
  * bogus and the escaping assertions meaningless.
  */
 vi.mock("fast-glob", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("fast-glob")>();
+  /**
+   * `fast-glob` uses `export =`, so the module namespace wraps the callable in
+   * `default` — typing it as the callable itself would not describe what
+   * `importOriginal` actually hands back here.
+   */
+  const actual = await importOriginal<{
+    default: typeof import("fast-glob");
+  }>();
   const glob = vi.fn();
   Object.assign(glob, { posix: actual.default.posix });
   return { default: glob };
