@@ -83,6 +83,105 @@ describe("findEnvFiles (integration)", () => {
     ]);
   });
 
+  it("excludes dependency and build directories at any depth", async () => {
+    /**
+     * The unit tests assert the shape of the ignore patterns; this asserts the
+     * behavior they are supposed to produce. fast-glob anchors patterns at
+     * `cwd`, so a root-only `node_modules/**` leaves every per-package
+     * `node_modules` and every `apps/*\/dist` of a workspace being walked —
+     * which is the regression that made a real monorepo take over a minute.
+     */
+    const buried = [
+      "node_modules/pkg",
+      "apps/web/node_modules/pkg",
+      "apps/web/dist/server",
+      "packages/api/build",
+      "packages/api/.turbo",
+      "apps/web/coverage",
+    ];
+
+    try {
+      for (const dir of buried) {
+        mkdirSync(join(repoRoot, dir), { recursive: true });
+        writeFileSync(join(repoRoot, dir, ".env"), "BURIED=1\n");
+      }
+
+      const result = await findEnvFiles(repoRoot);
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
+
+      for (const dir of buried) {
+        expect(all).not.toContain(`${dir}/.env`);
+      }
+
+      /** Sanity: ordinary files are still captured while these are pruned */
+      expect(result.files).toContain(".env");
+      expect(result.files).toContain("apps/web/.env.local");
+    } finally {
+      for (const dir of [
+        "node_modules",
+        "apps/web/node_modules",
+        "apps/web/dist",
+        "packages/api/build",
+        "packages/api/.turbo",
+        "apps/web/coverage",
+      ]) {
+        rmSync(join(repoRoot, dir), { recursive: true, force: true });
+      }
+    }
+  });
+
+  it("does not let a worktree path's glob metacharacters swallow a sibling", async () => {
+    /**
+     * A registered worktree named `feat*` must be pruned as a literal path. If
+     * its path is spliced into a pattern unescaped, `.worktrees/feat*\/**` also
+     * matches `.worktrees/feat-real`, whose `.env` then vanishes from every
+     * result bucket — a silently dropped secret rather than a slower scan.
+     */
+    const worktreePath = join(repoRoot, ".worktrees/feat*");
+    const siblingDir = join(repoRoot, ".worktrees/feat-real");
+
+    await execa(
+      "git",
+      ["worktree", "add", "-q", "-b", "star-branch", worktreePath],
+      { cwd: repoRoot },
+    );
+    writeFileSync(join(worktreePath, ".env"), "STAR_WT=1\n");
+    mkdirSync(siblingDir, { recursive: true });
+    writeFileSync(join(siblingDir, ".env"), "SIBLING=1\n");
+
+    try {
+      const result = await findEnvFiles(repoRoot);
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
+
+      /** The real worktree is pruned ... */
+      expect(all).not.toContain(".worktrees/feat*/.env");
+      /** ... and the innocent sibling survives */
+      expect(result.files).toContain(".worktrees/feat-real/.env");
+    } finally {
+      await execa("git", ["worktree", "remove", "--force", worktreePath], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      await execa("git", ["worktree", "prune"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      await execa("git", ["branch", "-D", "star-branch"], {
+        cwd: repoRoot,
+        reject: false,
+      });
+      rmSync(join(repoRoot, ".worktrees"), { recursive: true, force: true });
+    }
+  });
+
   it("does not descend into nested VCS roots (worktrees, submodules, nested clones)", async () => {
     /**
      * Build three flavors of nested VCS root and confirm none of their env

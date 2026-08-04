@@ -5,7 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { filterGitIgnoredFiles, isGitRepo, listWorktreePaths } from "~/lib/git";
 import { findEnvFiles } from "./find-env-files.js";
 
-vi.mock("fast-glob");
+/**
+ * Only the glob call itself is mocked. `posix.escapePath` is a pure string
+ * helper that the ignore-pattern construction depends on, so it stays real —
+ * automocking it to `undefined` would make every worktree pattern silently
+ * bogus and the escaping assertions meaningless.
+ */
+vi.mock("fast-glob", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("fast-glob")>();
+  const glob = vi.fn();
+  Object.assign(glob, { posix: actual.default.posix });
+  return { default: glob };
+});
 vi.mock("node:fs");
 vi.mock("~/lib/git");
 
@@ -212,6 +223,74 @@ describe("findEnvFiles", () => {
       const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
       expect(ignore.some((pattern) => pattern.includes(".."))).toBe(false);
       expect(ignore.some((pattern) => pattern.startsWith("/"))).toBe(false);
+    });
+
+    it("still prunes an in-repo worktree whose name merely starts with ..", async () => {
+      /**
+       * `relative()` returns `..staging` verbatim for a directory of that name,
+       * which a prefix test would misread as an escape out of the repo and
+       * silently stop pruning.
+       */
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/project/..staging",
+      ]);
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
+      expect(ignore).toContain("..staging/**");
+    });
+
+    it("escapes glob metacharacters in a worktree path", async () => {
+      /**
+       * A worktree path is data, not a pattern. Unescaped, `feat*` yields
+       * `.worktrees/feat*\/**`, which also matches the unrelated sibling
+       * `.worktrees/feat-real` and drops its env file from the results — a
+       * silent capture loss, not a missed optimization.
+       */
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/project/.worktrees/feat*",
+      ]);
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
+      expect(ignore).toContain(".worktrees/feat\\*/**");
+      expect(ignore).not.toContain(".worktrees/feat*/**");
+    });
+
+    it("re-reads the worktree list after the glob so one registered mid-walk is still skipped", async () => {
+      /**
+       * The pre-glob snapshot feeds the ignore patterns, so it is necessarily
+       * taken before the walk. A worktree git registers *during* the walk is
+       * absent from it — and that is precisely when its `.git` pointer is
+       * missing, so the marker probe cannot cover it either. Only a fresh read
+       * after the glob keeps it out of `files`.
+       */
+      vi.mocked(listWorktreePaths)
+        .mockResolvedValueOnce(["/project"])
+        .mockResolvedValueOnce(["/project", "/project/.worktrees/late"]);
+      vi.mocked(fg).mockResolvedValue([".env", ".worktrees/late/.env"]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([".env"]);
+
+      const result = await findEnvFiles("/project");
+
+      /**
+       * The candidate list handed to the gitignore filter is the real evidence:
+       * the late worktree's file must already be gone by then, not merely
+       * absent from the final `files` (which the filter's own return decides).
+       */
+      const candidates = vi.mocked(filterGitIgnoredFiles).mock.calls[0]?.[1];
+      expect(candidates).toEqual([".env"]);
+      expect(result.files).toEqual([".env"]);
+      expect(result.skippedNestedVcsRoots).toContain(".worktrees/late/.env");
+      expect(vi.mocked(listWorktreePaths).mock.calls.length).toBe(2);
     });
 
     it("auto-expands a bare additionalPattern into root and **/ variants", async () => {

@@ -78,11 +78,17 @@ export interface FindEnvFilesResult {
    */
   excluded: string[];
   /**
-   * Paths that matched the glob but live inside a nested VCS root (git
-   * worktree, submodule, nested clone, jj/hg/svn checkout). These are skipped
-   * because nested working trees have their own independent state and must be
-   * captured from their own directory. Surfaced separately from `excluded` so
-   * the caller can give the user a distinct, accurate reason.
+   * Paths that matched the glob but live inside a nested VCS root (submodule,
+   * nested clone, jj/hg/svn checkout, or a git worktree git didn't report).
+   * These are skipped because nested working trees have their own independent
+   * state and must be captured from their own directory. Surfaced separately
+   * from `excluded` so the caller can give the user a distinct, accurate
+   * reason.
+   *
+   * Registered git worktrees normally do **not** appear here — they are pruned
+   * before the glob, so they never become candidates. What lands here is the
+   * working trees git can't enumerate, which is where a "why did my file
+   * vanish?" explanation is actually worth showing.
    */
   skippedNestedVcsRoots: string[];
 }
@@ -259,10 +265,14 @@ function partitionNestedVcsRoots(
  * unreachable from the glob anyway. Patterns are emitted with posix separators
  * because fast-glob requires them regardless of platform.
  *
- * This is a performance optimization, never a correctness guarantee: a worktree
- * directory whose name contains glob metacharacters produces a pattern that
- * won't match, and `partitionNestedVcsRoots` still discards its candidates
- * after the glob. Only the traversal saving is lost.
+ * A worktree path is data, not a pattern, so it is escaped before being spliced
+ * into one. Skipping that step is not the harmless lost optimization it looks
+ * like: a worktree directory named `feat*` yields `\.worktrees/feat*\/**`, which
+ * also swallows the sibling `.worktrees/feat-real` and silently drops a real env
+ * file from the capture set. `posix.escapePath` is the deliberate variant — the
+ * string has already been joined with `/`, so it is posix by construction on
+ * every platform, and the win32 escaper would leave a literal backslash in a
+ * filename unescaped.
  */
 function toWorktreeIgnorePatterns(
   normalizedRoot: string,
@@ -272,10 +282,18 @@ function toWorktreeIgnorePatterns(
 
   for (const worktreePath of worktreePaths) {
     const relativePath = relative(normalizedRoot, toRealPath(worktreePath));
-    /** Empty means the main tree; `..` or absolute means outside the root */
-    if (relativePath === "" || relativePath.startsWith("..")) continue;
+    /** Empty means the main tree */
+    if (relativePath === "") continue;
+    /**
+     * Outside the root. Matching `..` exactly or as a whole leading segment
+     * rather than by prefix keeps a legitimately-named directory like
+     * `..staging` (which `relative()` returns verbatim) from being mistaken for
+     * an escape and losing its pruning.
+     */
+    if (relativePath === ".." || relativePath.startsWith(`..${sep}`)) continue;
     if (isAbsolute(relativePath)) continue;
-    patterns.push(`${relativePath.split(sep).join("/")}/**`);
+    const posixPath = relativePath.split(sep).join("/");
+    patterns.push(`${fg.posix.escapePath(posixPath)}/**`);
   }
 
   return patterns;
@@ -297,11 +315,13 @@ export interface FindEnvFilesOptions {
  *
  * In a git repository, only files that git considers ignored are returned in
  * `files`. Files that are tracked or otherwise not covered by an ignore rule
- * are placed in `excluded`. Files inside a nested VCS root (worktree,
- * submodule, nested clone) are placed in `skippedNestedVcsRoots` regardless of
- * gitignore status — they belong to an independent working tree. Outside a git
- * repository — or if `git check-ignore` fails (e.g. git binary missing) — all
- * matched files are returned and `excluded` is empty.
+ * are placed in `excluded`. Files inside a nested VCS root (submodule, nested
+ * clone, jj/hg/svn checkout) are placed in `skippedNestedVcsRoots` regardless
+ * of gitignore status — they belong to an independent working tree. Files
+ * inside a *registered* git worktree appear in no bucket at all: those trees
+ * are pruned from the glob up front, so their files are never candidates.
+ * Outside a git repository — or if `git check-ignore` fails (e.g. git binary
+ * missing) — all matched files are returned and `excluded` is empty.
  *
  * @param repoRoot - Absolute path to repository root
  * @param options - Optional extra capture patterns
@@ -321,11 +341,13 @@ export async function findEnvFiles(
    * spot). Best-effort and only meaningful inside a git repo; empty otherwise,
    * leaving marker-only detection in place.
    */
-  const worktreePaths = inGitRepo ? await listWorktreePaths(repoRoot) : [];
+  const worktreePathsBeforeGlob = inGitRepo
+    ? await listWorktreePaths(repoRoot)
+    : [];
 
   const ignorePatterns = [
     ...DEFAULT_IGNORE_PATTERNS,
-    ...toWorktreeIgnorePatterns(toRealPath(repoRoot), worktreePaths),
+    ...toWorktreeIgnorePatterns(toRealPath(repoRoot), worktreePathsBeforeGlob),
     ...(inGitRepo ? [] : parseGitignoreDirsFallback(repoRoot)),
   ];
 
@@ -343,13 +365,32 @@ export async function findEnvFiles(
   });
 
   /**
+   * Re-read the worktree list now that the walk is done. The snapshot above is
+   * taken before the glob because it has to be — it feeds the ignore patterns —
+   * but a worktree that git registers *while* the walk is in progress would be
+   * missing from it, and a worktree caught mid-add/remove is exactly when its
+   * `.git` pointer is absent and the marker probe can't see it either. Reusing
+   * only the stale snapshot here would reopen that gap. Both lists are unioned:
+   * a worktree that appeared during the walk comes from the fresh list, and one
+   * being torn down stays skipped via the stale one, which is the intended
+   * behavior for a tree mid-teardown. One extra `git worktree list` is
+   * negligible beside the traversal that just ran.
+   */
+  const worktreePathsAfterGlob = inGitRepo
+    ? await listWorktreePaths(repoRoot)
+    : [];
+
+  /**
    * Partition candidates that live inside a nested VCS root (git worktree,
    * submodule, nested clone, jj/hg/svn checkout). These are surfaced separately
    * so the caller can tell the user why they were skipped, instead of silently
    * disappearing.
    */
   const { kept: candidates, skipped: skippedNestedVcsRoots } =
-    partitionNestedVcsRoots(repoRoot, rawCandidates, worktreePaths);
+    partitionNestedVcsRoots(repoRoot, rawCandidates, [
+      ...worktreePathsBeforeGlob,
+      ...worktreePathsAfterGlob,
+    ]);
 
   if (!inGitRepo) {
     return { files: candidates, excluded: [], skippedNestedVcsRoots };
