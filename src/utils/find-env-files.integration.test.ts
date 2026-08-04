@@ -143,6 +143,12 @@ describe("findEnvFiles (integration)", () => {
      * worktree is still registered in the main repo's `.git/worktrees/`, so
      * `git worktree list` still reports it and its env file must still be
      * skipped — the marker probe alone would miss it here.
+     *
+     * A registered worktree is pruned from the glob up front rather than
+     * walked and discarded, so its files never enter any result bucket —
+     * including `skippedNestedVcsRoots`. Nested working trees git does *not*
+     * know about (submodules, nested clones, jj/hg checkouts) are still
+     * reported there; the test above covers that path.
      */
     const worktreePath = join(repoRoot, ".worktrees/live");
     await execa(
@@ -155,10 +161,15 @@ describe("findEnvFiles (integration)", () => {
 
     try {
       const result = await findEnvFiles(repoRoot);
-      const all = [...result.files, ...result.excluded];
+      const all = [
+        ...result.files,
+        ...result.excluded,
+        ...result.skippedNestedVcsRoots,
+      ];
 
       expect(all).not.toContain(".worktrees/live/.env");
-      expect(result.skippedNestedVcsRoots).toContain(".worktrees/live/.env");
+      /** Sanity: the main tree's own files are unaffected by the pruning */
+      expect(result.files).toContain(".env");
     } finally {
       await execa("git", ["worktree", "remove", "--force", worktreePath], {
         cwd: repoRoot,

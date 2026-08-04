@@ -1,27 +1,42 @@
 import { consola } from "consola";
 import fg from "fast-glob";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { filterGitIgnoredFiles, isGitRepo, listWorktreePaths } from "~/lib/git";
 import { VCS_MARKERS } from "./vcs-markers";
 import { getErrorMessage } from "./get-error-message";
 
 /**
- * Default directories to always skip while globbing (performance, not
- * semantics)
+ * Directory names to always skip while globbing (performance, not semantics).
+ * Dependency and build-output trees never hold an env file worth capturing, and
+ * descending into them is what makes a large monorepo crawl.
  */
-const DEFAULT_IGNORE_PATTERNS = [
-  "node_modules/**",
-  ".git/**",
-  "dist/**",
-  "build/**",
-  ".next/**",
-  ".nuxt/**",
-  "out/**",
-  "target/**",
-  "coverage/**",
-  ".turbo/**",
+const IGNORED_DIRECTORY_NAMES = [
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  ".nuxt",
+  "out",
+  "target",
+  "coverage",
+  ".turbo",
 ];
+
+/**
+ * Ignore patterns for the directories above.
+ *
+ * Each name needs BOTH a root-anchored (`node_modules/**`) and a nested
+ * (`**\/node_modules/**`) form: fast-glob anchors every pattern at `cwd`, so
+ * `node_modules/**` alone only skips the top-level directory. Without the
+ * nested variant the glob descends into every per-package `node_modules` of a
+ * workspace and every `dist` of a build — the dominant cost in a monorepo.
+ */
+const DEFAULT_IGNORE_PATTERNS = IGNORED_DIRECTORY_NAMES.flatMap((name) => [
+  `${name}/**`,
+  `**/${name}/**`,
+]);
 
 /**
  * Built-in capture patterns. Each filename appears as a root-level pattern AND
@@ -228,6 +243,44 @@ function partitionNestedVcsRoots(
   return { kept, skipped };
 }
 
+/**
+ * Turn linked worktree paths into fast-glob ignore patterns so the glob never
+ * descends into them.
+ *
+ * `partitionNestedVcsRoots` already discards candidates inside a worktree, but
+ * it runs *after* the glob has walked them. In a repo that keeps its worktrees
+ * under the root (`.worktrees/<branch>/`), that means walking a full checkout —
+ * dependency trees included — once per worktree, only to throw every match
+ * away. Pruning up front is the difference between traversing one working tree
+ * and traversing all of them.
+ *
+ * Paths that resolve to the repo root itself (the main tree) or that live
+ * outside it are dropped: the former would ignore everything, and the latter is
+ * unreachable from the glob anyway. Patterns are emitted with posix separators
+ * because fast-glob requires them regardless of platform.
+ *
+ * This is a performance optimization, never a correctness guarantee: a worktree
+ * directory whose name contains glob metacharacters produces a pattern that
+ * won't match, and `partitionNestedVcsRoots` still discards its candidates
+ * after the glob. Only the traversal saving is lost.
+ */
+function toWorktreeIgnorePatterns(
+  normalizedRoot: string,
+  worktreePaths: string[],
+): string[] {
+  const patterns: string[] = [];
+
+  for (const worktreePath of worktreePaths) {
+    const relativePath = relative(normalizedRoot, toRealPath(worktreePath));
+    /** Empty means the main tree; `..` or absolute means outside the root */
+    if (relativePath === "" || relativePath.startsWith("..")) continue;
+    if (isAbsolute(relativePath)) continue;
+    patterns.push(`${relativePath.split(sep).join("/")}/**`);
+  }
+
+  return patterns;
+}
+
 export interface FindEnvFilesOptions {
   /**
    * Extra capture patterns from `envi.config.maml#capture_patterns`. Bare
@@ -261,9 +314,20 @@ export async function findEnvFiles(
   const patterns = Array.from(new Set([...DEFAULT_PATTERNS, ...additional]));
 
   const inGitRepo = isGitRepo(repoRoot);
-  const ignorePatterns = inGitRepo
-    ? DEFAULT_IGNORE_PATTERNS
-    : [...DEFAULT_IGNORE_PATTERNS, ...parseGitignoreDirsFallback(repoRoot)];
+
+  /**
+   * Ask git for its registered worktrees so a linked worktree is skipped even
+   * when its `.git` pointer is transiently missing (the marker probe's blind
+   * spot). Best-effort and only meaningful inside a git repo; empty otherwise,
+   * leaving marker-only detection in place.
+   */
+  const worktreePaths = inGitRepo ? await listWorktreePaths(repoRoot) : [];
+
+  const ignorePatterns = [
+    ...DEFAULT_IGNORE_PATTERNS,
+    ...toWorktreeIgnorePatterns(toRealPath(repoRoot), worktreePaths),
+    ...(inGitRepo ? [] : parseGitignoreDirsFallback(repoRoot)),
+  ];
 
   const rawCandidates = await fg(patterns, {
     cwd: repoRoot,
@@ -277,14 +341,6 @@ export async function findEnvFiles(
      */
     followSymbolicLinks: false,
   });
-
-  /**
-   * Ask git for its registered worktrees so a linked worktree is skipped even
-   * when its `.git` pointer is transiently missing (the marker probe's blind
-   * spot). Best-effort and only meaningful inside a git repo; empty otherwise,
-   * leaving marker-only detection in place.
-   */
-  const worktreePaths = inGitRepo ? await listWorktreePaths(repoRoot) : [];
 
   /**
    * Partition candidates that live inside a nested VCS root (git worktree,

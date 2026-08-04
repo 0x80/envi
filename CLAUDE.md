@@ -120,6 +120,8 @@ pnpm docs:preview       # Preview built docs
 - Uses `fast-glob` with the built-in `DEFAULT_PATTERNS` (`.env`, `.env.*`, `.dev.vars`, `.dev.vars.*`, plus `**/` variants) merged with any `additionalPatterns` supplied via the options arg (sourced from `capture_patterns` in `envi.config.maml`)
 - `expandPattern()` auto-expands a bare user pattern like `.flaskenv` into `.flaskenv` and `**/.flaskenv`; patterns containing `/` are passed through verbatim
 - Combines default ignore patterns (node_modules, dist, build, etc.) with `.gitignore` directory patterns
+- Every ignored directory name is emitted in **both** a root-anchored (`dist/**`) and a nested (`**/dist/**`) form. fast-glob anchors patterns at `cwd`, so the root-only form would let the glob descend into every per-package `node_modules` and every `apps/*/dist` of a workspace — the dominant cost in a monorepo
+- Registered git worktrees are turned into ignore patterns _before_ globbing (`toWorktreeIgnorePatterns`), so a repo that keeps worktrees under its root doesn't traverse a full checkout per worktree only to discard every match. Their files therefore never appear in `skippedNestedVcsRoots`; nested working trees git doesn't know about (submodules, nested clones, jj/hg/svn) are still detected after the glob and reported there
 - Only respects directory patterns from `.gitignore`, not file patterns (so `.env` files are found even if gitignored)
 
 **CLI (`src/cli.ts`)**

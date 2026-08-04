@@ -157,6 +157,63 @@ describe("findEnvFiles", () => {
       expect(existsSync).not.toHaveBeenCalled();
     });
 
+    it("anchors every ignored directory at both the root and any depth", async () => {
+      /**
+       * fast-glob anchors patterns at `cwd`, so a bare `node_modules/**` only
+       * skips the top-level directory. Without the `**\/` variant the glob
+       * walks every per-package `node_modules` and every nested `dist` of a
+       * workspace — the difference between a sub-second scan and a minute.
+       */
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
+      for (const name of ["node_modules", "dist", "build", ".turbo", ".git"]) {
+        expect(ignore).toContain(`${name}/**`);
+        expect(ignore).toContain(`**/${name}/**`);
+      }
+    });
+
+    it("prunes registered worktrees from the glob instead of walking them", async () => {
+      /**
+       * Worktrees kept under the repo root are full checkouts. Letting the glob
+       * walk them and discarding the matches afterwards costs one full
+       * traversal per worktree for zero captured files.
+       */
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/project/.worktrees/feature-a",
+        "/project/.worktrees/feature-b",
+      ]);
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
+      expect(ignore).toContain(".worktrees/feature-a/**");
+      expect(ignore).toContain(".worktrees/feature-b/**");
+      /** The main tree must never become an ignore pattern */
+      expect(ignore).not.toContain("/**");
+    });
+
+    it("ignores worktrees registered outside the repo root", async () => {
+      vi.mocked(listWorktreePaths).mockResolvedValue([
+        "/project",
+        "/elsewhere/feature-a",
+      ]);
+      vi.mocked(fg).mockResolvedValue([]);
+      vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
+
+      await findEnvFiles("/project");
+
+      const ignore = vi.mocked(fg).mock.calls[0]?.[1]?.ignore as string[];
+      expect(ignore.some((pattern) => pattern.includes(".."))).toBe(false);
+      expect(ignore.some((pattern) => pattern.startsWith("/"))).toBe(false);
+    });
+
     it("auto-expands a bare additionalPattern into root and **/ variants", async () => {
       vi.mocked(fg).mockResolvedValue([]);
       vi.mocked(filterGitIgnoredFiles).mockResolvedValue([]);
