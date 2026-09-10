@@ -10,6 +10,9 @@ envi unpack
 
 # Or provide blob as argument
 envi unpack <blob>
+
+# Skip updating a GitHub-backed local store
+envi unpack --no-pull <blob>
 ```
 
 ## Arguments
@@ -34,10 +37,13 @@ You can pass the blob as:
 
 The `unpack` command decrypts an encrypted blob (from clipboard or argument) and:
 
-1. **First** prompts to restore the environment files directly to your repository
-2. **Then** optionally prompts to save to your global storage (`~/.envi/store/`)
+1. Updates a GitHub-backed local store with `git pull --ff-only`
+2. Prompts to restore the environment files directly to your repository
+3. Optionally prompts to save to your global storage (`~/.envi/store/`)
 
-> **Note:** Unpack works completely independently of capture and storage. It decrypts the blob and restores files directly to your repository - no need to use global storage at all! Saving to storage is optional and only useful if you want to use `envi restore` later.
+If the pull fails, envi warns that the local store may be stale and continues unpacking. Use `--no-pull` when a script manages store synchronization separately.
+
+> **Note:** Unpack decrypts the blob and restores files directly to your repository. It updates a GitHub-backed local store first, but saving the unpacked files to storage remains optional.
 
 ### Clipboard Feature
 
@@ -181,17 +187,18 @@ You can decline any of the interactive prompts:
 
 ## How It Works
 
-1. **Reads blob** - From clipboard if no argument provided, or from the argument
-2. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
-3. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
-4. **Attempts decryption** in priority order:
+1. **Updates the store** - Fast-forwards a GitHub-backed `~/.envi` clone unless `--no-pull` is set
+2. **Reads blob** - From clipboard if no argument provided, or from the argument
+3. **Validates blob format** - Strips whitespace and checks for `__envi_start__` and `__envi_end__` delimiters
+4. **Finds project root** - Locates your project root (looks for version control markers: `.git`, `.jj`, `.hg`, `.svn`, or prompts for confirmation)
+5. **Attempts decryption** in priority order:
    - If `envi.config.maml` exists with `encryption_key`, try it first
    - Otherwise (or if that fails) walk through configured manifest files (package.json, Cargo.toml, go.mod, pyproject.toml, composer.json, pubspec.yaml, pom.xml, settings.gradle.kts, settings.gradle), deriving an MD5 key from each
    - Otherwise prompt for a custom secret
-5. **Decrypts data** - Uses AES-256-GCM decryption with the derived key
-6. **Validates configuration** - Ensures decrypted data is valid envi format
-7. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
-8. **Optionally saves to storage** - Asks if you also want to save to `~/.envi/store/` (defaults to No)
+6. **Decrypts data** - Uses AES-256-GCM decryption with the derived key
+7. **Validates configuration** - Ensures decrypted data is valid envi format
+8. **Prompts to restore** - Asks if you want to write environment files to repository (with overwrite confirmation for existing files)
+9. **Optionally saves to storage** - Asks if you also want to save to `~/.envi/store/` (defaults to No)
 
 ## Error Handling
 

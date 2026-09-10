@@ -6,18 +6,24 @@ Restore environment files from the global store back into your repository.
 
 ```bash
 envi restore
+
+# Use the local store without checking GitHub
+envi restore --no-pull
 ```
 
 ## Description
 
-The `restore` command reads your stored environment configuration and recreates all `.env` files in your repository with their original content and comments.
+The `restore` command reads your stored environment configuration and recreates all `.env` files in your repository with their original content and comments. When GitHub version control is enabled, it first runs `git pull --ff-only` in `~/.envi`. If the pull fails, envi warns that the local data may be stale and continues restoring from it.
+
+Use `--no-pull` to skip the GitHub check, such as in a script that manages synchronization separately.
 
 ## What It Does
 
-1. **Finds repository root** - Locates your project root
-2. **Reads package name** - Gets name from `package.json` or uses folder name
-3. **Loads stored config** - Reads from `~/.envi/store/{package-name}.maml`
-4. **Restores files** - Recreates each `.env` file with preserved comments
+1. **Updates the store** - Fast-forwards a GitHub-backed `~/.envi` clone unless `--no-pull` is set
+2. **Finds repository root** - Locates your project root
+3. **Reads package name** - Gets name from `package.json` or uses folder name
+4. **Loads stored config** - Reads from `~/.envi/store/{package-name}.maml`
+5. **Restores files** - Recreates each `.env` file with preserved comments
 
 ## File Handling
 

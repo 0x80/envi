@@ -6,6 +6,7 @@ import {
   filterGitIgnoredFiles,
   isGitRepo,
   listWorktreePaths,
+  pullLatest,
 } from "./git";
 
 vi.mock("node:fs");
@@ -222,6 +223,51 @@ describe("git", () => {
 
       await expect(commitAndPush("/envi", "Update env files")).rejects.toThrow(
         /Merge conflict in store\/app\.maml/,
+      );
+    });
+  });
+
+  describe("pullLatest", () => {
+    it("fast-forwards the local repository from its configured upstream", async () => {
+      mockGit({ "rev-list": { stdout: "0" } });
+
+      await pullLatest("/envi");
+
+      expect(execa).toHaveBeenCalledWith(
+        "git",
+        ["pull", "--ff-only"],
+        expect.objectContaining({ cwd: "/envi", reject: false }),
+      );
+      expect(execa).toHaveBeenCalledWith(
+        "git",
+        ["rev-list", "--count", "@{upstream}..HEAD"],
+        expect.objectContaining({ cwd: "/envi", reject: false }),
+      );
+    });
+
+    it("throws the git diagnostic when the pull fails", async () => {
+      vi.mocked(execa).mockResolvedValue({
+        exitCode: 1,
+        stdout: "",
+        stderr: "fatal: Not possible to fast-forward, aborting.",
+      } as never);
+
+      await expect(pullLatest("/envi")).rejects.toThrow(
+        /Not possible to fast-forward/,
+      );
+    });
+
+    it("throws when the local repository has unpushed commits", async () => {
+      mockGit({ "rev-list": { stdout: "1" } });
+
+      await expect(pullLatest("/envi")).rejects.toThrow(/1 unpushed commit/i);
+    });
+
+    it("throws when the ahead state cannot be measured", async () => {
+      mockGit({ "rev-list": { exitCode: 128 } });
+
+      await expect(pullLatest("/envi")).rejects.toThrow(
+        /could not verify.*unpushed commits/i,
       );
     });
   });

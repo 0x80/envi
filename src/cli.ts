@@ -41,8 +41,15 @@ const restore = defineCommand({
     name: "restore",
     description: "Restore env files from storage to repository",
   },
-  async run() {
-    await restoreCommand();
+  args: {
+    pull: {
+      type: "boolean",
+      description: "Pull the latest GitHub-backed store before restoring",
+      default: true,
+    },
+  },
+  async run({ args }) {
+    await restoreCommand({ pull: args.pull });
   },
 });
 
@@ -71,9 +78,14 @@ const unpack = defineCommand({
         "Encrypted blob to unpack (optional - reads from clipboard if not provided)",
       required: false,
     },
+    pull: {
+      type: "boolean",
+      description: "Pull the latest GitHub-backed store before unpacking",
+      default: true,
+    },
   },
   async run({ args }) {
-    await unpackCommand(args.blob as string | undefined);
+    await unpackCommand(args.blob as string | undefined, { pull: args.pull });
   },
 });
 

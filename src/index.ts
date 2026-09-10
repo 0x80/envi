@@ -32,11 +32,13 @@ export {
   KEY_FILE_NAME,
   LEGACY_KEY_FILE_NAME,
   PACKAGE_EXTRACTORS,
+  pullLatest,
   readCapturePatterns,
   readConfig,
   readEncryptionKey,
   repoExists,
   saveToStorage,
+  syncStoreBeforeRead,
   updateConfig,
   writeConfig,
   writeEncryptionKey,
@@ -46,6 +48,8 @@ export type {
   EnviStore,
   EnviStoreFile,
   PackageExtractor,
+  StoreSyncOptions,
+  StoreSyncResult,
   WriteEncryptionKeyOptions,
 } from "~/lib";
 export {
