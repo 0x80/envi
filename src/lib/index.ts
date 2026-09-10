@@ -21,7 +21,13 @@ export {
   initGitRepo,
   isGitRepo,
   listWorktreePaths,
+  pullLatest,
 } from "./git";
+export {
+  syncStoreBeforeRead,
+  type StoreSyncOptions,
+  type StoreSyncResult,
+} from "./store-sync";
 export {
   cloneRepo,
   createPrivateRepo,

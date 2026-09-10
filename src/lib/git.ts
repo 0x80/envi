@@ -223,6 +223,26 @@ export async function commitAndPush(
 }
 
 /**
+ * Fast-forward a repository from its configured upstream.
+ *
+ * @param dir - Repository directory
+ */
+export async function pullLatest(dir: string): Promise<void> {
+  const result = await execa("git", ["pull", "--ff-only"], {
+    cwd: dir,
+    reject: false,
+  });
+
+  if (result.exitCode !== 0) {
+    const details = result.stderr?.trim();
+    throw new Error(
+      `Could not pull the latest envi store` +
+        (details ? `: ${details}` : ` (git exited ${result.exitCode})`),
+    );
+  }
+}
+
+/**
  * Create initial commit without pushing
  *
  * @param dir - Repository directory

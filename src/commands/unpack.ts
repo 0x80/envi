@@ -12,7 +12,9 @@ import {
   KEY_FILE_NAME,
   readEncryptionKey,
   saveToStorage,
+  syncStoreBeforeRead,
   type EnviStore,
+  type StoreSyncOptions,
 } from "~/lib";
 import { isEncryptedEntry } from "~/lib/storage";
 import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
@@ -84,8 +86,13 @@ function writeEnvFile(filePath: string, env: Record<string, string>): void {
  * Decrypts a blob and restores environment files directly to repository
  * Optionally saves to global storage
  */
-export async function unpackCommand(blob?: string): Promise<void> {
+export async function unpackCommand(
+  blob?: string,
+  options: StoreSyncOptions = {},
+): Promise<void> {
   try {
+    await syncStoreBeforeRead(options);
+
     /** Get blob from clipboard if not provided */
     let blobContent = blob;
     if (!blobContent) {

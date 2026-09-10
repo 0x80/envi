@@ -20,7 +20,7 @@ import { captureCommand } from "@codecompose/envi";
 await captureCommand();
 ```
 
-### restoreCommand()
+### restoreCommand(options?)
 
 Restore environment files from storage.
 
@@ -28,6 +28,9 @@ Restore environment files from storage.
 import { restoreCommand } from "@codecompose/envi";
 
 await restoreCommand();
+
+/** Skip pulling a GitHub-backed store */
+await restoreCommand({ pull: false });
 ```
 
 ### clearCommand()

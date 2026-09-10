@@ -10,8 +10,10 @@ import {
   getStorageFilename,
   KEY_FILE_NAME,
   readEncryptionKey,
+  syncStoreBeforeRead,
+  type EnviStore,
+  type StoreSyncOptions,
 } from "~/lib";
-import type { EnviStore } from "~/lib";
 import { isEncryptedEntry } from "~/lib/storage";
 import { findRepoRoot, getErrorMessage, parseEnvFile } from "~/utils";
 import type { EnvObject } from "~/utils";
@@ -79,8 +81,12 @@ function writeEnvFile(filePath: string, env: Record<string, string>): void {
  *
  * Restores env files from storage into the repository
  */
-export async function restoreCommand(): Promise<void> {
+export async function restoreCommand(
+  options: StoreSyncOptions = {},
+): Promise<void> {
   try {
+    await syncStoreBeforeRead(options);
+
     /** Find repository root */
     consola.start("Finding repository root...");
     const repoRoot = await findRepoRoot();
