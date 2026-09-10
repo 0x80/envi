@@ -228,16 +228,35 @@ export async function commitAndPush(
  * @param dir - Repository directory
  */
 export async function pullLatest(dir: string): Promise<void> {
-  const result = await execa("git", ["pull", "--ff-only"], {
+  const pullResult = await execa("git", ["pull", "--ff-only"], {
     cwd: dir,
     reject: false,
   });
 
-  if (result.exitCode !== 0) {
-    const details = result.stderr?.trim();
+  if (pullResult.exitCode !== 0) {
+    const details = pullResult.stderr?.trim();
     throw new Error(
       `Could not pull the latest envi store` +
-        (details ? `: ${details}` : ` (git exited ${result.exitCode})`),
+        (details ? `: ${details}` : ` (git exited ${pullResult.exitCode})`),
+    );
+  }
+
+  const aheadResult = await execa(
+    "git",
+    ["rev-list", "--count", "@{upstream}..HEAD"],
+    { cwd: dir, reject: false },
+  );
+  const aheadCount = Number.parseInt(aheadResult.stdout.trim(), 10);
+  if (aheadResult.exitCode !== 0 || !Number.isFinite(aheadCount)) {
+    const details = aheadResult.stderr?.trim();
+    throw new Error(
+      `Could not verify whether the local envi store has unpushed commits` +
+        (details ? `: ${details}` : ""),
+    );
+  }
+  if (aheadCount > 0) {
+    throw new Error(
+      `The local envi store has ${aheadCount} unpushed commit${aheadCount === 1 ? "" : "s"}`,
     );
   }
 }

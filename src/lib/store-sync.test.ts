@@ -28,6 +28,7 @@ describe("syncStoreBeforeRead", () => {
 
   it("skips synchronization when pulling is disabled", async () => {
     await expect(syncStoreBeforeRead({ pull: false })).resolves.toBe("skipped");
+    expect(pullLatest).not.toHaveBeenCalled();
   });
 
   it("skips synchronization when GitHub version control is disabled", async () => {
@@ -38,12 +39,14 @@ describe("syncStoreBeforeRead", () => {
     });
 
     await expect(syncStoreBeforeRead()).resolves.toBe("skipped");
+    expect(pullLatest).not.toHaveBeenCalled();
   });
 
   it("skips synchronization when the envi directory is not a git repository", async () => {
     vi.mocked(isGitRepo).mockReturnValue(false);
 
     await expect(syncStoreBeforeRead()).resolves.toBe("skipped");
+    expect(pullLatest).not.toHaveBeenCalled();
   });
 
   it("warns and continues with the local store when pulling fails", async () => {
